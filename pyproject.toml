@@ -1,5 +1,5 @@
 [project]
-name = "drg"
+name = "drg-kg"
 version = "0.1.0a0"
 description = "Declarative Relationship Generation (DRG) - schema-driven Knowledge Graph extraction"
 readme = "README.md"
@@ -171,8 +171,6 @@ omit = [
     # Pending unit tests (tracked in CHANGELOG roadmap). These modules
     # currently lack dedicated tests; once they land, remove from omit so
     # the floor reflects real coverage.
-    "drg/chunking/strategies.py",
-    "drg/chunking/validators.py",
     "drg/clustering/algorithms.py",
     "drg/clustering/summarization.py",
     "drg/graph/builders.py",
