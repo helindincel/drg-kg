@@ -9,6 +9,22 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Added
+
+- English `README.md` (Turkish version preserved as `README.tr.md`); the two
+  link to each other and call out that `docs/` is currently Turkish.
+- `examples/quickstarts/` — three self-contained, runnable showcase scripts
+  (`01_wikipedia_article.py`, `02_financial_news.py`, `03_biomedical.py`)
+  demonstrating the `schema → extract_typed → KG` loop on different domains.
+- `tests/test_chunking_strategies.py` (23 tests) and
+  `tests/test_chunking_validators.py` (14 tests) covering `drg.chunking`.
+
+### Changed
+
+- Removed `drg/chunking/strategies.py` and `drg/chunking/validators.py` from
+  the coverage `omit` list now that they have dedicated unit tests; both
+  files are exercised end-to-end without LLM calls via a `FakeTokenizer`.
+
 ## [0.1.0a0] — 2026-05-24
 
 First public alpha. The codebase has been overhauled across five sprints
