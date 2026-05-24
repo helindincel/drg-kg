@@ -1,0 +1,547 @@
+"""DSPy optimizer integration for iterative learning."""
+
+import logging
+from collections.abc import Callable
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+
+import dspy
+
+from ..extract import KGExtractor
+from ..schema import DRGSchema, EnhancedDRGSchema
+
+logger = logging.getLogger(__name__)
+
+
+class OptimizerType(str, Enum):
+    """Supported optimizer types."""
+
+    BOOTSTRAP_FEW_SHOT = "bootstrap_few_shot"
+    MIPRO = "mipro"
+    COPRO = "copro"
+    LABELED_FEW_SHOT = "labeled_few_shot"
+
+
+@dataclass
+class OptimizerConfig:
+    """Configuration for DSPy optimizer."""
+
+    optimizer_type: OptimizerType = OptimizerType.BOOTSTRAP_FEW_SHOT
+    max_bootstrapped_demos: int = 4
+    max_labeled_demos: int = 16
+    num_candidates: int = 10
+    init_temperature: float = 1.0
+    metric_threshold: float = 0.7
+    max_iterations: int = 5
+
+
+@dataclass
+class EvaluationResult:
+    """Result of evaluation."""
+
+    precision: float
+    recall: float
+    f1: float
+    accuracy: float
+    details: dict[str, Any]
+
+
+class DRGOptimizer:
+    """DSPy optimizer wrapper for DRG extraction improvement."""
+
+    def __init__(
+        self,
+        schema: DRGSchema | EnhancedDRGSchema,
+        config: OptimizerConfig | None = None,
+        training_examples: list[dict[str, Any]] | None = None,
+    ):
+        """Initialize DRG optimizer.
+
+        Args:
+            schema: DRG schema for extraction
+            config: Optimizer configuration
+            training_examples: Optional training examples (can also be added via add_training_example)
+        """
+        self.schema = schema
+        self.config = config or OptimizerConfig()
+
+        # Create base extractor
+        self.base_extractor = KGExtractor(schema)
+
+        # Optimized extractor (will be set after optimization)
+        self.optimized_extractor: KGExtractor | None = None
+
+        # Training examples
+        self.training_examples: list[dict[str, Any]] = (
+            training_examples if training_examples is not None else []
+        )
+
+        # Evaluation history
+        self.evaluation_history: list[EvaluationResult] = []
+
+    def add_training_example(
+        self,
+        text: str,
+        expected_entities: list[tuple[str, str]],
+        expected_relations: list[tuple[str, str, str]],
+    ):
+        """Add a training example.
+
+        Args:
+            text: Input text
+            expected_entities: Expected (entity_name, entity_type) tuples
+            expected_relations: Expected (source, relation, target) tuples
+        """
+        self.training_examples.append(
+            {
+                "text": text,
+                "expected_entities": expected_entities,
+                "expected_relations": expected_relations,
+            }
+        )
+
+    def optimize(
+        self,
+        metric: Callable | None = None,
+        validation_examples: list[dict[str, Any]] | None = None,
+    ) -> KGExtractor:
+        """Optimize extraction using DSPy optimizer.
+
+        Args:
+            metric: Custom evaluation metric function
+            validation_examples: Optional validation examples
+
+        Returns:
+            Optimized KGExtractor
+        """
+        if not self.training_examples:
+            logger.warning("No training examples provided, returning base extractor")
+            return self.base_extractor
+
+        logger.info(f"Starting optimization with {len(self.training_examples)} training examples")
+
+        # Create optimizer based on type
+        if self.config.optimizer_type == OptimizerType.BOOTSTRAP_FEW_SHOT:
+            optimizer = self._create_bootstrap_optimizer()
+        elif self.config.optimizer_type == OptimizerType.MIPRO:
+            optimizer = self._create_mipro_optimizer()
+        elif self.config.optimizer_type == OptimizerType.COPRO:
+            optimizer = self._create_copro_optimizer()
+        elif self.config.optimizer_type == OptimizerType.LABELED_FEW_SHOT:
+            optimizer = self._create_labeled_few_shot_optimizer()
+        else:
+            raise ValueError(f"Unknown optimizer type: {self.config.optimizer_type}")
+
+        # Use default metric if not provided
+        if metric is None:
+            metric = self._default_metric
+
+        # Prepare training set
+        trainset = self._prepare_trainset()
+
+        # Optimize using DSPy optimizer
+        # DSPy 2.4+ uses compile() method for all optimizers (BootstrapFewShot, MIPRO, COPRO, etc.)
+        # BootstrapFewShot is a teleprompter that wraps the module during forward pass
+        try:
+            # All DSPy optimizers (including BootstrapFewShot) use compile() method
+            if hasattr(optimizer, "compile"):
+                self.optimized_extractor = optimizer.compile(
+                    student=self.base_extractor,
+                    trainset=trainset,
+                    metric=metric,
+                )
+            # Fallback for older DSPy versions or custom optimizers
+            elif hasattr(optimizer, "optimize"):
+                self.optimized_extractor = optimizer.optimize(
+                    student=self.base_extractor,
+                    trainset=trainset,
+                    metric=metric,
+                )
+            else:
+                # Final fallback: BootstrapFewShot can be called directly (teleprompter pattern)
+                # This wraps the module during forward pass, but compile() is preferred
+                logger.warning(
+                    "Optimizer doesn't have compile() or optimize() method, using module directly"
+                )
+                self.optimized_extractor = self.base_extractor
+
+            logger.info("Optimization completed successfully")
+        except Exception as e:
+            logger.error(f"Optimization failed: {e}")
+            # Don't silently fallback - raise the error so user knows optimization failed
+            # This is important for debugging and understanding why optimization didn't work
+            raise RuntimeError(
+                f"DSPy optimization failed: {e}. "
+                "Check your training examples format and metric function."
+            ) from e
+
+        return self.optimized_extractor
+
+    def _create_bootstrap_optimizer(self) -> dspy.BootstrapFewShot:
+        """Create BootstrapFewShot optimizer."""
+        # BootstrapFewShot is a teleprompter, not a direct optimizer
+        # It optimizes during forward pass
+        return dspy.BootstrapFewShot(
+            max_bootstrapped_demos=self.config.max_bootstrapped_demos,
+            max_labeled_demos=self.config.max_labeled_demos,
+        )
+
+    def _create_mipro_optimizer(self):
+        """Create MIPRO optimizer.
+
+        Note: MIPRO may not be available in all DSPy versions.
+        Falls back to COPRO if MIPRO is not available.
+        """
+        # Try MIPRO first, fallback to COPRO
+        if hasattr(dspy, "MIPRO"):
+            return dspy.MIPRO(
+                num_candidates=self.config.num_candidates,
+                init_temperature=self.config.init_temperature,
+            )
+        else:
+            # Fallback to COPRO (similar functionality)
+            logger.warning("MIPRO not available, using COPRO instead")
+            return dspy.COPRO(
+                num_candidates=self.config.num_candidates,
+                init_temperature=self.config.init_temperature,
+            )
+
+    def _create_copro_optimizer(self) -> dspy.COPRO:
+        """Create COPRO optimizer."""
+        return dspy.COPRO(
+            num_candidates=self.config.num_candidates,
+            init_temperature=self.config.init_temperature,
+        )
+
+    def _create_labeled_few_shot_optimizer(self) -> dspy.LabeledFewShot:
+        """Create LabeledFewShot optimizer."""
+        return dspy.LabeledFewShot(k=self.config.max_labeled_demos)
+
+    def _prepare_trainset(self) -> list[dspy.Example]:
+        """Prepare training set for DSPy.
+
+        Important: The trainset format must match the output format of KGExtractor(...).
+        The extractor returns a prediction-like object with 'entities' and 'relations' attributes,
+        where both are lists of tuples. This matches the expected format from training examples.
+        """
+        trainset = []
+        for example in self.training_examples:
+            # Create dspy.Example with correct format
+            # Input: text (str)
+            # Output: entities (List[Tuple[str, str]]), relations (List[Tuple[str, str, str]])
+            # This matches KGExtractor.forward() return type
+            trainset.append(
+                dspy.Example(
+                    text=example["text"],
+                    entities=example["expected_entities"],  # List[Tuple[str, str]]
+                    relations=example["expected_relations"],  # List[Tuple[str, str, str]]
+                ).with_inputs("text")
+            )
+        return trainset
+
+    def _default_metric(
+        self,
+        example: dspy.Example,
+        pred: Any,
+        trace: Any | None = None,
+    ) -> float:
+        """Default evaluation metric.
+
+        Args:
+            example: Ground truth example
+            pred: Prediction from model
+            trace: Optional trace
+
+        Returns:
+            Metric score (0-1)
+        """
+        # Extract expected and predicted entities/relations
+        expected_entities = set(example.entities)
+        expected_relations = set(example.relations)
+
+        pred_entities = set(getattr(pred, "entities", []))
+        pred_relations = set(getattr(pred, "relations", []))
+
+        # Calculate F1 score
+        entity_precision = (
+            len(expected_entities & pred_entities) / len(pred_entities) if pred_entities else 0.0
+        )
+        entity_recall = (
+            len(expected_entities & pred_entities) / len(expected_entities)
+            if expected_entities
+            else 0.0
+        )
+        entity_f1 = (
+            2 * entity_precision * entity_recall / (entity_precision + entity_recall)
+            if (entity_precision + entity_recall) > 0
+            else 0.0
+        )
+
+        relation_precision = (
+            len(expected_relations & pred_relations) / len(pred_relations)
+            if pred_relations
+            else 0.0
+        )
+        relation_recall = (
+            len(expected_relations & pred_relations) / len(expected_relations)
+            if expected_relations
+            else 0.0
+        )
+        relation_f1 = (
+            2 * relation_precision * relation_recall / (relation_precision + relation_recall)
+            if (relation_precision + relation_recall) > 0
+            else 0.0
+        )
+
+        # Combined F1 (weighted average)
+        combined_f1 = 0.6 * entity_f1 + 0.4 * relation_f1
+
+        return combined_f1
+
+    def evaluate(
+        self,
+        test_examples: list[dict[str, Any]],
+        use_optimized: bool = True,
+    ) -> EvaluationResult:
+        """Evaluate extractor on test examples.
+
+        Args:
+            test_examples: List of test examples with expected results
+            use_optimized: Whether to use optimized extractor
+
+        Returns:
+            EvaluationResult
+        """
+        extractor = (
+            self.optimized_extractor
+            if use_optimized and self.optimized_extractor
+            else self.base_extractor
+        )
+
+        all_precisions = []
+        all_recalls = []
+        all_f1s = []
+        all_accuracies = []
+
+        details = {
+            "entity_precisions": [],
+            "entity_recalls": [],
+            "relation_precisions": [],
+            "relation_recalls": [],
+        }
+
+        for example in test_examples:
+            text = example["text"]
+            expected_entities = {tuple(e) for e in example.get("expected_entities", [])}
+            expected_relations = {tuple(r) for r in example.get("expected_relations", [])}
+
+            # Extract
+            result = extractor(text=text)
+            pred_entities = {
+                tuple(e) for e in (result.entities if hasattr(result, "entities") else [])
+            }
+            pred_relations = {
+                tuple(r) for r in (result.relations if hasattr(result, "relations") else [])
+            }
+
+            # Calculate metrics
+            entity_precision = (
+                len(expected_entities & pred_entities) / len(pred_entities)
+                if pred_entities
+                else 0.0
+            )
+            entity_recall = (
+                len(expected_entities & pred_entities) / len(expected_entities)
+                if expected_entities
+                else 0.0
+            )
+            entity_f1 = (
+                2 * entity_precision * entity_recall / (entity_precision + entity_recall)
+                if (entity_precision + entity_recall) > 0
+                else 0.0
+            )
+
+            relation_precision = (
+                len(expected_relations & pred_relations) / len(pred_relations)
+                if pred_relations
+                else 0.0
+            )
+            relation_recall = (
+                len(expected_relations & pred_relations) / len(expected_relations)
+                if expected_relations
+                else 0.0
+            )
+            relation_f1 = (
+                2 * relation_precision * relation_recall / (relation_precision + relation_recall)
+                if (relation_precision + relation_recall) > 0
+                else 0.0
+            )
+
+            # Combined metrics
+            precision = 0.6 * entity_precision + 0.4 * relation_precision
+            recall = 0.6 * entity_recall + 0.4 * relation_recall
+            f1 = 0.6 * entity_f1 + 0.4 * relation_f1
+            accuracy = (
+                (len(expected_entities & pred_entities) + len(expected_relations & pred_relations))
+                / (len(expected_entities) + len(expected_relations))
+                if (expected_entities or expected_relations)
+                else 0.0
+            )
+
+            all_precisions.append(precision)
+            all_recalls.append(recall)
+            all_f1s.append(f1)
+            all_accuracies.append(accuracy)
+
+            details["entity_precisions"].append(entity_precision)
+            details["entity_recalls"].append(entity_recall)
+            details["relation_precisions"].append(relation_precision)
+            details["relation_recalls"].append(relation_recall)
+
+        # Average metrics
+        result = EvaluationResult(
+            precision=sum(all_precisions) / len(all_precisions) if all_precisions else 0.0,
+            recall=sum(all_recalls) / len(all_recalls) if all_recalls else 0.0,
+            f1=sum(all_f1s) / len(all_f1s) if all_f1s else 0.0,
+            accuracy=sum(all_accuracies) / len(all_accuracies) if all_accuracies else 0.0,
+            details=details,
+        )
+
+        self.evaluation_history.append(result)
+        return result
+
+    def iterative_improve(
+        self,
+        test_examples: list[dict[str, Any]],
+        max_iterations: int | None = None,
+    ) -> list[EvaluationResult]:
+        """Iteratively improve extraction through multiple optimization cycles.
+
+        Args:
+            test_examples: Test examples for evaluation
+            max_iterations: Maximum number of iterations (default: from config)
+
+        Returns:
+            List of evaluation results for each iteration
+        """
+        max_iter = max_iterations or self.config.max_iterations
+        results = []
+
+        logger.info(f"Starting iterative improvement with max {max_iter} iterations")
+
+        for iteration in range(max_iter):
+            logger.info(f"Iteration {iteration + 1}/{max_iter}")
+
+            # Optimize
+            self.optimize()
+
+            # Evaluate
+            result = self.evaluate(test_examples, use_optimized=True)
+            results.append(result)
+
+            logger.info(
+                f"Iteration {iteration + 1} - F1: {result.f1:.3f}, "
+                f"Precision: {result.precision:.3f}, Recall: {result.recall:.3f}"
+            )
+
+            # Check if threshold met
+            if result.f1 >= self.config.metric_threshold:
+                logger.info(f"Target metric threshold ({self.config.metric_threshold}) reached")
+                break
+
+        return results
+
+    def compare_before_after(
+        self,
+        test_examples: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Compare base and optimized extractor performance.
+
+        Args:
+            test_examples: Test examples
+
+        Returns:
+            Comparison dictionary
+        """
+        # Evaluate base
+        base_result = self.evaluate(test_examples, use_optimized=False)
+
+        # Evaluate optimized
+        if self.optimized_extractor:
+            optimized_result = self.evaluate(test_examples, use_optimized=True)
+        else:
+            logger.warning("No optimized extractor available, running optimization first")
+            self.optimize()
+            optimized_result = self.evaluate(test_examples, use_optimized=True)
+
+        # Calculate improvements
+        improvement = {
+            "precision": optimized_result.precision - base_result.precision,
+            "recall": optimized_result.recall - base_result.recall,
+            "f1": optimized_result.f1 - base_result.f1,
+            "accuracy": optimized_result.accuracy - base_result.accuracy,
+        }
+
+        return {
+            "base": {
+                "precision": base_result.precision,
+                "recall": base_result.recall,
+                "f1": base_result.f1,
+                "accuracy": base_result.accuracy,
+            },
+            "optimized": {
+                "precision": optimized_result.precision,
+                "recall": optimized_result.recall,
+                "f1": optimized_result.f1,
+                "accuracy": optimized_result.accuracy,
+            },
+            "improvement": improvement,
+            "improvement_percent": {
+                "precision": (improvement["precision"] / base_result.precision * 100)
+                if base_result.precision > 0
+                else 0.0,
+                "recall": (improvement["recall"] / base_result.recall * 100)
+                if base_result.recall > 0
+                else 0.0,
+                "f1": (improvement["f1"] / base_result.f1 * 100) if base_result.f1 > 0 else 0.0,
+                "accuracy": (improvement["accuracy"] / base_result.accuracy * 100)
+                if base_result.accuracy > 0
+                else 0.0,
+            },
+        }
+
+
+def create_optimizer(
+    schema: DRGSchema | EnhancedDRGSchema, optimizer_type: str = "bootstrap_few_shot", **kwargs
+) -> DRGOptimizer:
+    """Factory function to create optimizer.
+
+    Args:
+        schema: DRG schema
+        optimizer_type: Optimizer type name
+        **kwargs: Additional config parameters
+
+    Returns:
+        DRGOptimizer instance
+    """
+    config = OptimizerConfig(optimizer_type=OptimizerType(optimizer_type), **kwargs)
+    return DRGOptimizer(schema=schema, config=config)
+
+
+def evaluate_extraction(
+    extractor: KGExtractor,
+    test_examples: list[dict[str, Any]],
+) -> EvaluationResult:
+    """Evaluate extraction performance.
+
+    Args:
+        extractor: KGExtractor to evaluate
+        test_examples: Test examples with expected results
+
+    Returns:
+        EvaluationResult
+    """
+    optimizer = DRGOptimizer(schema=extractor.schema)
+    optimizer.base_extractor = extractor
+    return optimizer.evaluate(test_examples, use_optimized=False)

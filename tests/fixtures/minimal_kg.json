@@ -1,0 +1,9 @@
+{
+  "nodes": [
+    {"id": "Apple", "type": "Company"},
+    {"id": "iPhone", "type": "Product"}
+  ],
+  "edges": [
+    {"source": "Apple", "type": "produces", "target": "iPhone"}
+  ]
+}

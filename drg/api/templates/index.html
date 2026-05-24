@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRG Knowledge Graph Visualization</title>
+    <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 16px 24px;
+            font-size: 20px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        main {
+            display: flex;
+            height: calc(100vh - 57px);
+        }
+        
+        aside {
+            width: 320px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+        
+        aside h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #0f172a;
+        }
+        
+        button, select, input {
+            width: 100%;
+            margin: 8px 0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        select, input {
+            background: white;
+            color: #1e293b;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        section {
+            flex: 1;
+            position: relative;
+            background: #ffffff;
+        }
+        
+        #cy {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+        }
+        
+        .info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            max-width: 360px;
+            display: none;
+            z-index: 1000;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .info.active {
+            display: block;
+        }
+        
+        .info h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+        
+        .info p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #475569;
+            margin: 8px 0;
+        }
+        
+        #stats {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        #stats p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 6px 0;
+        }
+        
+        #stats strong {
+            color: #1e293b;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <header>DRG Knowledge Graph Visualization</header>
+    
+    <main>
+        <aside>
+            <h3>Controls</h3>
+            <button onclick="loadFullGraph()">Load Full Graph</button>
+            <button onclick="loadCommunities()">Load Communities</button>
+            <button onclick="resetView()">Reset View</button>
+
+            <h3 style="margin-top: 24px;">Display</h3>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #334155; margin-top: 8px;">
+                <input type="checkbox" id="hub-split-toggle" />
+                Anti-hub view (UI-only)
+            </label>
+            <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 12px; color: #64748b;">Threshold</span>
+                <input
+                    type="number"
+                    id="hub-split-threshold"
+                    value="10"
+                    min="3"
+                    max="100"
+                    style="width: 72px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;"
+                />
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; color: #64748b; line-height: 1.5;">
+                Adds small proxy nodes to reduce star-shaped hubs in the layout. Does not change the KG.
+            </div>
+            
+            <h3 style="margin-top: 24px;">Layout</h3>
+            <select id="layout-select" onchange="changeLayout()">
+                <option value="breadthfirst">Breadth-First</option>
+                <option value="concentric">Concentric</option>
+                <option value="circle">Circle</option>
+                <option value="grid">Grid</option>
+                <option value="cose">Force-Directed</option>
+            </select>
+            
+            <h3 style="margin-top: 24px;">Query</h3>
+            <input type="text" id="query-input" placeholder="Enter your query...">
+            <button onclick="executeQuery()">Execute Query</button>
+            
+            <div id="stats">
+                <p><strong>Graph Statistics</strong></p>
+                <p>Nodes: <span id="node-count">-</span></p>
+                <p>Edges: <span id="edge-count">-</span></p>
+                <p>Clusters: <span id="cluster-count">-</span></p>
+            </div>
+            
+            <div id="query-results" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0; display: none;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #0f172a;">Query Results</h3>
+                <div id="query-results-content" style="font-size: 13px; color: #475569; line-height: 1.6;">
+                    <!-- Query results will be inserted here -->
+                </div>
+            </div>
+        </aside>
+        
+        <section>
+            <div id="cy"></div>
+            <div class="info" id="info-panel">
+                <div id="info-content"></div>
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        let cy;
+        // Default to a force-directed layout to avoid "single hub star" visuals.
+        // Persist user preference in localStorage.
+        let currentLayout = (localStorage.getItem('drg_layout') || 'cose');
+
+        function computeMaxDegree(elements) {
+            const deg = new Map();
+            for (const el of elements || []) {
+                const d = el && el.data;
+                if (!d) continue;
+                const s = d.source;
+                const t = d.target;
+                if (!s || !t) continue;
+                deg.set(s, (deg.get(s) || 0) + 1);
+                deg.set(t, (deg.get(t) || 0) + 1);
+            }
+            let maxDeg = 0;
+            for (const v of deg.values()) maxDeg = Math.max(maxDeg, v);
+            return maxDeg;
+        }
+
+        function maybeAutoSwitchLayoutForHub(elements, hubSplitEnabled) {
+            // If hub-split is OFF and a hub-like graph is rendered with breadthfirst,
+            // auto-switch to force-directed to avoid a single-center "star" view.
+            if (hubSplitEnabled) return;
+            if (currentLayout !== 'breadthfirst') return;
+            const threshold = parseInt(localStorage.getItem('drg_hub_split_threshold') || '10', 10);
+            const maxDeg = computeMaxDegree(elements);
+            if (maxDeg >= (Number.isNaN(threshold) ? 10 : threshold)) {
+                currentLayout = 'cose';
+                localStorage.setItem('drg_layout', currentLayout);
+                const layoutSelect = document.getElementById('layout-select');
+                if (layoutSelect) layoutSelect.value = currentLayout;
+            }
+        }
+        
+        function initCytoscape(elements = []) {
+            if (cy) {
+                cy.destroy();
+            }
+            
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: elements,
+                style: [
+                    // Base node style - Professional and readable
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#3b82f6',
+                            'label': 'data(label)',
+                            'width': 'mapData(weight, 0, 10, 120, 180)',
+                            'height': 'mapData(weight, 0, 10, 120, 180)',
+                            'font-size': '15px',
+                            'font-weight': '600',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'color': '#ffffff',
+                            'text-outline-width': 3,
+                            'text-outline-color': '#0f172a',
+                            'text-outline-opacity': 0.9,
+                            'border-width': 4,
+                            'border-color': '#0f172a',
+                            'border-opacity': 0.3,
+                            'shape': 'ellipse',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '140px',
+                            'padding': '10px',
+                            'min-width': 120,
+                            'min-height': 120,
+                        }
+                    },
+                    // Entity type colors - Professional palette
+                    {
+                        selector: 'node[type = "Company"]',
+                        style: {
+                            'background-color': '#3b82f6',
+                            'border-color': '#1e40af',
+                        }
+                    },
+                    {
+                        selector: 'node[type = "Person"]',
+                        style: {
+                            'background-color': '#8b5cf6',
+                            'border-color': '#6d28d9',
+                        }
+                    },
+                    {
+                        selector: 'node[type = "Location"]',
+                        style: {
+                            'background-color': '#10b981',
+                            'border-color': '#059669',
+                        }
+                    },
+                    {
+                        selector: 'node[type = "Product"]',
+                        style: {
+                            'background-color': '#f59e0b',
+                            'border-color': '#d97706',
+                        }
+                    },
+                    {
+                        selector: 'node[type = "Service"]',
+                        style: {
+                            'background-color': '#06b6d4',
+                            'border-color': '#0891b2',
+                        }
+                    },
+                    {
+                        selector: 'node[type = "Year"]',
+                        style: {
+                            'background-color': '#64748b',
+                            'border-color': '#475569',
+                        }
+                    },
+                    {
+                        selector: 'node[type = "Event"]',
+                        style: {
+                            'background-color': '#ef4444',
+                            'border-color': '#dc2626',
+                        }
+                    },
+                    // Node hover
+                    {
+                        selector: 'node:selected',
+                        style: {
+                            'border-width': 6,
+                            'border-color': '#fbbf24',
+                            'border-opacity': 0.8,
+                            'z-index': 999,
+                        }
+                    },
+                    {
+                        selector: 'node:hover',
+                        style: {
+                            'width': 'mapData(weight, 0, 10, 130, 190)',
+                            'height': 'mapData(weight, 0, 10, 130, 190)',
+                            'font-size': '16px',
+                            'border-width': 5,
+                            'z-index': 999,
+                        }
+                    },
+                    // Edge styles - Clear and readable
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 4,
+                            'line-color': '#475569',
+                            'target-arrow-color': '#475569',
+                            'target-arrow-shape': 'triangle',
+                            'target-arrow-size': 16,
+                            'target-arrow-fill': 'filled',
+                            'curve-style': 'bezier',
+                            'control-point-step-size': 80,
+                            'label': 'data(label)',
+                            'font-size': '13px',
+                            'font-weight': '600',
+                            'text-background-color': '#ffffff',
+                            'text-background-opacity': 0.95,
+                            'text-background-padding': '5px 8px',
+                            'text-background-shape': 'roundrectangle',
+                            'text-rotation': 'autorotate',
+                            'text-margin-y': -15,
+                            'text-events': 'yes',
+                            'color': '#1e293b',
+                            'source-arrow-shape': 'none',
+                            'opacity': 0.75,
+                            'text-outline-width': 1,
+                            'text-outline-color': '#ffffff',
+                        }
+                    },
+                    // Edge hover
+                    {
+                        selector: 'edge:hover',
+                        style: {
+                            'width': 5,
+                            'line-color': '#ef4444',
+                            'target-arrow-color': '#ef4444',
+                            'target-arrow-size': 18,
+                            'font-size': '14px',
+                            'opacity': 1,
+                            'z-index': 999,
+                        }
+                    },
+                    {
+                        selector: 'edge:selected',
+                        style: {
+                            'width': 5,
+                            'line-color': '#3b82f6',
+                            'target-arrow-color': '#3b82f6',
+                            'target-arrow-size': 18,
+                            'opacity': 1,
+                        }
+                    },
+                    // Query highlight style
+                    {
+                        selector: '.query-highlight',
+                        style: {
+                            'border-width': 6,
+                            'border-color': '#f59e0b',
+                            'border-opacity': 0.8,
+                            'background-color': '#fef3c7',
+                            'z-index': 1000,
+                        }
+                    },
+                ],
+                layout: {
+                    name: currentLayout,
+                    animate: true,
+                    animationDuration: 800,
+                    spacingFactor: currentLayout === 'breadthfirst' ? 2.5 : (currentLayout === 'concentric' ? 3.0 : 2.2),
+                    padding: 80,
+                    ...(currentLayout === 'cose' ? {
+                        // Degree-aware repulsion to spread star-shaped hubs more evenly.
+                        nodeRepulsion: function(node) {
+                            const deg = node.degree(false); // undirected degree
+                            return 12000 + Math.min(40000, deg * 2500);
+                        },
+                        idealEdgeLength: function(edge) {
+                            // Longer edges around hubs to reduce overlap
+                            const s = edge.source();
+                            const t = edge.target();
+                            const deg = Math.max(s.degree(false), t.degree(false));
+                            return 180 + Math.min(260, deg * 12);
+                        },
+                        edgeElasticity: 0.35,
+                        gravity: 0.2,
+                        numIter: 1200,
+                        initialTemp: 250,
+                        coolingFactor: 0.98,
+                        minTemp: 1.0,
+                    } : {}),
+                }
+            });
+            
+            // Node click handler
+            cy.on('tap', 'node', function(evt) {
+                const node = evt.target;
+                showNodeInfo(node);
+            });
+            
+            // Edge click handler
+            cy.on('tap', 'edge', function(evt) {
+                const edge = evt.target;
+                showEdgeInfo(edge);
+            });
+            
+            // Background click handler
+            cy.on('tap', function(evt) {
+                if (evt.target === cy) {
+                    cy.elements().removeClass('selected');
+                    hideInfo();
+                }
+            });
+        }
+        
+        function showNodeInfo(node) {
+            const panel = document.getElementById('info-panel');
+            const content = document.getElementById('info-content');
+            
+            const nodeLabel = node.data('label') || node.id();
+            const nodeType = node.data('type') || 'Unknown';
+            const nodeMeta = node.data('metadata') || {};
+            const nodeId = node.id();
+            const isProxy = nodeType === 'HubProxy' || (typeof nodeId === 'string' && nodeId.startsWith('hubproxy::'));
+            
+            let html = `<h4>${nodeLabel}</h4>`;
+            html += `<p><strong>Type:</strong> ${nodeType}</p>`;
+            // Avoid leaking internal proxy ids in the UI; show an explainable summary instead.
+            if (isProxy) {
+                const hub = nodeMeta.hub || '';
+                const rel = nodeMeta.relationship_type || nodeLabel || '';
+                if (hub || rel) {
+                    html += `<p><strong>Proxy for:</strong> ${hub ? hub : '(unknown)'} ${rel ? '• ' + rel : ''}</p>`;
+                }
+            } else {
+                html += `<p><strong>ID:</strong> ${nodeId}</p>`;
+            }
+            
+            if (node.data('properties') && Object.keys(node.data('properties')).length > 0) {
+                html += `<p><strong>Properties:</strong></p><ul style="margin-left: 20px; font-size: 13px;">`;
+                for (const [key, value] of Object.entries(node.data('properties'))) {
+                    html += `<li>${key}: ${value}</li>`;
+                }
+                html += `</ul>`;
+            }
+            
+            content.innerHTML = html;
+            panel.classList.add('active');
+        }
+        
+        function showEdgeInfo(edge) {
+            const panel = document.getElementById('info-panel');
+            const content = document.getElementById('info-content');
+            
+            const relType = edge.data('relationship_type') || edge.data('label');
+            const source = edge.data('source');
+            const target = edge.data('target');
+            
+            let html = `<h4>${relType}</h4>`;
+            html += `<p><strong>From:</strong> ${source}</p>`;
+            html += `<p><strong>To:</strong> ${target}</p>`;
+            
+            if (edge.data('relationship_description')) {
+                html += `<p style="margin-top: 12px;"><strong>Description:</strong><br/>${edge.data('relationship_description')}</p>`;
+            }
+            if (edge.data('relationship_detail')) {
+                html += `<p style="margin-top: 12px;"><strong>Detail:</strong><br/>${edge.data('relationship_detail')}</p>`;
+            }
+            
+            content.innerHTML = html;
+            panel.classList.add('active');
+        }
+        
+        function hideInfo() {
+            document.getElementById('info-panel').classList.remove('active');
+        }
+        
+        async function loadFullGraph() {
+            try {
+                const hubSplit = document.getElementById('hub-split-toggle')?.checked;
+                const threshold = parseInt(document.getElementById('hub-split-threshold')?.value || '10', 10);
+                const params = new URLSearchParams();
+                // Always send hub_split explicitly so backend doesn't fall back to env defaults.
+                params.set('hub_split', hubSplit ? '1' : '0');
+                // Only send threshold when hub split is enabled (avoids confusing "hub-like" view).
+                if (hubSplit && !Number.isNaN(threshold)) params.set('hub_split_threshold', String(threshold));
+                const url = params.toString()
+                    ? `/api/visualization/cytoscape?${params}`
+                    : '/api/visualization/cytoscape';
+                const response = await fetch(url);
+                const data = await response.json();
+                maybeAutoSwitchLayoutForHub(data.elements, !!hubSplit);
+                initCytoscape(data.elements);
+                await loadGraphStats();
+            } catch (error) {
+                console.error('Error loading graph:', error);
+                alert('Error loading graph: ' + error.message);
+            }
+        }
+        
+        async function loadCommunities() {
+            try {
+                const hubSplit = document.getElementById('hub-split-toggle')?.checked;
+                const threshold = parseInt(document.getElementById('hub-split-threshold')?.value || '10', 10);
+                const params = new URLSearchParams();
+                // Always send hub_split explicitly so backend doesn't fall back to env defaults.
+                params.set('hub_split', hubSplit ? '1' : '0');
+                if (hubSplit && !Number.isNaN(threshold)) params.set('hub_split_threshold', String(threshold));
+                const url = params.toString()
+                    ? `/api/visualization/communities/cytoscape?${params}`
+                    : '/api/visualization/communities/cytoscape';
+                const response = await fetch(url);
+                const data = await response.json();
+                maybeAutoSwitchLayoutForHub(data.elements, !!hubSplit);
+                initCytoscape(data.elements);
+                await loadGraphStats();
+            } catch (error) {
+                console.error('Error loading communities:', error);
+                alert('Error loading communities: ' + error.message);
+            }
+        }
+        
+        async function loadGraphStats() {
+            try {
+                const response = await fetch('/api/graph/stats');
+                const stats = await response.json();
+                
+                document.getElementById('node-count').textContent = stats.node_count;
+                document.getElementById('edge-count').textContent = stats.edge_count;
+                document.getElementById('cluster-count').textContent = stats.cluster_count;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        async function executeQuery() {
+            const queryInput = document.getElementById('query-input');
+            const query = queryInput.value.trim();
+            
+            if (!query) {
+                alert('Please enter a query');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('query-results');
+            const resultsContent = document.getElementById('query-results-content');
+            
+            // Show loading state
+            resultsDiv.style.display = 'block';
+            resultsContent.innerHTML = '<p style="color: #64748b;">Processing query...</p>';
+            
+            // Scroll to results
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        k_entities: 10,
+                        k_reports: 5,
+                        k_context_chunks: 5,
+                    }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Query failed: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                // Format results nicely
+                let html = '';
+                
+                // Query
+                html += `<div style="margin-bottom: 16px; padding: 12px; background: #f1f5f9; border-radius: 8px; border-left: 4px solid #3b82f6;">`;
+                html += `<strong style="color: #1e293b; display: block; margin-bottom: 4px;">Query:</strong>`;
+                html += `<span style="color: #475569;">${query}</span>`;
+                html += `</div>`;
+                
+                // Answer - Clean and concise
+                if (result.answer) {
+                    // Extract the main answer text (before "Community summaries" if present)
+                    let answerText = result.answer;
+                    const communityIndex = answerText.indexOf('Community summaries:');
+                    if (communityIndex > 0) {
+                        answerText = answerText.substring(0, communityIndex).trim();
+                    }
+                    
+                    html += `<div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">`;
+                    html += `<strong style="color: #1e293b; display: block; margin-bottom: 8px;">Answer:</strong>`;
+                    html += `<p style="color: #166534; margin: 0; line-height: 1.6;">${answerText}</p>`;
+                    html += `</div>`;
+                }
+                
+                // Retrieval Context
+                if (result.retrieval_context) {
+                    const ctx = result.retrieval_context;
+                    
+                    // Seed entities
+                    if (ctx.seed_entities && ctx.seed_entities.length > 0) {
+                        html += `<div style="margin-bottom: 12px;">`;
+                        html += `<strong style="color: #1e293b; display: block; margin-bottom: 6px;">Found ${ctx.seed_entities.length} relevant entities:</strong>`;
+                        html += `<div style="display: flex; flex-wrap: wrap; gap: 6px;">`;
+                        ctx.seed_entities.slice(0, 10).forEach(entity => {
+                            html += `<span style="padding: 4px 8px; background: #e0e7ff; color: #3730a3; border-radius: 4px; font-size: 12px;">${entity}</span>`;
+                        });
+                        html += `</div></div>`;
+                    }
+                    
+                    // Communities
+                    if (ctx.community_reports && ctx.community_reports.length > 0) {
+                        html += `<div style="margin-bottom: 12px;">`;
+                        html += `<strong style="color: #1e293b; display: block; margin-bottom: 8px;">Communities (${ctx.community_reports.length}):</strong>`;
+                        ctx.community_reports.slice(0, 3).forEach((report, idx) => {
+                            html += `<div style="margin-bottom: 10px; padding: 10px; background: #f8fafc; border-radius: 6px; border-left: 3px solid #8b5cf6;">`;
+                            html += `<div style="font-weight: 600; color: #6d28d9; margin-bottom: 6px; font-size: 13px;">Cluster ${report.cluster_id || idx + 1}</div>`;
+                            if (report.summary) {
+                                // Show full summary if available, otherwise truncate
+                                const summaryText = report.summary.length > 200 
+                                    ? report.summary.substring(0, 200) + '...' 
+                                    : report.summary;
+                                html += `<div style="color: #475569; font-size: 12px; line-height: 1.6;">${summaryText}</div>`;
+                            }
+                            html += `</div>`;
+                        });
+                        html += `</div>`;
+                    }
+                    
+                    // Entities count
+                    if (ctx.entities && ctx.entities.length > 0) {
+                        html += `<div style="margin-bottom: 8px; color: #64748b;">`;
+                        html += `<strong>Total entities:</strong> ${ctx.entities.length}`;
+                        html += `</div>`;
+                    }
+                }
+                
+                resultsContent.innerHTML = html;
+                
+                // Highlight entities in graph if available
+                if (result.retrieval_context && result.retrieval_context.seed_entities && cy) {
+                    // Clear previous highlights
+                    cy.elements().removeClass('query-highlight');
+                    
+                    // Highlight seed entities
+                    result.retrieval_context.seed_entities.forEach(entityId => {
+                        const node = cy.getElementById(entityId);
+                        if (node.length > 0) {
+                            node.addClass('query-highlight');
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error executing query:', error);
+                resultsContent.innerHTML = `<div style="padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444; color: #991b1b;">`;
+                resultsContent.innerHTML += `<strong>Error:</strong> ${error.message}`;
+                resultsContent.innerHTML += `</div>`;
+            }
+        }
+        
+        function changeLayout() {
+            const select = document.getElementById('layout-select');
+            currentLayout = select.value;
+            localStorage.setItem('drg_layout', currentLayout);
+            
+            if (cy) {
+                let layoutOptions = {
+                    name: currentLayout,
+                    animate: true,
+                    animationDuration: 800,
+                    spacingFactor: currentLayout === 'breadthfirst' ? 2.5 : (currentLayout === 'concentric' ? 3.0 : 2.2),
+                    padding: 80,
+                };
+                
+                if (currentLayout === 'cose') {
+                    layoutOptions.nodeRepulsion = function(node) {
+                        const deg = node.degree(false);
+                        return 12000 + Math.min(40000, deg * 2500);
+                    };
+                    layoutOptions.idealEdgeLength = function(edge) {
+                        const s = edge.source();
+                        const t = edge.target();
+                        const deg = Math.max(s.degree(false), t.degree(false));
+                        return 180 + Math.min(260, deg * 12);
+                    };
+                    layoutOptions.edgeElasticity = 0.35;
+                    layoutOptions.gravity = 0.2;
+                    layoutOptions.numIter = 1200;
+                    layoutOptions.initialTemp = 250;
+                    layoutOptions.coolingFactor = 0.98;
+                    layoutOptions.minTemp = 1.0;
+                }
+                
+                cy.layout(layoutOptions).run();
+            }
+        }
+        
+        function resetView() {
+            if (cy) {
+                cy.reset();
+                cy.fit();
+            }
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            const hubToggle = document.getElementById('hub-split-toggle');
+            const hubThreshold = document.getElementById('hub-split-threshold');
+            const layoutSelect = document.getElementById('layout-select');
+
+            // Persist anti-hub preference. Default OFF (user can enable if needed).
+            const savedHubSplit = localStorage.getItem('drg_hub_split');
+            if (hubToggle) {
+                hubToggle.checked = savedHubSplit ? (savedHubSplit === '1') : false;
+                hubToggle.addEventListener('change', () => {
+                    localStorage.setItem('drg_hub_split', hubToggle.checked ? '1' : '0');
+                    if (hubThreshold) hubThreshold.disabled = !hubToggle.checked;
+                    loadFullGraph();
+                });
+            }
+
+            // Persist threshold as well (helps tune hub splitting).
+            const savedThreshold = localStorage.getItem('drg_hub_split_threshold');
+            if (hubThreshold) {
+                if (savedThreshold) hubThreshold.value = savedThreshold;
+                // Disable threshold input when anti-hub is off (purely UI-side control).
+                if (hubToggle) hubThreshold.disabled = !hubToggle.checked;
+                hubThreshold.addEventListener('change', () => {
+                    localStorage.setItem('drg_hub_split_threshold', hubThreshold.value || '10');
+                    loadFullGraph();
+                });
+            }
+
+            // Apply saved layout to the select UI on load.
+            if (layoutSelect) {
+                layoutSelect.value = currentLayout;
+            }
+
+            loadFullGraph();
+        });
+    </script>
+</body>
+</html>

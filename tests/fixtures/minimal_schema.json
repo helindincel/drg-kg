@@ -1,0 +1,34 @@
+{
+  "entity_types": [
+    {
+      "name": "Company",
+      "description": "Business organizations that produce or sell products.",
+      "examples": ["Apple", "Google"],
+      "properties": {"industry": "tech"}
+    },
+    {
+      "name": "Product",
+      "description": "Goods or services produced by a company.",
+      "examples": ["iPhone", "Android"],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "production",
+      "description": "How companies create products.",
+      "relations": [
+        {
+          "name": "produces",
+          "src": "Company",
+          "dst": "Product",
+          "description": "Company manufactures or releases a product",
+          "detail": "Direct production / release relationship"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

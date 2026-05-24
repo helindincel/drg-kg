@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / discussion
+    url: https://github.com/helindincel/drg-kg/discussions
+    about: For design questions, usage help, or general discussion.
+  - name: Security report
+    url: https://github.com/helindincel/drg-kg/security/advisories/new
+    about: Report a vulnerability privately. Do NOT open a public issue.
