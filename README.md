@@ -1,63 +1,75 @@
 # DRG — Declarative Relationship Generation
 
-DRG, metinlerden **bilgi grafiği (Knowledge Graph)** çıkarımı yapan, **DSPy
-tabanlı declarative** bir Python kütüphanesidir. Şemayı tanımlarsın, DRG entity
-ve relation extraction'ı üstlenir; üzerine clustering, community report ve
-görselleştirme katmanları ekler.
+DRG is a **DSPy-based, declarative** Python library for extracting **Knowledge
+Graphs (KG)** from text. You define the schema; DRG handles entity and relation
+extraction, and layers clustering, community reports, and visualization on top.
 
-> **⚠️ Alpha:** Bu repo `0.1.0a0` sürümündedir. API değişiklikleri olabilir.
+> **⚠️ Alpha:** This repo is at version `0.1.0a0`. APIs may change.
+
+> 🇹🇷 **Türkçe okuyucular için:** [`README.tr.md`](README.tr.md)
 
 ---
 
-## Proje Hakkında Detaylı Genel Bakış
+## Detailed Project Overview
 
-Projeyi hiç bilmeyen biri için **mimari ve felsefe** dokümanı:
+For a deeper dive into **architecture and philosophy** (recommended for first-time
+readers), see:
 
 - [`docs/project_overview.md`](docs/project_overview.md)
 
-Bu doküman özellikle şunları netleştirir:
+That document clarifies in particular:
 
-- DRG'nin **DSPy tabanlı, declarative** extraction yaklaşımı
-- DRG'nin **bir RAG/serving framework olmadığı** (UI query: deterministic KG lookup)
-- Dataset‑agnostic tasarım ve Enhanced schema yaklaşımı
-- Pipeline akışı, UI ve repo yapısı
+- DRG's **DSPy-based, declarative** extraction approach
+- Why DRG is **not a RAG/serving framework** (the UI query path is a
+  deterministic KG lookup, not LLM generation)
+- The dataset-agnostic design and Enhanced schema approach
+- Pipeline flow, UI, and repo layout
 
----
-
-## Özellikler
-
-- **Declarative Schema** — Entity tip ve ilişkilerini tanımla, gerisini DRG halletsin
-- **DSPy Entegrasyonu** — TypedPredictor ile yapılandırılmış extraction
-- **Enhanced Schema** — `EntityType`, `RelationGroup`, `EntityGroup`, `PropertyGroup` ile zengin tanımlar
-- **Otomatik Schema Üretimi** — `generate_schema_from_text()` ile metinden şema
-- **Chunk‑Based Extraction** — Uzun metinler için bağlam‑aware chunking
-- **Knowledge Graph Katmanı** — `EnhancedKG` (KGNode, KGEdge, Cluster)
-- **Clustering & Community Reports** — Louvain / Leiden / Spectral + summarization
-- **API Server + UI** — FastAPI + Cytoscape.js tabanlı interaktif görselleştirme
-- **Çoklu LLM Desteği** — OpenAI, Gemini, Anthropic, Perplexity, OpenRouter, Ollama
-- **Neo4j Export (opsiyonel)** — Graph persistence
+> 📌 **Note on documentation language:** Most files under `docs/` are currently
+> in Turkish. English translations are part of the roadmap. The Python API,
+> code comments, and error messages are in English.
 
 ---
 
-## Kurulum
+## Features
+
+- **Declarative Schema** — Define entity types and relations; DRG handles the rest
+- **DSPy Integration** — Structured extraction via `TypedPredictor`
+- **Enhanced Schema** — Rich definitions with `EntityType`, `RelationGroup`,
+  `EntityGroup`, `PropertyGroup`
+- **Automatic Schema Generation** — Derive a schema from raw text via
+  `generate_schema_from_text()`
+- **Chunk-Based Extraction** — Context-aware chunking for long documents
+- **Knowledge Graph Layer** — `EnhancedKG` (`KGNode`, `KGEdge`, `Cluster`)
+- **Clustering & Community Reports** — Louvain / Leiden / Spectral +
+  summarization
+- **API Server + UI** — FastAPI + Cytoscape.js interactive visualization
+- **Multi-LLM Support** — OpenAI, Gemini, Anthropic, Perplexity, OpenRouter,
+  Ollama
+- **Optional Neo4j Export** — Graph persistence
+
+---
+
+## Installation
 
 ```bash
 git clone https://github.com/helindincel/drg-kg.git
 cd drg-kg
 
-# Sadece çekirdek
+# Core only
 pip install -e .
 
-# Tüm opsiyonel özellikler ile (api, embedding, clustering, vs.)
+# With all optional features (api, embeddings, clustering, ...)
 pip install -e ".[all]"
 
-# Developer modu (test + lint + type-check araçları ile)
+# Developer mode (test + lint + type-check tooling)
 pip install -e ".[dev]"
 ```
 
-Detaylı kurulum ve sorun giderme için: [`docs/setup.md`](docs/setup.md)
+For detailed installation and troubleshooting, see
+[`docs/setup.md`](docs/setup.md).
 
-### Gereksinimler
+### Requirements
 
 - Python `>= 3.10`
 - `dspy >= 2.5.0, < 3.0.0`
@@ -65,32 +77,32 @@ Detaylı kurulum ve sorun giderme için: [`docs/setup.md`](docs/setup.md)
 
 ---
 
-## Konfigürasyon
+## Configuration
 
-DRG, davranışını environment variable'larla yönetir:
+DRG is configured via environment variables:
 
 ```bash
 cp .env.example .env
-# .env dosyasını editleyip ilgili API key'i doldur.
+# Edit .env and fill in the relevant API key.
 ```
 
-Tipik değişkenler:
+Common variables:
 
-| Değişken | Varsayılan | Açıklama |
-|----------|------------|----------|
-| `DRG_MODEL` | `openai/gpt-4o-mini` | DSPy/LiteLLM model id |
-| `OPENAI_API_KEY` / `GEMINI_API_KEY` / ... | — | İlgili provider için API key |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DRG_MODEL` | `openai/gpt-4o-mini` | DSPy / LiteLLM model id |
+| `OPENAI_API_KEY` / `GEMINI_API_KEY` / ... | — | Provider-specific API key |
 | `DRG_TEMPERATURE` | `0.0` | LLM temperature |
-| `DRG_MAX_TOKENS` | `1500` | LLM output bütçesi |
+| `DRG_MAX_TOKENS` | `1500` | LLM output budget |
 | `DRG_BASE_URL` | — | Ollama / self-hosted gateway |
 
-Tüm değişkenler için: [`docs/setup.md`](docs/setup.md)
+Full variable list: [`docs/setup.md`](docs/setup.md).
 
 ---
 
-## Hızlı Başlangıç
+## Quickstart
 
-### Basit kullanım (legacy schema)
+### Basic usage (legacy schema)
 
 ```python
 from drg import Entity, Relation, DRGSchema, extract_typed, KG
@@ -107,7 +119,7 @@ kg = KG.from_typed(entities, triples)
 print(kg.to_json())
 ```
 
-### Enhanced schema (önerilen)
+### Enhanced schema (recommended)
 
 ```python
 from drg import (
@@ -152,18 +164,31 @@ kg = KG.from_typed(entities, triples)
 print(kg.to_json())
 ```
 
+### Runnable showcase examples
+
+For end-to-end, copy-pasteable scripts on three different domains, see
+[`examples/quickstarts/`](examples/quickstarts/):
+
+| Script | Domain |
+|--------|--------|
+| `01_wikipedia_article.py` | Biographical / encyclopedic text |
+| `02_financial_news.py` | Corporate news (M&A, funding rounds) |
+| `03_biomedical.py` | Drug / disease / gene relationships |
+
+Each script is self-contained: define schema, run extraction, dump JSON KG.
+
 ---
 
 ## CLI
 
 ```bash
-# Dosyadan çıkarım
+# Extract from file
 drg extract input.txt -o output.json
 
-# Standart girişten
+# From standard input
 echo "Apple released iPhone 16" | drg extract - -o output.json
 
-# Özel model ile
+# With a custom model
 drg extract input.txt -o output.json --model "gemini/gemini-2.0-flash-exp"
 
 # Ollama (local)
@@ -183,18 +208,18 @@ python examples/api_server_example.py
 # Docs:  http://localhost:8000/docs
 ```
 
-Detaylar ve endpoint listesi: [`docs/api_server.md`](docs/api_server.md)
+Details and endpoint list: [`docs/api_server.md`](docs/api_server.md).
 
 ---
 
-## API Referansı (özet)
+## API Reference (summary)
 
-### Şema sınıfları
+### Schema classes
 
-| Sınıf | Kullanım |
+| Class | Use case |
 |-------|----------|
-| `DRGSchema` | Legacy, basit `Entity` + `Relation` |
-| `EnhancedDRGSchema` | Önerilen, `EntityType` + `RelationGroup` ile zengin |
+| `DRGSchema` | Legacy: simple `Entity` + `Relation` |
+| `EnhancedDRGSchema` | Recommended: rich `EntityType` + `RelationGroup` |
 
 ### Extraction
 
@@ -205,7 +230,7 @@ extract_typed(text, schema)
 #    triples:  List[Tuple[str, str, str]]       # (source, relation, target)
 
 extract_triples(text, schema)
-# Yalnızca triples (geriye dönük uyumluluk için).
+# Triples only (kept for backward compatibility).
 ```
 
 ### Knowledge Graph
@@ -216,56 +241,56 @@ kg = KG.from_triples(triples)
 print(kg.to_json(indent=2))
 ```
 
-Zengin KG (`EnhancedKG`, `KGNode`, `KGEdge`, `Cluster`) için `drg.graph`
-modülüne bakın.
+For the rich KG (`EnhancedKG`, `KGNode`, `KGEdge`, `Cluster`), see the
+`drg.graph` module.
 
 ---
 
-## Proje Yapısı
+## Project Structure
 
 ```
 DRG/
-├── drg/                       # Ana paket (monolithic codebase)
+├── drg/                       # Main package (monolithic codebase)
 │   ├── __init__.py            # Public API + lazy loading
 │   ├── schema.py              # EnhancedDRGSchema, EntityType, RelationGroup, ...
 │   ├── protocols.py           # Structural interfaces (KGExtractor / Embedding / Clustering / LLM)
 │   ├── errors.py              # Typed exception hierarchy (DRGError + 11 subclasses)
-│   ├── config.py              # LMConfig — DSPy LM kurulumu (env-driven)
-│   ├── extract/               # DSPy extraction paketi (KGExtractor + cross-chunk + heuristics)
+│   ├── config.py              # LMConfig — DSPy LM setup (env-driven)
+│   ├── extract/               # DSPy extraction package (KGExtractor + cross-chunk + heuristics)
 │   ├── coreference_resolution/# Pronoun resolution (strategy pattern: NLP + heuristic)
 │   ├── entity_resolution/     # Entity merging (strategy pattern: String + Hybrid)
-│   ├── chunking/              # Token / sentence / semantic chunker'lar
+│   ├── chunking/              # Token / sentence / semantic chunkers
 │   ├── embedding/             # Provider abstraction (OpenAI / Gemini / Local / OpenRouter)
 │   ├── graph/                 # EnhancedKG, schema_generator, community_report,
-│   │                          # relationship_model/ (paket), visualization_adapter/ (paket),
+│   │                          # relationship_model/ (package), visualization_adapter/ (package),
 │   │                          # hub_mitigation, query_engine, auto_clusters, neo4j_exporter
 │   ├── clustering/            # Louvain / Leiden / Spectral + summarization
 │   ├── optimizer/             # DSPy optimizer + metrics
 │   ├── api/                   # FastAPI server + Cytoscape UI
-│   ├── mcp_api.py             # MCP entegrasyonu
-│   ├── cli.py                 # `drg` CLI giriş noktası
+│   ├── mcp_api.py             # MCP integration
+│   ├── cli.py                 # `drg` CLI entry point
 │   └── utils/                 # env_loader, llm_throttle, strict, logging, cache (shared LRU)
-├── docs/                      # Dokümantasyon (KOD YOK)
+├── docs/                      # Documentation (NO CODE — currently in Turkish)
 ├── examples/                  # full_pipeline_example, api_server_example, ...
 ├── tests/                     # Unit + integration + multi_dataset evaluation
-├── outputs/                   # Üretilen artifact'lar (gitignored)
-├── inputs/                    # Örnek metin dosyaları
-├── pyproject.toml             # Tek doğruluk kaynağı (deps + tooling)
+├── outputs/                   # Generated artifacts (gitignored)
+├── inputs/                    # Sample text files
+├── pyproject.toml             # Single source of truth (deps + tooling)
 └── README.md
 ```
 
 ---
 
-## Test ve Geliştirme
+## Testing and Development
 
 ```bash
-# Developer kurulumu
+# Developer install
 pip install -e ".[dev]"
 
-# Non-integration testler (API key gerekmez)
+# Non-integration tests (no API key required)
 pytest -m "not integration"
 
-# Coverage ile
+# With coverage
 pytest -m "not integration" --cov=drg --cov-report=term-missing
 
 # Lint + format
@@ -275,16 +300,16 @@ ruff format drg tests examples
 # Type check
 mypy drg
 
-# Pre-commit hook'larını kur
+# Install pre-commit hooks
 pre-commit install
 ```
 
 ---
 
-## Desteklenen Modeller
+## Supported Models
 
-DRG, DSPy/LiteLLM üzerinden aşağıdaki provider'ları destekler. Model ID'leri
-`provider/model` formatındadır:
+DRG supports the following providers via DSPy/LiteLLM. Model IDs use the
+`provider/model` format:
 
 - **OpenAI** — `openai/gpt-4o-mini`, `openai/gpt-4`, ...
 - **Google Gemini** — `gemini/gemini-2.0-flash-exp`, ...
@@ -293,43 +318,62 @@ DRG, DSPy/LiteLLM üzerinden aşağıdaki provider'ları destekler. Model ID'ler
 - **OpenRouter** — `openrouter/<model>`
 - **Ollama (local)** — `ollama_chat/llama3`, `ollama_chat/mistral`, ...
 
-Model `DRG_MODEL` environment variable'ı ile seçilir.
+The model is selected via the `DRG_MODEL` environment variable.
 
 ---
 
-## Opsiyonel Bağımlılıklar
+## Optional Dependencies
 
-Modüler bağımlılık yapısı:
+Modular dependency layout:
 
-| Extra | İçerik |
-|-------|--------|
+| Extra | Contents |
+|-------|----------|
 | `api` | FastAPI, uvicorn |
 | `neo4j` | Neo4j driver |
-| `openai` / `gemini` / `openrouter` | LLM/embedding client'ları |
+| `openai` / `gemini` / `openrouter` | LLM/embedding clients |
 | `local` | sentence-transformers (local embedding) |
-| `louvain` / `leiden` / `spectral` | Clustering backend'leri |
+| `louvain` / `leiden` / `spectral` | Clustering backends |
 | `networkx` | Graph processing |
 | `coreference` | spaCy + coreferee |
 | `dev` | pytest, ruff, mypy, pre-commit, pytest-cov |
-| `all` | Yukarıdakilerin hepsi |
+| `all` | All of the above |
 
 ---
 
-## Belgelendirme
+## Documentation
 
-- [`docs/project_overview.md`](docs/project_overview.md) — Mimari + felsefe
-- [`docs/setup.md`](docs/setup.md) — Detaylı kurulum
-- [`docs/api_server.md`](docs/api_server.md) — API + UI kullanımı
-- [`docs/pipeline_overview.md`](docs/pipeline_overview.md) — Pipeline akışı
-- [`docs/schema_design.md`](docs/schema_design.md) — Şema tasarım prensipleri
-- [`docs/chunking_strategy.md`](docs/chunking_strategy.md) — Chunking stratejileri
-- [`docs/relationship_model.md`](docs/relationship_model.md) — İlişki modeli
-- [`docs/clustering_summarization.md`](docs/clustering_summarization.md) — Clustering
+> Currently Turkish; English translations are tracked in the roadmap.
+
+- [`docs/project_overview.md`](docs/project_overview.md) — Architecture &
+  philosophy
+- [`docs/setup.md`](docs/setup.md) — Detailed setup
+- [`docs/api_server.md`](docs/api_server.md) — API + UI usage
+- [`docs/pipeline_overview.md`](docs/pipeline_overview.md) — Pipeline flow
+- [`docs/schema_design.md`](docs/schema_design.md) — Schema design principles
+- [`docs/chunking_strategy.md`](docs/chunking_strategy.md) — Chunking strategies
+- [`docs/relationship_model.md`](docs/relationship_model.md) — Relationship model
+- [`docs/clustering_summarization.md`](docs/clustering_summarization.md) —
+  Clustering
 - [`docs/optimizer_design.md`](docs/optimizer_design.md) — DSPy optimizer
-- [`docs/mcp_integration.md`](docs/mcp_integration.md) — MCP entegrasyonu
+- [`docs/mcp_integration.md`](docs/mcp_integration.md) — MCP integration
 
 ---
 
-## Lisans
+## Citation
 
-MIT — Detaylar için `LICENSE` dosyasına bakın.
+If you use DRG in academic or research work, please cite the repository:
+
+```bibtex
+@software{drg_kg_2026,
+  author  = {Dinçel, Helin},
+  title   = {DRG: Declarative Relationship Generation for Knowledge Graphs},
+  year    = {2026},
+  url     = {https://github.com/helindincel/drg-kg}
+}
+```
+
+---
+
+## License
+
+MIT — see the `LICENSE` file for details.
