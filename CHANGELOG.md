@@ -9,6 +9,22 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Added (typing + visibility)
+
+- `drg/py.typed` — empty PEP 561 marker so downstream `mypy` and
+  `pyright` honour DRG-KG's type annotations instead of treating
+  the package as untyped (`[import-untyped]` warning). Shipped in
+  the wheel via `[tool.setuptools.package-data]`.
+- README badges: CI status, PyPI version, supported Python
+  versions, license, Ruff code style, PEP 561 typed marker.
+  Bilingual: both `README.md` and `README.tr.md` get the same
+  badge row + a pointer to `STATUS.md`.
+- Installation section in README now leads with `pip install
+  drg-kg` (PyPI) and lists `pip install -e ".[dev]"` as the
+  *source* path, reflecting the impending real-PyPI release.
+- `drg/_version.py` is excluded from Ruff via `extend-exclude`
+  to silence machine-generated-file lint noise.
+
 ### Added (release automation)
 
 - `.github/workflows/release.yml` — tag-driven release pipeline. Tags

@@ -1,13 +1,25 @@
 # DRG — Declarative Relationship Generation
 
+[![CI](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml/badge.svg)](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/drg-kg.svg)](https://pypi.org/project/drg-kg/)
+[![Python versions](https://img.shields.io/pypi/pyversions/drg-kg.svg)](https://pypi.org/project/drg-kg/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Typed: PEP 561](https://img.shields.io/badge/typed-PEP%20561-blue.svg)](https://peps.python.org/pep-0561/)
+
 DRG, metinlerden **bilgi grafiği (Knowledge Graph)** çıkarımı yapan, **DSPy
 tabanlı declarative** bir Python kütüphanesidir. Şemayı tanımlarsın, DRG entity
 ve relation extraction'ı üstlenir; üzerine clustering, community report ve
 görselleştirme katmanları ekler.
 
-> **⚠️ Alpha:** Bu repo `0.1.0a0` sürümündedir. API değişiklikleri olabilir.
+> **⚠️ Alpha:** `1.0`'dan önce API değişiklikleri olabilir. Pre-`1.0` minor
+> bump'lar breaking change içerebilir; bkz. [`CHANGELOG.md`](CHANGELOG.md).
+> Sürüm git tag'lerinden `setuptools_scm` ile türetilir.
 
 > 🇬🇧 **English readers:** [`README.md`](README.md)
+
+> 🗺 **Proje durumu ve yol haritası:** [`STATUS.md`](STATUS.md) — neyin
+> çalıştığı, neyin eksik olduğu ve önerilen sıra.
 
 ---
 

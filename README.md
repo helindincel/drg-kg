@@ -1,12 +1,24 @@
 # DRG — Declarative Relationship Generation
 
+[![CI](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml/badge.svg)](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/drg-kg.svg)](https://pypi.org/project/drg-kg/)
+[![Python versions](https://img.shields.io/pypi/pyversions/drg-kg.svg)](https://pypi.org/project/drg-kg/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Typed: PEP 561](https://img.shields.io/badge/typed-PEP%20561-blue.svg)](https://peps.python.org/pep-0561/)
+
 DRG is a **DSPy-based, declarative** Python library for extracting **Knowledge
 Graphs (KG)** from text. You define the schema; DRG handles entity and relation
 extraction, and layers clustering, community reports, and visualization on top.
 
-> **⚠️ Alpha:** This repo is at version `0.1.0a0`. APIs may change.
+> **⚠️ Alpha:** APIs may change before `1.0`. Pre-`1.0` minor bumps can
+> include breaking changes; see [`CHANGELOG.md`](CHANGELOG.md). Version is
+> derived from git tags via `setuptools_scm`.
 
 > 🇹🇷 **Türkçe okuyucular için:** [`README.tr.md`](README.tr.md)
+
+> 🗺 **Status & roadmap:** [`STATUS.md`](STATUS.md) summarises what works,
+> what's missing, and the suggested order of attack.
 
 ---
 
@@ -53,16 +65,15 @@ That document clarifies in particular:
 ## Installation
 
 ```bash
-git clone https://github.com/helindincel/drg-kg.git
-cd drg-kg
-
-# Core only
-pip install -e .
+# From PyPI (once published — currently alpha on TestPyPI)
+pip install drg-kg
 
 # With all optional features (api, embeddings, clustering, ...)
-pip install -e ".[all]"
+pip install "drg-kg[all]"
 
-# Developer mode (test + lint + type-check tooling)
+# From source (for development)
+git clone https://github.com/helindincel/drg-kg.git
+cd drg-kg
 pip install -e ".[dev]"
 ```
 
