@@ -1,36 +1,48 @@
-# Dataset-Agnostic Semantic Pipeline: Genel Bakış
+# Dataset-Agnostic Semantic Pipeline: Overview
 
-## 1. Mimari Prensipler
+> 🇹🇷 **Türkçe sürüm:** [`pipeline_overview.tr.md`](pipeline_overview.tr.md)
 
-### 1.1 Dataset-Agnostic Tasarım
+## 1. Architectural Principles
 
-Pipeline, herhangi bir veri kaynağından bağımsız olarak çalışacak şekilde tasarlanmıştır. Bu agnostik yaklaşım şu prensiplere dayanır:
+### 1.1 Dataset-Agnostic Design
 
-- **Abstraction Layers**: Veri kaynağı, chunking stratejisi ve embedding modeli arasında net arayüzler
-- **Pluggable Components**: Her bileşen bağımsız olarak değiştirilebilir ve test edilebilir
-- **Metadata Preservation**: Her chunk, orijin veri kaynağı ve işlem geçmişi hakkında zengin metadata taşır
-- **Domain Adaptation**: Domain-specific optimizasyonlar, core pipeline'ı değiştirmeden eklenebilir
+The pipeline is designed to operate independently of any specific data
+source. This agnosticism rests on the following principles:
 
-### 1.2 Monolithic-Modular Mimarisi
+- **Abstraction layers**: Clean interfaces between data sources, chunking
+  strategies, and embedding models.
+- **Pluggable components**: Each component can be swapped and tested
+  independently.
+- **Metadata preservation**: Each chunk carries rich metadata about its
+  origin data source and processing history.
+- **Domain adaptation**: Domain-specific optimisations can be added
+  without modifying the core pipeline.
 
-Sistem, monolitik bir yapı içinde modüler bileşenlerden oluşur:
+### 1.2 Monolithic-Modular Architecture
 
-- **Monolithic**: Tüm bileşenler aynı codebase içinde, tek bir deployment unit
-- **Modular**: Her bileşen bağımsız interface'ler üzerinden iletişim kurar
-- **Loose Coupling**: Bileşenler arası bağımlılıklar minimal ve açıkça tanımlıdır
-- **High Cohesion**: İlgili fonksiyonellik aynı modülde gruplanır
+The system is composed of modular components inside a monolithic
+structure:
 
-## 2. Pipeline Akış Diyagramı (Kavramsal)
+- **Monolithic**: All components live in the same codebase and ship as a
+  single deployment unit.
+- **Modular**: Each component talks to others through independent
+  interfaces.
+- **Loose coupling**: Dependencies between components are minimal and
+  explicit.
+- **High cohesion**: Related functionality is grouped into a single
+  module.
+
+## 2. Pipeline Flow Diagram (Conceptual)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    RAW DATA INGESTION LAYER                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
-│  │  Text    │  │  PDF     │  │  Markdown│  │  JSON    │      │
-│  │  Files   │  │  Docs    │  │  Files   │  │  Streams │      │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘      │
-│       │             │              │             │             │
-│       └─────────────┴──────────────┴─────────────┘             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
+│  │  Text    │  │  PDF     │  │  Markdown│  │  JSON    │         │
+│  │  Files   │  │  Docs    │  │  Files   │  │  Streams │         │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘         │
+│       │             │              │             │              │
+│       └─────────────┴──────────────┴─────────────┘              │
 │                          │                                      │
 │                    [Normalizer]                                 │
 │                          │                                      │
@@ -38,163 +50,170 @@ Sistem, monolitik bir yapı içinde modüler bileşenlerden oluşur:
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                   CHUNKING & SEGMENTATION LAYER                │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │  Token-Based Chunker (512-1024 token windows)        │    │
-│  │  - Overlap Strategy: 10-20% sliding window           │    │
-│  │  - Boundary Detection: Sentence/paragraph aware      │    │
-│  │  - Metadata Injection: chunk_id, sequence_idx, origin │    │
-│  └──────────────────────────────────────────────────────┘    │
+│                   CHUNKING & SEGMENTATION LAYER                 │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │  Token-Based Chunker (512–1024 token windows)        │       │
+│  │  - Overlap strategy: 10–20 % sliding window          │       │
+│  │  - Boundary detection: Sentence/paragraph aware      │       │
+│  │  - Metadata injection: chunk_id, sequence_idx, origin│       │
+│  └──────────────────────────────────────────────────────┘       │
 │                          │                                      │
-│                    [Chunk Validator]                           │
+│                    [Chunk Validator]                            │
 │                          │                                      │
 └──────────────────────────┼──────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    SEMANTIC ENRICHMENT LAYER                    │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │  Semantic Tagging                                    │    │
-│  │  - Topic Classification                              │    │
-│  │  - Entity Recognition (NER)                          │
-│  │  - Intent Detection                                  │    │
-│  └──────────────────────────────────────────────────────┘    │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │  Semantic Tagging                                    │       │
+│  │  - Topic Classification                              │       │
+│  │  - Entity Recognition (NER)                          │       │
+│  │  - Intent Detection                                  │       │
+│  └──────────────────────────────────────────────────────┘       │
 │                          │                                      │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │  Embedding Abstraction Layer                         │    │
-│  │  - OpenAI Embeddings (text-embedding-3-small/large)  │    │
-│  │  - Gemini Embeddings (embedding-001)                 │    │
-│  │  - OpenRouter (unified API)                          │    │
-│  │  - Local Models (optional)                           │    │
-│  └──────────────────────────────────────────────────────┘    │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │  Embedding Abstraction Layer                         │       │
+│  │  - OpenAI Embeddings (text-embedding-3-small/large)  │       │
+│  │  - Gemini Embeddings (embedding-001)                 │       │
+│  │  - OpenRouter (unified API)                          │       │
+│  │  - Local Models (optional)                           │       │
+│  └──────────────────────────────────────────────────────┘       │
 │                          │                                      │
 └──────────────────────────┼──────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    KNOWLEDGE GRAPH LAYER                        │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │  Entity & Relation Extraction (DRG)                  │    │
-│  │  - Schema-based extraction                           │    │
-│  │  - Graph construction                                │    │
-│  │  - Node/Edge metadata                               │    │
-│  └──────────────────────────────────────────────────────┘    │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │  Entity & Relation Extraction (DRG)                  │       │
+│  │  - Schema-based extraction                           │       │
+│  │  - Graph construction                                │       │
+│  │  - Node/Edge metadata                                │       │
+│  └──────────────────────────────────────────────────────┘       │
 │                          │                                      │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │  Graph Database (e.g., Neo4j, NetworkX in-memory)   │    │
-│  │  - Node embeddings (optional)                        │    │
-│  │  - Edge weights                                      │    │
-│  │  - Graph algorithms                                  │    │
-│  └──────────────────────────────────────────────────────┘    │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │  Graph Database (e.g. Neo4j, NetworkX in-memory)     │       │
+│  │  - Node embeddings (optional)                        │       │
+│  │  - Edge weights                                      │       │
+│  │  - Graph algorithms                                  │       │
+│  └──────────────────────────────────────────────────────┘       │
 │                          │                                      │
 └──────────────────────────┼──────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    CLUSTERING & SUMMARIZATION LAYER             │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │  Graph Clustering                                    │    │
-│  │  - Louvain Algorithm                                 │    │
-│  │  - Leiden Algorithm                                  │    │
-│  │  - Spectral Clustering                               │    │
-│  └──────────────────────────────────────────────────────┘    │
+│                CLUSTERING & SUMMARISATION LAYER                 │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │  Graph Clustering                                    │       │
+│  │  - Louvain algorithm                                 │       │
+│  │  - Leiden algorithm                                  │       │
+│  │  - Spectral clustering                               │       │
+│  └──────────────────────────────────────────────────────┘       │
 │                          │                                      │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │  Cluster Summarization                               │    │
-│  │  - Per-cluster summary generation                    │    │
-│  │  - Community report generation                       │    │
-│  └──────────────────────────────────────────────────────┘    │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │  Cluster Summarisation                               │       │
+│  │  - Per-cluster summary generation                    │       │
+│  │  - Community report generation                       │       │
+│  └──────────────────────────────────────────────────────┘       │
 │                          │                                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 3. Bileşen Sorumlulukları
+## 3. Component Responsibilities
 
 ### 3.1 Ingestion Layer
 
-**Sorumluluklar:**
-- Çoklu format desteği (text, PDF, Markdown, JSON, etc.)
-- Format normalization (tüm formatlar → unified text representation)
-- Encoding handling (UTF-8, Latin-1, etc.)
-- Metadata extraction (dosya adı, tarih, kaynak bilgisi)
+**Responsibilities:**
+- Multi-format support (text, PDF, Markdown, JSON, …).
+- Format normalisation (all formats → unified text representation).
+- Encoding handling (UTF-8, Latin-1, …).
+- Metadata extraction (filename, date, source info).
 
-**Tasarım Kararları:**
-- Format-specific parser'lar pluggable olmalı
-- Normalization pipeline'ı reversible olmalı (debugging için)
-- Metadata schema'sı genişletilebilir olmalı
+**Design decisions:**
+- Format-specific parsers must be pluggable.
+- The normalisation pipeline should be reversible (for debugging).
+- Metadata schema must be extensible.
 
 ### 3.2 Chunking Layer
 
-**Sorumluluklar:**
-- Token-based segmentation (512-1024 token windows)
-- Overlap stratejisi uygulama
-- Boundary detection (sentence/paragraph aware)
-- Chunk metadata injection
+**Responsibilities:**
+- Token-based segmentation (512–1024 token windows).
+- Overlap strategy application.
+- Boundary detection (sentence/paragraph-aware).
+- Chunk metadata injection.
 
-**Tasarım Kararları:**
-- Tokenizer abstraction (farklı tokenizer'lar desteklenmeli)
-- Overlap stratejisi konfigüre edilebilir olmalı
-- Chunk ID generation: deterministic ve unique
-- Sequence index: orijinal doküman içindeki sıralama
+**Design decisions:**
+- Tokenizer abstraction (different tokenizers must be supported).
+- Overlap strategy must be configurable.
+- Chunk-ID generation: deterministic and unique.
+- Sequence index: ordering inside the original document.
 
 ### 3.3 Semantic Enrichment Layer
 
-**Sorumluluklar:**
-- Semantic tagging (topic, entity, intent)
-- Embedding generation (abstraction layer üzerinden)
-- Metadata enrichment
+**Responsibilities:**
+- Semantic tagging (topic, entity, intent).
+- Embedding generation (via the abstraction layer).
+- Metadata enrichment.
 
-**Tasarım Kararları:**
-- Embedding provider abstraction: OpenAI, Gemini, OpenRouter, Local
-- Semantic tagging opsiyonel olmalı (cost/performance trade-off)
-- Tagging model'i chunking'den bağımsız olmalı
+**Design decisions:**
+- Embedding provider abstraction: OpenAI, Gemini, OpenRouter, Local.
+- Semantic tagging should be optional (cost / performance trade-off).
+- The tagging model should be independent of chunking.
 
-### 3.4 (Kapsam Dışı) Vector Store Katmanı
+### 3.4 (Out of Scope) Vector Store Layer
 
-Bu repo, “serving/arama” katmanı hedeflemediği için vektör tabanlı indeks/benzerlik bileşeni **kapsam dışına alınmıştır** ve koddan çıkarılmıştır.
-Benzerlik temelli yardımcı sinyaller (ör. entity merge destek sinyali) gerekiyorsa, bu **embedding provider** üzerinden opsiyonel olarak eklenebilir.
+Because this repo does not target a "serving / search" layer, the
+vector-based index / similarity component is **out of scope** and has
+been removed from the code.
+
+If similarity-based helper signals are needed (e.g. as an entity-merge
+support signal), they can be added optionally on top of the
+**embedding provider** layer.
 
 ### 3.5 Knowledge Graph Layer
 
-**Sorumluluklar:**
-- Entity extraction (DRG schema-based)
-- Relation extraction
-- Graph construction
-- Graph storage
+**Responsibilities:**
+- Entity extraction (DRG schema-based).
+- Relation extraction.
+- Graph construction.
+- Graph storage.
 
-**Tasarım Kararları:**
-- DRG schema declarative olmalı
-- Graph database abstraction (Neo4j, NetworkX, etc.)
-- Node/edge metadata preservation
+**Design decisions:**
+- DRG schema must be declarative.
+- Graph database abstraction (Neo4j, NetworkX, …).
+- Node/edge metadata preservation.
 
-### 3.6 Sorgu & Analiz Yardımcıları
+### 3.6 Query & Analytics Helpers
 
-**Sorumluluklar:**
-- Knowledge graph üzerinde sorgulama ve analiz yardımcıları (graph traversal, komşuluk genişletme)
-- Community report üretimi ve özetleme
-- Export/visualization için veri hazırlama
+**Responsibilities:**
+- Query and analysis helpers on top of the knowledge graph
+  (graph traversal, neighbourhood expansion).
+- Community report generation and summarisation.
+- Data preparation for export / visualisation.
 
-**Tasarım Kararları:**
-- Bu proje bir “serving/arama framework” değildir; odak **KG extraction + graph analiz/çıktı**dır.
-- KG odaklı analiz/sorgu yardımcıları modüler olmalı.
+**Design decisions:**
+- This project is **not** a "serving / search framework"; the focus is
+  **KG extraction + graph analysis / output**.
+- KG-centric analysis / query helpers should be modular.
 
-### 3.7 Clustering & Summarization Layer
+### 3.7 Clustering & Summarisation Layer
 
-**Sorumluluklar:**
-- Graph clustering (Louvain, Leiden, Spectral)
-- Cluster summarization
-- Community report generation
+**Responsibilities:**
+- Graph clustering (Louvain, Leiden, Spectral).
+- Cluster summarisation.
+- Community report generation.
 
-**Tasarım Kararları:**
-- Clustering algorithm pluggable
-- Summarization strategy per-cluster
-- Report format extensible
+**Design decisions:**
+- Clustering algorithm is pluggable.
+- Summarisation strategy is per-cluster.
+- Report format is extensible.
 
-## 4. Veri Akışı ve Metadata Preservation
+## 4. Data Flow and Metadata Preservation
 
-### 4.1 Metadata Schema
+### 4.1 Chunk Metadata Schema
 
-Her chunk aşağıdaki metadata'yı taşır:
+Each chunk carries the following metadata:
 
 ```
 {
@@ -217,7 +236,7 @@ Her chunk aşağıdaki metadata'yı taşır:
 
 ### 4.2 Graph Node Metadata
 
-Her graph node aşağıdaki metadata'yı taşır:
+Each graph node carries the following metadata:
 
 ```
 {
@@ -233,7 +252,7 @@ Her graph node aşağıdaki metadata'yı taşır:
 
 ### 4.3 Graph Edge Metadata
 
-Her graph edge aşağıdaki metadata'yı taşır:
+Each graph edge carries the following metadata:
 
 ```
 {
@@ -246,89 +265,104 @@ Her graph edge aşağıdaki metadata'yı taşır:
 }
 ```
 
-## 5. Tasarım Trade-off'ları
+## 5. Design Trade-offs
 
 ### 5.1 Chunking Trade-offs
 
-**Token Window Size:**
-- **512 tokens**: Daha fazla chunk, daha ince-granular bağlam, daha yüksek maliyet
-- **1024 tokens**: Daha az chunk, daha geniş context, daha düşük storage cost
-- **Karar**: 512-1024 arası konfigüre edilebilir, varsayılan 768
+**Token window size:**
+- **512 tokens**: more chunks, finer-grained context, higher cost.
+- **1024 tokens**: fewer chunks, broader context, lower storage cost.
+- **Decision**: configurable between 512 and 1024, default 768.
 
-**Overlap Strategy:**
-- **10% overlap**: Daha az redundancy, daha düşük cost, entity boundary'lerde kayıp riski
-- **20% overlap**: Daha fazla redundancy, daha yüksek cost, daha iyi entity preservation
-- **Karar**: 15% varsayılan, domain-specific tuning için konfigüre edilebilir
+**Overlap strategy:**
+- **10 % overlap**: less redundancy, lower cost, higher risk of losing
+  context at entity boundaries.
+- **20 % overlap**: more redundancy, higher cost, better entity
+  preservation.
+- **Decision**: 15 % default, configurable for domain-specific tuning.
 
 ### 5.2 Embedding Trade-offs
 
-**Model Selection:**
-- **OpenAI text-embedding-3-small**: Hızlı, ucuz, 1536 dimensions
-- **OpenAI text-embedding-3-large**: Daha yavaş, daha pahalı, 3072 dimensions, daha iyi quality
-- **Gemini embedding-001**: Alternatif provider, farklı semantic space
-- **OpenRouter**: Unified API, multiple model support
+**Model selection:**
+- **OpenAI `text-embedding-3-small`**: fast, cheap, 1536 dimensions.
+- **OpenAI `text-embedding-3-large`**: slower, more expensive, 3072
+  dimensions, higher quality.
+- **Gemini `embedding-001`**: alternative provider, different semantic
+  space.
+- **OpenRouter**: unified API, multi-model support.
 
-**Karar Kriterleri:**
-- **Cost**: Token-based pricing, batch processing optimizasyonu
-- **Latency**: Real-time vs batch use case'ler
-- **Portability**: Model lock-in riski
-- **Semantic Consistency**: Cross-domain performance
+**Decision criteria:**
+- **Cost**: token-based pricing, batch-processing optimisations.
+- **Latency**: real-time vs. batch use cases.
+- **Portability**: model lock-in risk.
+- **Semantic consistency**: cross-domain performance.
 
-### 5.3 Sorgulama/Analiz Trade-off'ları
+### 5.3 Query / Analytics Trade-offs
 
-**KG Query & Analysis:**
-- **Graph traversal**: İlişkisel sorular için güçlü; graph kalitesine bağlı
-- **Community reports**: Büyük graph'larda yorumlanabilirlik sağlar; üretim maliyetine bağlı
+**KG query & analysis:**
+- **Graph traversal**: strong for relational questions; depends on graph
+  quality.
+- **Community reports**: aid interpretability on large graphs; subject
+  to generation cost.
 
-**Karar Kriterleri:**
-- **Graph Quality**: Extraction kalitesi düşükse traversal sonuçları da zayıflar
-- **Latency Requirements**: Online vs batch analiz
+**Decision criteria:**
+- **Graph quality**: if extraction quality is poor, traversal results
+  also degrade.
+- **Latency requirements**: online vs. batch analysis.
 
-## 6. Genişletilebilirlik ve Extension Points
+## 6. Extensibility and Extension Points
 
 ### 6.1 Pluggable Components
 
-- **Chunking Strategy**: Token-based, sentence-based, paragraph-based, semantic-based
-- **Embedding Provider**: OpenAI, Gemini, OpenRouter, Local models
-- **Graph Database**: Neo4j, NetworkX, ArangoDB
-- **Clustering Algorithm**: Louvain, Leiden, Spectral, Custom
+- **Chunking strategy**: token-based, sentence-based, paragraph-based,
+  semantic-based.
+- **Embedding provider**: OpenAI, Gemini, OpenRouter, local models.
+- **Graph database**: Neo4j, NetworkX, ArangoDB.
+- **Clustering algorithm**: Louvain, Leiden, Spectral, custom.
 
 ### 6.2 Domain Adaptation
 
-Domain-specific optimizasyonlar core pipeline'ı değiştirmeden eklenebilir:
+Domain-specific optimisations can be added without modifying the core
+pipeline:
 
-- **Domain-specific chunking**: Technical docs için code-aware chunking
-- **Domain-specific tagging**: Medical domain için ICD-10 tagging
-- **Domain-specific schemas**: DRG schema'ları domain'e özel
+- **Domain-specific chunking**: code-aware chunking for technical docs.
+- **Domain-specific tagging**: ICD-10 tagging for the medical domain.
+- **Domain-specific schemas**: DRG schemas tailored to a domain.
 
-## 7. Değerlendirme Metodolojisi
+## 7. Evaluation Methodology
 
 ### 7.1 Pipeline Metrics
 
-- **Chunking Quality**: Entity boundary preservation, semantic coherence
-- **Embedding Quality**: Semantic similarity accuracy, cross-domain consistency
-- **Graph Quality**: Entity extraction F1, relation extraction F1, graph completeness, duplicate entity oranı
+- **Chunking quality**: entity-boundary preservation, semantic coherence.
+- **Embedding quality**: semantic-similarity accuracy, cross-domain
+  consistency.
+- **Graph quality**: entity-extraction F1, relation-extraction F1, graph
+  completeness, duplicate-entity rate.
 
 ### 7.2 Multi-Dataset Evaluation
 
-3-4 heterojen dataset üzerinde değerlendirme:
-- Long narrative text (20-page story)
-- Factual text (Wikipedia biography)
-- Technical/structured document
-- Informal dialogue (chat/forum)
+Evaluation against 3–4 heterogeneous datasets:
 
-Her dataset için:
-- Chunking quality analysis
-- KG extraction kalite metrikleri (entity/relation F1, duplicate oranı, cross-chunk edge retention)
-- Entity extraction effectiveness
-- Failure cases ve edge behaviors
+- Long narrative text (a 20-page story).
+- Factual text (Wikipedia biography).
+- Technical / structured document.
+- Informal dialogue (chat / forum).
+
+For each dataset:
+
+- Chunking-quality analysis.
+- KG-extraction quality metrics (entity/relation F1, duplicate rate,
+  cross-chunk edge retention).
+- Entity-extraction effectiveness.
+- Failure cases and edge behaviours.
 
 ### 7.3 Comparison Framework
 
-Bu repo için karşılaştırma ekseni “serving/arama framework’leri” değil, pipeline bileşenlerinin kalite/sağlamlık etkisidir:
+For this repo, the axis of comparison is **not** "serving / search
+frameworks"; it is the quality / robustness impact of the pipeline
+components themselves:
 
-- Chunking stratejilerinin extraction kalitesine etkisi
-- Schema sampling stratejilerinin kapsama etkisi
-- Coreference/entity resolution post-process etkisi
-- Cross-chunk context injection (deterministik snippet) etkisi
-
+- Effect of chunking strategies on extraction quality.
+- Effect of schema-sampling strategies on coverage.
+- Effect of coreference / entity-resolution post-processing.
+- Effect of cross-chunk context injection (deterministic snippets).

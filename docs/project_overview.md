@@ -1,219 +1,256 @@
-# DRG (Dynamic Retrieval Graph) — Project Overview
+# DRG (Declarative Relationship Generation) — Project Overview
 
-## 1) DRG Nedir?
+> 🇹🇷 **Türkçe sürüm:** [`project_overview.tr.md`](project_overview.tr.md)
 
-**DRG (Dynamic Retrieval Graph)**, metinlerden **bilgi grafiği (Knowledge Graph / KG)** üretmek için tasarlanmış, **dataset‑agnostic**, **DSPy tabanlı** ve **declarative** bir semantic pipeline’dır. Projenin ana hedefi:
+## 1) What is DRG?
 
-- Ham metin girdisini alıp
-- (Gerekirse) metinden otomatik **EnhancedDRGSchema** üretip
-- Chunk‑based extraction ile **entity + relation** çıkarıp
-- Bunları **EnhancedKG** olarak inşa edip
-- KG üzerinde **clustering** ve **community report** üretmek
-- Sonuçları JSON çıktıları olarak export etmek ve UI’da görselleştirmektir.
+**DRG (Declarative Relationship Generation)** is a **dataset-agnostic**,
+**DSPy-based**, **declarative** semantic pipeline designed to produce
+**knowledge graphs (KG)** from text. Its core goals are to:
 
-DRG research‑grade bir codebase olarak, **GraphRAG / RAG experimentation** için “ham malzeme” üretir: yani asıl odak **KG extraction + graph analiz/çıktı**dır.
+- Take raw text input,
+- (Optionally) auto-generate an **EnhancedDRGSchema** from the text,
+- Run **chunk-based extraction** to derive **entity + relation** triples,
+- Build the result as an **EnhancedKG**,
+- Run **clustering** and produce **community reports** over the KG,
+- Export results as JSON and visualise them through the UI.
 
----
-
-## 2) DRG Ne Değildir? (Net Non‑Goals)
-
-Bu bölüm özellikle önemli: DRG’yi “diğer RAG projeleri” ile karıştırmamak için.
-
-- **Bir RAG framework değildir.**
-  - DRG’nin UI query endpoint’i **deterministic KG lookup** yapar.
-  - “LLM ile cevap üretme / retrieval‑augmented generation serving” gibi bir hedefi yoktur.
-- **Bir serving/search platformu değildir.**
-  - Vektör store katmanı (Chroma/Qdrant/Faiss vb.) “serving” amaçlı bir ürün bileşeni olarak bu repo’nun odağında değildir.
-  - İhtiyaç olursa sadece deneysel/opsiyonel bileşen olarak entegre edilebilir.
-- **Model‑özel (provider‑locked) değildir.**
-  - LLM ve embedding provider’ları abstract edilmiştir; environment üzerinden seçilir.
-
-Özet: DRG, **“query’yi cevaplayan uygulama”** olmaktan çok, **“graph çıkaran ve graph’i analiz eden pipeline”**dır.
+As a research-grade codebase, DRG generates the "raw material" for
+**GraphRAG / RAG experimentation**: the primary focus is **KG extraction
+plus graph analysis / output**, not retrieval-augmented generation itself.
 
 ---
 
-## 3) Neden DSPy? “Declarative Extraction” Ne Demek?
+## 2) What DRG Is *Not* (Explicit Non-Goals)
 
-DRG’nin temel farkı, extraction mantığının “prompt‑heavy, ad‑hoc” yerine **declarative** bir formda kurgulanmasıdır.
+This section matters: DRG is easy to mistake for a RAG project. It isn't.
 
-- **Declarative yaklaşım**: “Nasıl çıkarayım?” yerine “Neyi çıkarayım?” tanımlanır.
-  - Kullanıcı/araştırmacı, şemayı (entity types, relation groups, relation’lar, açıklamalar, örnekler) tanımlar.
-  - DRG, DSPy üzerinden bu şemadan **dinamik signature’lar** üretir ve extraction programını çalıştırır.
-- **DSPy**: LLM çağrılarını “program” gibi ele alıp, structured outputs ve sistematik akış kurmayı kolaylaştırır.
-  - DRG, DSPy ile entity/relation extraction akışını modülerleştirir (ör. typed predictor varsa kullan, yoksa degrade et).
+- **Not a RAG framework.**
+  - DRG's UI query endpoint performs **deterministic KG lookup**.
+  - There is no goal of "answer questions with an LLM" /
+    "retrieval-augmented generation serving".
+- **Not a serving / search platform.**
+  - A vector-store layer (Chroma / Qdrant / Faiss / …) is **not** a core
+    product component of this repo.
+  - It can be plugged in as an experimental / optional element if you
+    actually need it.
+- **Not provider-locked.**
+  - LLM and embedding providers are abstracted behind interfaces;
+    selection happens via environment variables.
 
-Bu sayede DRG:
-- Farklı dataset’lerde aynı pipeline’ı çalıştırabilir,
-- Şema değiştiğinde extraction davranışı da kontrollü şekilde değişir,
-- Araştırma/deney tasarımını daha tekrarlanabilir hale getirir.
+In short: DRG is a **"graph-producing and graph-analysing pipeline"**, not
+a **"query-answering application"**.
 
 ---
 
-## 4) Dataset‑Agnostic Tasarım ve “Enhanced Schema”
+## 3) Why DSPy? What Does "Declarative Extraction" Mean?
 
-### 4.1 Dataset‑Agnostic
+DRG's main distinguishing trait is that extraction is expressed in a
+**declarative** form rather than as ad-hoc, prompt-heavy code.
 
-DRG, belirli bir domain/dataset’e hard‑code edilmez. Bunun için:
-- **Abstraction layers** ile ingestion, chunking, embedding, graph inşa, clustering gibi katmanlar ayrıştırılmıştır.
-- Chunk’lar ve graph elemanları **zengin metadata** taşır (origin, chunk_id, işlem geçmişi).
+- **Declarative approach**: "What should I extract?" instead of "How
+  should I extract it?".
+  - The user / researcher defines the schema (entity types, relation
+    groups, relations, descriptions, examples).
+  - DRG then generates **dynamic signatures** from this schema through
+    DSPy and runs the extraction program.
+- **DSPy**: Treats LLM calls as a *program*, making structured outputs
+  and systematic flow easier to express.
+  - DRG modularises entity / relation extraction through DSPy (e.g. use
+    `TypedPredictor` if available, fall back gracefully otherwise).
+
+As a result, DRG:
+- Can run the same pipeline against different datasets,
+- Changes extraction behaviour predictably when the schema changes,
+- Makes research / experiment design reproducible.
+
+---
+
+## 4) Dataset-Agnostic Design and the "Enhanced Schema"
+
+### 4.1 Dataset-Agnostic
+
+DRG is not hard-coded to any specific domain or dataset. To make this
+possible:
+- **Abstraction layers** separate ingestion, chunking, embedding, graph
+  construction, and clustering.
+- Chunks and graph elements carry **rich metadata** (origin, chunk_id,
+  processing history).
 
 ### 4.2 EnhancedDRGSchema
 
-DRG’nin tercih ettiği şema formatı **EnhancedDRGSchema**’dır:
-- **EntityType**: `name`, `description`, `examples`, `properties`
-- **RelationGroup**: ilişkileri semantic olarak gruplayarak organizasyon sağlar
-- **Relation**: `name`, `src`, `dst` + açıklayıcı alanlar
-  - Bu repo’da relation’lar için **description / detail** gibi alanların taşınması önemsenir (neden bağlandı, bağlam ne?).
+DRG's preferred schema format is **`EnhancedDRGSchema`**:
+- **`EntityType`**: `name`, `description`, `examples`, `properties`.
+- **`RelationGroup`**: organises relations semantically into groups.
+- **`Relation`**: `name`, `src`, `dst` plus descriptive fields.
+  - Carrying `description` / `detail` fields on relations is important
+    here — they capture *why* something was linked and *in what
+    context*.
 
-Şema iki şekilde kullanılabilir:
-- **Manual schema**: Domain bilginizle direkt tanımlarsınız.
-- **Auto schema generation**: Metinden otomatik schema üretirsiniz (`generate_schema_from_text()`).
+Schemas can be used in two ways:
+- **Manual schema**: You define everything directly with your domain
+  knowledge.
+- **Auto schema generation**: You derive a schema from the text via
+  `generate_schema_from_text()`.
 
 ---
 
-## 5) Pipeline (Yüksek Seviye Akış)
+## 5) Pipeline (High-Level Flow)
 
-DRG’nin “default” kavramsal akışı:
+DRG's "default" conceptual flow is:
 
 1. **Text Input**
 2. **Schema Generation / Load**
 3. **Chunking**
-4. **KG Extraction (chunk‑based)**
-5. **(Opsiyonel) Embeddings**
+4. **KG Extraction (chunk-based)**
+5. **(Optional) Embeddings**
 6. **Clustering**
 7. **Community Reports**
-8. **Export (JSON) + UI Visualization**
+8. **Export (JSON) + UI Visualisation**
 
-### 5.1 Chunk‑Based Neden?
+### 5.1 Why Chunk-Based?
 
-Uzun metinlerde:
-- Entity’ler bir chunk’ta, relation’lar başka chunk’ta geçebilir.
-- DRG bu yüzden “chunk‑aware” extraction ve opsiyonel cross‑chunk bağlam enjeksiyonu gibi teknikler kullanır.
+In long documents:
+- Entities can appear in one chunk while their relations sit in another.
+- DRG therefore uses chunk-aware extraction and optional **cross-chunk
+  context injection** techniques.
 
-### 5.2 KG Inşa Mantığı
+### 5.2 KG Construction Logic
 
-Extraction çıktıları:
-- `entities`: `(entity_name, entity_type)` listesi
-- `triples`: `(source, relation, target)` listesi
+Extraction outputs are:
+- `entities`: list of `(entity_name, entity_type)`.
+- `triples`: list of `(source, relation, target)`.
 
-Bu çıktılardan:
-- `EnhancedKG` inşa edilir (`KGNode`, `KGEdge`, `Cluster`).
-- Node/edge metadata korunur; graph üstünde analitik adımlar yapılabilir.
-
----
-
-## 6) Monolithic‑Modular Mimari
-
-DRG tek bir codebase/deployment unit içinde monolitiktir; ama içeride modülerdir:
-- Her katman “kendi sorumluluğu”nu taşır.
-- Bileşenler interface’ler üzerinden ayrışır.
-- “Loose coupling / high cohesion” hedeflenir.
-
-Bu yaklaşım research‑grade bir kod tabanı için pratik:
-- Deneysel bileşenleri eklemek/çıkarmak kolaylaşır,
-- Bir bileşendeki değişiklik (ör. chunking) diğer katmanları minimal etkiler.
+From these:
+- An `EnhancedKG` is built (`KGNode`, `KGEdge`, `Cluster`).
+- Node / edge metadata is preserved, enabling downstream analytic steps
+  over the graph.
 
 ---
 
-## 7) UI ve Query Davranışı (Önemli: LLM Yok)
+## 6) Monolithic-Modular Architecture
 
-DRG UI:
-- KG’yi görselleştirir (Cytoscape tabanlı).
-- “Load Full Graph” ile tüm grafı çizer.
-- “Load Communities” ile cluster renklendirmeli görünümü verir.
+DRG is monolithic at the codebase / deployment-unit level, but **modular
+inside**:
+- Each layer owns its concern.
+- Components decouple through interfaces.
+- The goal is **loose coupling, high cohesion**.
+
+For a research-grade code base this is pragmatic:
+- Adding / removing experimental components is easy,
+- A change in one component (e.g. chunking) has minimal impact on others.
+
+---
+
+## 7) UI and Query Behaviour (Important: No LLM)
+
+The DRG UI:
+- Visualises the KG (Cytoscape-based).
+- "Load Full Graph" draws the entire graph.
+- "Load Communities" shows the cluster-coloured view.
 
 ### 7.1 UI Query = Deterministic KG Lookup
 
-UI’daki query kutusu:
-- entity string matching
-- opsiyonel relation filter
-- seed entity etrafında neighborhood expansion
+The query box in the UI performs:
+- Entity string matching,
+- Optional relation filtering,
+- Neighbourhood expansion around a seed entity.
 
-yapar. Bu endpoint **RAG/LLM ile cevap üretmez**. Bu, UI’nın hızlı ve deterministik olmasını sağlar.
+This endpoint **does not produce answers via RAG / LLM**. That keeps the
+UI fast and deterministic.
 
-### 7.2 “Hub” Görselleştirme Notu
+### 7.2 Note on "Hub" Visualisation
 
-Bazı metinler doğal olarak “star‑shape” graph üretir (tek merkezli şirket/karakter etrafında çok ilişki). DRG UI’da bunun için **UI‑only anti‑hub** seçeneği vardır:
-- Proxy node’lar ekleyerek layout’un okunabilirliğini artırır
-- KG datasını değiştirmez (UI‑only)
-
----
-
-## 8) Konfigürasyon (Environment‑Driven)
-
-DRG davranışını environment variable’larla yönetir (research + reproducibility için).
-
-Örnek:
-
-- `DRG_MODEL`: LLM modeli (provider prefix ile)
-- `DRG_TEMPERATURE`: LLM temperature
-- `DRG_MAX_TOKENS`: LLM output budget
-- Provider key’leri: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, vb.
-- Chunking: `DRG_CHUNK_SIZE`, `DRG_OVERLAP_RATIO`, `DRG_CHUNKING_STRATEGY`
-- UI: `DRG_API_PORT`, opsiyonel hub/visualization parametreleri
-
-Bu yaklaşım:
-- Kodun içine secret koymayı engeller,
-- Deney koşullarını kolayca tekrar etmeyi sağlar.
+Some texts naturally produce a "star-shaped" graph (many relations
+clustered around a single central company / character). DRG ships a
+**UI-only anti-hub** option:
+- Adds proxy nodes to improve the readability of the layout,
+- Does **not** mutate the KG data (UI-only).
 
 ---
 
-## 9) Proje Yapısı (Repository Structure)
+## 8) Configuration (Environment-Driven)
 
-Özet klasör yapısı:
+DRG's behaviour is controlled through environment variables (this is what
+research + reproducibility demand).
+
+Examples:
+
+- `DRG_MODEL`: LLM model id (with provider prefix).
+- `DRG_TEMPERATURE`: LLM temperature.
+- `DRG_MAX_TOKENS`: LLM output budget.
+- Provider keys: `OPENAI_API_KEY`, `GEMINI_API_KEY`,
+  `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, …
+- Chunking: `DRG_CHUNK_SIZE`, `DRG_OVERLAP_RATIO`,
+  `DRG_CHUNKING_STRATEGY`.
+- UI: `DRG_API_PORT`, plus optional hub / visualisation parameters.
+
+The benefits:
+- Secrets stay out of the code,
+- Experimental conditions are easy to reproduce.
+
+---
+
+## 9) Repository Structure
+
+Summary tree:
 
 ```
 DRG/
 ├── drg/                       # Core library (monolithic codebase)
-│   ├── ingestion/             # Ingestion & normalization
+│   ├── extract/               # DSPy extraction (KGExtractor + cross-chunk + heuristics)
 │   ├── chunking/              # Chunking strategies + validators
 │   ├── embedding/             # Embedding provider abstraction
-│   ├── retrieval/             # Retrieval helpers (NOT a serving RAG framework)
-│   ├── graph/                 # KG core, schema generation, community reports, visualization adapters
-│   ├── clustering/            # Louvain/Leiden/Spectral + summarization
-│   ├── optimizer/             # DSPy optimizer experiments
+│   ├── graph/                 # EnhancedKG, schema generation, community reports, vis adapters
+│   ├── clustering/            # Louvain / Leiden / Spectral + summarisation
+│   ├── coreference_resolution/# Pronoun resolution (NLP + heuristic strategies)
+│   ├── entity_resolution/     # Entity merging (string + hybrid)
+│   ├── optimizer/             # DSPy optimiser experiments
 │   ├── api/                   # FastAPI server + UI templates
-│   ├── schema.py              # Schema definitions (EnhancedDRGSchema, EntityType, RelationGroup, etc.)
+│   ├── schema.py              # EnhancedDRGSchema, EntityType, RelationGroup, …
 │   ├── extract.py             # DSPy extraction logic
 │   └── cli.py                 # CLI
-├── docs/                      # Documentation (NO CODE)
+├── docs/                       # Documentation (NO CODE)
 ├── examples/                   # Example scripts (full pipeline, API server)
-├── tests/                      # Unit/integration tests
+├── tests/                      # Unit / integration tests
 ├── outputs/                    # Generated outputs (KG, schema, reports)
 ├── pyproject.toml              # Project configuration
-└── README.md                   # Entry point for users
+└── README.md                   # User entry point
 ```
 
-Not: `docs/` klasörü sadece dokümantasyon içindir; kod taşımamalıdır.
+Note: `docs/` is documentation-only; it must not contain code.
 
 ---
 
-## 10) Tipik Kullanım Senaryoları
+## 10) Typical Usage Scenarios
 
-### 10.1 “Metinden KG üret”
-- Metni ver
-- Schema’yı üret veya yükle
-- Chunking + extraction ile KG üret
-- Çıktıları JSON olarak al
+### 10.1 "Produce a KG from text"
+- Pass in the text,
+- Generate or load a schema,
+- Run chunking + extraction to produce the KG,
+- Receive the outputs as JSON.
 
-### 10.2 “Graph analizi”
-- Clustering çalıştır
-- Cluster summarization + community report üret
-- Graph kalite metrikleri/heuristic’ler ile değerlendirme yap
+### 10.2 "Graph analysis"
+- Run clustering,
+- Produce cluster summarisation + community reports,
+- Evaluate using graph quality metrics / heuristics.
 
-### 10.3 “UI ile incele”
-- `examples/api_server_example.py` ile server aç
-- KG’yi görsel olarak incele
-- Deterministic query ile ilişkileri hızlı doğrula
+### 10.3 "Explore via the UI"
+- Launch the server with `examples/api_server_example.py`,
+- Inspect the KG visually,
+- Verify relations quickly through deterministic queries.
 
 ---
 
-## 11) DRG’nin Diğer Projelerden Farkı (Kısa Özet)
+## 11) DRG vs. Other Projects (Short Summary)
 
-- **RAG/serving değil**: “Cevap veren sistem” değil, “graph çıkaran pipeline”.
-- **DSPy + declarative**: Extraction davranışı şema ile tanımlanır; prompt karmaşası minimize edilir.
-- **Dataset‑agnostic**: Aynı sistem farklı domain’lerde tekrar kullanılabilir.
-- **Enhanced schema + metadata**: EntityType/RelationGroup + description/detail alanları ile zengin temsil.
-- **Graph‑first analiz**: Clustering/community report gibi graph‑native çıktılar.
-
-
+- **Not RAG / serving**: A "graph-producing pipeline", not an
+  "answer-producing system".
+- **DSPy + declarative**: Extraction behaviour is defined by the schema;
+  prompt churn is minimised.
+- **Dataset-agnostic**: The same system can be reused across domains.
+- **Enhanced schema + metadata**: Rich representation via
+  `EntityType` / `RelationGroup` together with `description` / `detail`
+  fields.
+- **Graph-first analytics**: Graph-native outputs such as clustering and
+  community reports.

@@ -9,6 +9,29 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Added (English documentation)
+
+- `docs/project_overview.md` — full English translation of the
+  architecture / philosophy doc. Covers what DRG is, what it
+  explicitly is *not* (not a RAG framework, not a serving
+  platform, not provider-locked), why DSPy + declarative,
+  dataset-agnostic design, EnhancedDRGSchema, pipeline,
+  monolithic-modular architecture, UI/query behaviour
+  (deterministic, no LLM), env-driven configuration, repo
+  structure, typical usage scenarios, and a comparison summary.
+- `docs/pipeline_overview.md` — full English translation of the
+  pipeline-flow doc. Includes the ASCII flow diagram, per-layer
+  responsibilities and design decisions, metadata schemas (chunk
+  / node / edge), trade-offs (chunking, embedding, query),
+  extensibility points, and the evaluation methodology
+  (multi-dataset, comparison framework).
+- The Turkish originals are preserved as `*.tr.md` (no content
+  loss) and both bilingual sets cross-link.
+- `README.md` and `README.tr.md` now expose a **side-by-side
+  EN/TR table** for every doc instead of an English-only list,
+  so Turkish readers don't lose their entry point and the
+  remaining-to-translate docs are explicit.
+
 ### Added (typing + visibility)
 
 - `drg/py.typed` — empty PEP 561 marker so downstream `mypy` and

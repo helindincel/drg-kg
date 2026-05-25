@@ -344,16 +344,22 @@ Modüler bağımlılık yapısı:
 
 ## Belgelendirme
 
-- [`docs/project_overview.md`](docs/project_overview.md) — Mimari + felsefe
-- [`docs/setup.md`](docs/setup.md) — Detaylı kurulum
-- [`docs/api_server.md`](docs/api_server.md) — API + UI kullanımı
-- [`docs/pipeline_overview.md`](docs/pipeline_overview.md) — Pipeline akışı
-- [`docs/schema_design.md`](docs/schema_design.md) — Şema tasarım prensipleri
-- [`docs/chunking_strategy.md`](docs/chunking_strategy.md) — Chunking stratejileri
-- [`docs/relationship_model.md`](docs/relationship_model.md) — İlişki modeli
-- [`docs/clustering_summarization.md`](docs/clustering_summarization.md) — Clustering
-- [`docs/optimizer_design.md`](docs/optimizer_design.md) — DSPy optimizer
-- [`docs/mcp_integration.md`](docs/mcp_integration.md) — MCP entegrasyonu
+En kritik iki doküman artık İngilizce mevcut. Geri kalanlar hâlâ
+Türkçe; çeviri yol haritası `STATUS.md`'de takip ediliyor. Python
+API, kod yorumları ve hata mesajları İngilizce.
+
+| Doküman | EN | TR |
+|---|:-:|:-:|
+| Mimari + felsefe | [`project_overview.md`](docs/project_overview.md) | [`project_overview.tr.md`](docs/project_overview.tr.md) |
+| Pipeline akışı | [`pipeline_overview.md`](docs/pipeline_overview.md) | [`pipeline_overview.tr.md`](docs/pipeline_overview.tr.md) |
+| Kurulum | [`setup.md`](docs/setup.md) | — |
+| API + UI | [`api_server.md`](docs/api_server.md) | — |
+| Şema tasarımı | — | [`schema_design.md`](docs/schema_design.md) |
+| Chunking stratejisi | — | [`chunking_strategy.md`](docs/chunking_strategy.md) |
+| İlişki modeli | — | [`relationship_model.md`](docs/relationship_model.md) |
+| Clustering & özetleme | — | [`clustering_summarization.md`](docs/clustering_summarization.md) |
+| DSPy optimizer | — | [`optimizer_design.md`](docs/optimizer_design.md) |
+| MCP entegrasyonu | — | [`mcp_integration.md`](docs/mcp_integration.md) |
 
 ---
 

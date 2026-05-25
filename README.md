@@ -353,20 +353,22 @@ Modular dependency layout:
 
 ## Documentation
 
-> Currently Turkish; English translations are tracked in the roadmap.
+The two highest-value docs are now available in English. The rest are
+still Turkish; English translations are tracked in `STATUS.md`. The
+Python API, code comments, and error messages are English.
 
-- [`docs/project_overview.md`](docs/project_overview.md) — Architecture &
-  philosophy
-- [`docs/setup.md`](docs/setup.md) — Detailed setup
-- [`docs/api_server.md`](docs/api_server.md) — API + UI usage
-- [`docs/pipeline_overview.md`](docs/pipeline_overview.md) — Pipeline flow
-- [`docs/schema_design.md`](docs/schema_design.md) — Schema design principles
-- [`docs/chunking_strategy.md`](docs/chunking_strategy.md) — Chunking strategies
-- [`docs/relationship_model.md`](docs/relationship_model.md) — Relationship model
-- [`docs/clustering_summarization.md`](docs/clustering_summarization.md) —
-  Clustering
-- [`docs/optimizer_design.md`](docs/optimizer_design.md) — DSPy optimizer
-- [`docs/mcp_integration.md`](docs/mcp_integration.md) — MCP integration
+| Doc | EN | TR |
+|---|:-:|:-:|
+| Architecture & philosophy | [`project_overview.md`](docs/project_overview.md) | [`project_overview.tr.md`](docs/project_overview.tr.md) |
+| Pipeline flow | [`pipeline_overview.md`](docs/pipeline_overview.md) | [`pipeline_overview.tr.md`](docs/pipeline_overview.tr.md) |
+| Setup | [`setup.md`](docs/setup.md) | — |
+| API + UI | [`api_server.md`](docs/api_server.md) | — |
+| Schema design | — | [`schema_design.md`](docs/schema_design.md) |
+| Chunking strategy | — | [`chunking_strategy.md`](docs/chunking_strategy.md) |
+| Relationship model | — | [`relationship_model.md`](docs/relationship_model.md) |
+| Clustering & summarisation | — | [`clustering_summarization.md`](docs/clustering_summarization.md) |
+| DSPy optimizer | — | [`optimizer_design.md`](docs/optimizer_design.md) |
+| MCP integration | — | [`mcp_integration.md`](docs/mcp_integration.md) |
 
 ---
 
