@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     # Core dependencies (always required)
-    "dspy>=2.5.0,<3.0.0",  # TypedPredictor requires 2.5+, stay within 2.x API
+    "dspy>=2.5.0,<4.0.0",  # TypedPredictor requires 2.5+, stay within 2.x API
     "pydantic>=2.0.0",     # Used by DSPy TypedPredictor and schema models
 ]
 
