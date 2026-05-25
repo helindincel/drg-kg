@@ -9,6 +9,46 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Added (graph coverage expansion: community_report + hub_mitigation)
+
+- `tests/test_graph_community_report.py` (24 tests) — exhaustive
+  unit coverage of `drg.graph.community_report`. Drives all five
+  private helpers via the public `generate_report` API: summary
+  generation (including the no-relationships, no-nodes, and
+  unknown-type branches), top-actors counting (external edges
+  that touch cluster members still count), top-relationships
+  extraction with `max_*` capping, theme identification across
+  the entity-type-centric / mapped-relation / fallback-relation
+  / density (>0.5, <0.2) branches and the `max_themes` cap, and
+  the density helper (single-node and empty-cluster zero
+  fallbacks). `generate_all_reports` (multi-cluster + empty KG),
+  `export_reports_json` (parent-dir creation), and
+  `generate_report_text` (populated, metadata-omitted, and
+  fully-empty variants) are all covered.
+- `drg/graph/community_report.py` jumped from **10 % to 100 %**.
+
+- `tests/test_graph_hub_mitigation.py` (21 tests) — coverage of
+  `drg.graph.hub_mitigation.apply_hub_relation_proxy_split`. The
+  function had a coverage of **4 %**, the lowest in the project.
+  Tests cover the disabled-no-op short-circuit, threshold
+  validation (`< 3` rejected, parametrised), the no-hub case,
+  single-hub single-relation and multi-relation proxy creation,
+  proxy edge re-routing for hub-as-source and hub-as-target,
+  hub-to-hub edges (routed through the source hub's proxy),
+  semantic-edge preservation (relationship_type, detail,
+  metadata, start_time, end_time, confidence, is_negated all
+  flow into the proxy edge), non-hub edges left untouched, the
+  threshold boundary (==N hub vs N-1 not a hub), multi-hub
+  scenarios, custom `proxy_node_type`/`proxy_id_prefix` knobs,
+  `seen_new` deduplication via a deliberately duplicated edge,
+  stats-vs-graph correctness, and orphan-endpoint backfill.
+- `drg/graph/hub_mitigation.py` jumped from **4 % to 89 %** (the
+  remaining branches are defensive guards on shapes the public
+  API cannot produce).
+
+- Overall project coverage: **60.32 % → 65.80 %** with 395
+  passing tests (up from 295 before this work).
+
 ### Added (kg_core unit coverage)
 
 - `tests/test_graph_kg_core.py` (55 tests) — exhaustive unit

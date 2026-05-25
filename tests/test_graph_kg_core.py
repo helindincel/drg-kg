@@ -32,7 +32,6 @@ import pytest
 from drg.graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode
 from drg.graph.relationship_model import EnrichedRelationship, RelationshipType
 
-
 # ---------------------------------------------------------------------------
 # KGNode
 # ---------------------------------------------------------------------------
@@ -159,7 +158,7 @@ def test_kgedge_rejects_self_loop():
 
 @pytest.mark.parametrize("bad", [-0.01, 1.01, -1.0, 2.0])
 def test_kgedge_rejects_out_of_range_confidence(bad: float):
-    with pytest.raises(ValueError, match="Confidence score must be between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"Confidence score must be between 0\.0 and 1\.0"):
         _edge(confidence=bad)
 
 
