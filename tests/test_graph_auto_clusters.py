@@ -58,9 +58,12 @@ def test_build_adjacency_treats_edges_as_undirected():
 
 
 def test_build_adjacency_handles_edge_endpoints_missing_from_nodes():
-    # Edge points to a node that isn't registered; adjacency still records it.
+    # EnhancedKG.add_edge() rejects edges whose endpoints aren't registered,
+    # but _build_undirected_adjacency itself is defensive against legacy /
+    # externally constructed graphs. Construct that state directly to verify
+    # the defensive branch.
     kg = _kg([("a", "T")], edges=[])
-    kg.add_edge(
+    kg.edges.append(
         KGEdge(
             source="a",
             target="ghost",
@@ -187,7 +190,8 @@ def test_ensure_clusters_creates_connected_component_clusters_when_multiple_comp
     )
     assert ensure_clusters(kg) is True
     assert len(kg.clusters) == 2
-    algorithms = {c.metadata.get("algorithm") for c in kg.clusters}
+    # kg.clusters is a dict[str, Cluster]; iterate over .values()
+    algorithms = {c.metadata.get("algorithm") for c in kg.clusters.values()}
     assert algorithms == {"connected_components"}
 
 
@@ -203,7 +207,7 @@ def test_ensure_clusters_falls_back_to_type_based_when_single_component():
     )
     assert ensure_clusters(kg) is True
     assert len(kg.clusters) >= 1
-    algorithms = {c.metadata.get("algorithm") for c in kg.clusters}
+    algorithms = {c.metadata.get("algorithm") for c in kg.clusters.values()}
     assert "type_grouping" in algorithms
 
 
@@ -223,6 +227,6 @@ def test_ensure_clusters_skips_components_below_min_size():
     kg = _kg([("a", "T1"), ("b", "T2")], edges=[])
     result = ensure_clusters(kg, min_cluster_size=2)
     assert isinstance(result, bool)
-    for c in kg.clusters:
+    for c in kg.clusters.values():
         # Either >= min_cluster_size or the single fallback group is allowed.
         assert len(c.node_ids) >= 1

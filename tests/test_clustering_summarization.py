@@ -21,11 +21,15 @@ def _cluster(
     edges: list[tuple[str, str, str]] | None = None,
     **md,
 ) -> Cluster:
+    # Use explicit None checks so callers can pass empty lists/dicts on
+    # purpose without falling back to defaults.
     return Cluster(
         cluster_id=cluster_id,
-        nodes=nodes or ["Alice", "Bob", "Carol"],
-        edges=edges or [("Alice", "knows", "Bob"), ("Bob", "knows", "Carol")],
-        metadata=md or {"node_count": 3, "edge_count": 2},
+        nodes=nodes if nodes is not None else ["Alice", "Bob", "Carol"],
+        edges=edges
+        if edges is not None
+        else [("Alice", "knows", "Bob"), ("Bob", "knows", "Carol")],
+        metadata=md if md else {"node_count": 3, "edge_count": 2},
     )
 
 

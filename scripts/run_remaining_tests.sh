@@ -28,6 +28,7 @@
 
 set -u  # treat undefined vars as error; do NOT use -e because we want to
         # continue past per-module failures.
+set -o pipefail  # propagate non-zero pytest exit codes through `| tail` etc.
 
 cd "$(dirname "$0")/.." || exit 1
 REPO_ROOT="$(pwd)"
@@ -209,9 +210,9 @@ echo "============================================================"
 echo "  SUMMARY"
 echo "============================================================"
 echo "  Succeeded: ${#SUCCEEDED_MODULES[@]} modules"
-for m in "${SUCCEEDED_MODULES[@]}"; do echo "    + $m"; done
+for m in "${SUCCEEDED_MODULES[@]+"${SUCCEEDED_MODULES[@]}"}"; do echo "    + $m"; done
 echo "  Failed:    ${#FAILED_MODULES[@]} modules"
-for m in "${FAILED_MODULES[@]}"; do echo "    - $m"; done
+for m in "${FAILED_MODULES[@]+"${FAILED_MODULES[@]}"}"; do echo "    - $m"; done
 echo ""
 echo "  Latest git log:"
 git log --oneline -10
