@@ -172,7 +172,6 @@ omit = [
     # currently lack dedicated tests; once they land, remove from omit so
     # the floor reflects real coverage.
     "drg/clustering/algorithms.py",
-    "drg/clustering/summarization.py",
 ]
 
 [tool.coverage.report]
