@@ -171,7 +171,6 @@ omit = [
     # Pending unit tests (tracked in CHANGELOG roadmap). These modules
     # currently lack dedicated tests; once they land, remove from omit so
     # the floor reflects real coverage.
-    "drg/clustering/algorithms.py",
 ]
 
 [tool.coverage.report]
