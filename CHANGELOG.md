@@ -9,6 +9,21 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Added (test coverage expansion)
+
+- Unit tests for `drg/graph/builders.py`, `drg/graph/auto_clusters.py`,
+  `drg/graph/query_engine.py`, `drg/clustering/summarization.py`, and
+  `drg/clustering/algorithms.py`. The first four run with zero external
+  dependencies; the clustering algorithms tests use `pytest.importorskip`
+  for each optional backend (python-louvain, leidenalg+igraph, sklearn)
+  so they pass cleanly whether those packages are installed or not.
+
+### Changed (coverage omit list)
+
+- Removed the five sources above from `[tool.coverage.run].omit`; the
+  coverage gate now reflects their real measured coverage.
+
+
 ### Added
 
 - English `README.md` (Turkish version preserved as `README.tr.md`); the two
