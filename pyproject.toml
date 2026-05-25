@@ -173,7 +173,6 @@ omit = [
     # the floor reflects real coverage.
     "drg/clustering/algorithms.py",
     "drg/clustering/summarization.py",
-    "drg/graph/query_engine.py",
 ]
 
 [tool.coverage.report]
