@@ -350,4 +350,3 @@ Chunk 2: "paragraph 2 ..." (overlap paragraph 2'den başlar)
 | Aggressive | 1024 | 20% | Wide context, entity preservation | High cost, redundancy |
 
 **Öneri:** Balanced strateji (768 tokens, 15% overlap) varsayılan olarak kullanılmalı, domain-specific tuning için konfigüre edilebilir olmalıdır.
-

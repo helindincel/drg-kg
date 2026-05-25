@@ -66,4 +66,3 @@ outputs/*
 # Tooling caches
 .ruff_cache/
 .mypy_cache/
-

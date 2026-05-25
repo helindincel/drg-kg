@@ -170,7 +170,7 @@ Mevcut entity sınıfları şu yöntemlerle güncellenebilir:
 
 **Örnek:**
 ```
-"Alice, mutlu bir ruh haliyle, Paris'teki kafede oturuyordu. 
+"Alice, mutlu bir ruh haliyle, Paris'teki kafede oturuyordu.
 Aniden bir patlama sesi duyuldu."
 ```
 - Person: Alice (emotion: mutlu)

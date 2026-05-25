@@ -17,7 +17,11 @@ repos:
         args: ["--fix=lf"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.7
+    # Pinned to a recent Ruff that matches the local dev env. UP038 was
+    # removed by Astral; older hooks (v0.5.7) still flag it as an
+    # unsafe-fix lint, which would fail CI even though `ruff check`
+    # in the same dev env is clean.
+    rev: v0.15.14
     hooks:
       - id: ruff
         args: ["--fix"]

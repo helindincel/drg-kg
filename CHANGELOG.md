@@ -9,6 +9,53 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Added (CI hardening)
+
+- `.github/workflows/ci.yml` now uploads `coverage.xml` to
+  Codecov via the official `codecov/codecov-action@v4`, gated to
+  the 3.11 matrix entry so the same numbers aren't double-counted.
+  `fail_ci_if_error: false` keeps CI green if Codecov is briefly
+  unreachable — the test job has already provided pass/fail
+  signal. The optional `CODECOV_TOKEN` secret is wired through
+  for private clones / rate-limit cases.
+- New `precommit` job runs `pre-commit run --all-files` via the
+  official `pre-commit/action@v3.0.1` (which caches hook
+  environments between runs). This catches whitespace, EOF,
+  ruff, mypy, and `detect-private-key` regressions on every PR
+  instead of relying on contributors to install pre-commit
+  locally.
+- `.github/dependabot.yml` opens weekly grouped PRs for outdated
+  Python dependencies (pyproject.toml) and GitHub Actions. Major
+  bumps still ship as individual PRs; DSPy 3.x is intentionally
+  ignored until our extraction layer is migrated.
+
+### Changed (mypy + ruff: bring the codebase to pre-commit-green)
+
+- `drg/optimizer/optimizer.py::optimize` — added an explicit
+  `assert self.optimized_extractor is not None` before the
+  return so mypy can narrow `Optional[KGExtractor]` to
+  `KGExtractor`. The three try-branches above already assign it;
+  the assert documents that invariant.
+- `drg/graph/schema_generator.py` — the two `import yaml`
+  call sites under `try/except ImportError` now carry
+  `# type: ignore[import-untyped]`. PyYAML is an optional
+  runtime dependency; pulling `types-PyYAML` into the dev set
+  just to silence this single import would be heavier than the
+  inline ignore.
+- `.pre-commit-config.yaml` — bumped the ruff-pre-commit hook
+  from `v0.5.7` to `v0.15.14` to match the local ruff. The old
+  hook still flagged `UP038` (`isinstance(x, (A, B))`), a rule
+  Astral has since removed. Without this bump, CI would have
+  failed on lints that the local `ruff check` no longer reports.
+- One-off cleanup pass from `pre-commit run --all-files`:
+  end-of-file newlines normalised across 4 `inputs/*.txt`,
+  `tests/README.md`, several `docs/*.md` files, a few `tests/`
+  modules, `drg/api/templates/index.html`, and 4 newly-converted
+  `isinstance(x, A | B)` call sites (`drg/graph/visualization_adapter/_hubproxy.py`,
+  `drg/graph/visualization.py`, `tests/test_chunking_strategies.py`,
+  `tests/test_extraction_functionality.py`). These were pure
+  whitespace / formatter changes; behaviour is unchanged.
+
 ### Added (graph coverage expansion: community_report + hub_mitigation)
 
 - `tests/test_graph_community_report.py` (24 tests) — exhaustive

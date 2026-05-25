@@ -176,6 +176,10 @@ class DRGOptimizer:
                 "Check your training examples format and metric function."
             ) from e
 
+        # All three try-branches assign self.optimized_extractor before
+        # reaching this point; the assert both documents that contract and
+        # narrows Optional[KGExtractor] -> KGExtractor for type checkers.
+        assert self.optimized_extractor is not None
         return self.optimized_extractor
 
     def _create_bootstrap_optimizer(self) -> dspy.BootstrapFewShot:

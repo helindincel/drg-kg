@@ -548,7 +548,7 @@ if extract_response.result:
         [t["source"], t["relation"], t["target"]]
         for t in extract_response.result["triples"]
     ]
-    
+
     build_response = api.handle_request(
         MCPRequest(
             method="drg/build_kg",
@@ -556,7 +556,7 @@ if extract_response.result:
             id=3,
         )
     )
-    
+
     export_response = api.handle_request(
         MCPRequest(
             method="drg/export_kg",
@@ -614,4 +614,3 @@ Yeni metodlar eklemek için:
 4. **Authentication/Authorization**: Güvenlik için API key veya token desteği
 5. **Caching**: Sık kullanılan schema ve extraction sonuçları için cache mekanizması
 6. **WebSocket Support**: Real-time agent etkileşimleri için WebSocket desteği
-

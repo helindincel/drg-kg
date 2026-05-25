@@ -295,7 +295,11 @@ class DatasetAgnosticSchemaGenerator:
             ImportError: If PyYAML is not installed
         """
         try:
-            import yaml
+            # PyYAML is an optional runtime dependency; type stubs
+            # (types-PyYAML) are not pinned because the import is
+            # behind a try/except. Silence mypy's import-untyped here
+            # rather than dragging the stub package into the dev set.
+            import yaml  # type: ignore[import-untyped]
         except ImportError as err:
             raise ImportError(
                 "PyYAML is required for YAML export. Install it with: pip install pyyaml"
@@ -397,7 +401,11 @@ class DatasetAgnosticSchemaGenerator:
             ImportError: If PyYAML is not installed
         """
         try:
-            import yaml
+            # PyYAML is an optional runtime dependency; type stubs
+            # (types-PyYAML) are not pinned because the import is
+            # behind a try/except. Silence mypy's import-untyped here
+            # rather than dragging the stub package into the dev set.
+            import yaml  # type: ignore[import-untyped]
         except ImportError as err:
             raise ImportError(
                 "PyYAML is required for YAML import. Install it with: pip install pyyaml"

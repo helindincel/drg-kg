@@ -128,4 +128,3 @@ pytest tests/test_integration.py -v
 - Functional testler API key gerektirdiği için CI/CD pipeline'ında isteğe bağlı olabilir
 - Mock testler her zaman çalıştırılmalı (fast feedback)
 - Integration testler farklı provider'ları test etmek için kullanılır
-

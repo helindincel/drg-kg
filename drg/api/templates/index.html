@@ -6,21 +6,21 @@
     <title>DRG Knowledge Graph Visualization</title>
     <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             background: #f8fafc;
             color: #1e293b;
             overflow: hidden;
         }
-        
+
         header {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             color: white;
@@ -29,12 +29,12 @@
             font-weight: 600;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        
+
         main {
             display: flex;
             height: calc(100vh - 57px);
         }
-        
+
         aside {
             width: 320px;
             background: white;
@@ -43,14 +43,14 @@
             overflow-y: auto;
             box-shadow: 2px 0 8px rgba(0,0,0,0.05);
         }
-        
+
         aside h3 {
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 16px;
             color: #0f172a;
         }
-        
+
         button, select, input {
             width: 100%;
             margin: 8px 0;
@@ -61,7 +61,7 @@
             font-weight: 500;
             transition: all 0.2s;
         }
-        
+
         button {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             color: white;
@@ -69,36 +69,36 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
         }
-        
+
         button:hover {
             background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
             box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
             transform: translateY(-1px);
         }
-        
+
         select, input {
             background: white;
             color: #1e293b;
         }
-        
+
         select:focus, input:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        
+
         section {
             flex: 1;
             position: relative;
             background: #ffffff;
         }
-        
+
         #cy {
             width: 100%;
             height: 100%;
             background: #ffffff;
         }
-        
+
         .info {
             position: absolute;
             top: 20px;
@@ -112,37 +112,37 @@
             z-index: 1000;
             border: 1px solid #e2e8f0;
         }
-        
+
         .info.active {
             display: block;
         }
-        
+
         .info h4 {
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 12px;
             color: #0f172a;
         }
-        
+
         .info p {
             font-size: 14px;
             line-height: 1.6;
             color: #475569;
             margin: 8px 0;
         }
-        
+
         #stats {
             margin-top: 24px;
             padding-top: 24px;
             border-top: 1px solid #e2e8f0;
         }
-        
+
         #stats p {
             font-size: 13px;
             color: #64748b;
             margin: 6px 0;
         }
-        
+
         #stats strong {
             color: #1e293b;
             font-weight: 600;
@@ -151,7 +151,7 @@
 </head>
 <body>
     <header>DRG Knowledge Graph Visualization</header>
-    
+
     <main>
         <aside>
             <h3>Controls</h3>
@@ -178,7 +178,7 @@
             <div style="margin-top: 8px; font-size: 12px; color: #64748b; line-height: 1.5;">
                 Adds small proxy nodes to reduce star-shaped hubs in the layout. Does not change the KG.
             </div>
-            
+
             <h3 style="margin-top: 24px;">Layout</h3>
             <select id="layout-select" onchange="changeLayout()">
                 <option value="breadthfirst">Breadth-First</option>
@@ -187,18 +187,18 @@
                 <option value="grid">Grid</option>
                 <option value="cose">Force-Directed</option>
             </select>
-            
+
             <h3 style="margin-top: 24px;">Query</h3>
             <input type="text" id="query-input" placeholder="Enter your query...">
             <button onclick="executeQuery()">Execute Query</button>
-            
+
             <div id="stats">
                 <p><strong>Graph Statistics</strong></p>
                 <p>Nodes: <span id="node-count">-</span></p>
                 <p>Edges: <span id="edge-count">-</span></p>
                 <p>Clusters: <span id="cluster-count">-</span></p>
             </div>
-            
+
             <div id="query-results" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0; display: none;">
                 <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #0f172a;">Query Results</h3>
                 <div id="query-results-content" style="font-size: 13px; color: #475569; line-height: 1.6;">
@@ -206,7 +206,7 @@
                 </div>
             </div>
         </aside>
-        
+
         <section>
             <div id="cy"></div>
             <div class="info" id="info-panel">
@@ -214,7 +214,7 @@
             </div>
         </section>
     </main>
-    
+
     <script>
         let cy;
         // Default to a force-directed layout to avoid "single hub star" visuals.
@@ -251,12 +251,12 @@
                 if (layoutSelect) layoutSelect.value = currentLayout;
             }
         }
-        
+
         function initCytoscape(elements = []) {
             if (cy) {
                 cy.destroy();
             }
-            
+
             cy = cytoscape({
                 container: document.getElementById('cy'),
                 elements: elements,
@@ -450,19 +450,19 @@
                     } : {}),
                 }
             });
-            
+
             // Node click handler
             cy.on('tap', 'node', function(evt) {
                 const node = evt.target;
                 showNodeInfo(node);
             });
-            
+
             // Edge click handler
             cy.on('tap', 'edge', function(evt) {
                 const edge = evt.target;
                 showEdgeInfo(edge);
             });
-            
+
             // Background click handler
             cy.on('tap', function(evt) {
                 if (evt.target === cy) {
@@ -471,17 +471,17 @@
                 }
             });
         }
-        
+
         function showNodeInfo(node) {
             const panel = document.getElementById('info-panel');
             const content = document.getElementById('info-content');
-            
+
             const nodeLabel = node.data('label') || node.id();
             const nodeType = node.data('type') || 'Unknown';
             const nodeMeta = node.data('metadata') || {};
             const nodeId = node.id();
             const isProxy = nodeType === 'HubProxy' || (typeof nodeId === 'string' && nodeId.startsWith('hubproxy::'));
-            
+
             let html = `<h4>${nodeLabel}</h4>`;
             html += `<p><strong>Type:</strong> ${nodeType}</p>`;
             // Avoid leaking internal proxy ids in the UI; show an explainable summary instead.
@@ -494,7 +494,7 @@
             } else {
                 html += `<p><strong>ID:</strong> ${nodeId}</p>`;
             }
-            
+
             if (node.data('properties') && Object.keys(node.data('properties')).length > 0) {
                 html += `<p><strong>Properties:</strong></p><ul style="margin-left: 20px; font-size: 13px;">`;
                 for (const [key, value] of Object.entries(node.data('properties'))) {
@@ -502,38 +502,38 @@
                 }
                 html += `</ul>`;
             }
-            
+
             content.innerHTML = html;
             panel.classList.add('active');
         }
-        
+
         function showEdgeInfo(edge) {
             const panel = document.getElementById('info-panel');
             const content = document.getElementById('info-content');
-            
+
             const relType = edge.data('relationship_type') || edge.data('label');
             const source = edge.data('source');
             const target = edge.data('target');
-            
+
             let html = `<h4>${relType}</h4>`;
             html += `<p><strong>From:</strong> ${source}</p>`;
             html += `<p><strong>To:</strong> ${target}</p>`;
-            
+
             if (edge.data('relationship_description')) {
                 html += `<p style="margin-top: 12px;"><strong>Description:</strong><br/>${edge.data('relationship_description')}</p>`;
             }
             if (edge.data('relationship_detail')) {
                 html += `<p style="margin-top: 12px;"><strong>Detail:</strong><br/>${edge.data('relationship_detail')}</p>`;
             }
-            
+
             content.innerHTML = html;
             panel.classList.add('active');
         }
-        
+
         function hideInfo() {
             document.getElementById('info-panel').classList.remove('active');
         }
-        
+
         async function loadFullGraph() {
             try {
                 const hubSplit = document.getElementById('hub-split-toggle')?.checked;
@@ -556,7 +556,7 @@
                 alert('Error loading graph: ' + error.message);
             }
         }
-        
+
         async function loadCommunities() {
             try {
                 const hubSplit = document.getElementById('hub-split-toggle')?.checked;
@@ -578,12 +578,12 @@
                 alert('Error loading communities: ' + error.message);
             }
         }
-        
+
         async function loadGraphStats() {
             try {
                 const response = await fetch('/api/graph/stats');
                 const stats = await response.json();
-                
+
                 document.getElementById('node-count').textContent = stats.node_count;
                 document.getElementById('edge-count').textContent = stats.edge_count;
                 document.getElementById('cluster-count').textContent = stats.cluster_count;
@@ -591,26 +591,26 @@
                 console.error('Error loading stats:', error);
             }
         }
-        
+
         async function executeQuery() {
             const queryInput = document.getElementById('query-input');
             const query = queryInput.value.trim();
-            
+
             if (!query) {
                 alert('Please enter a query');
                 return;
             }
-            
+
             const resultsDiv = document.getElementById('query-results');
             const resultsContent = document.getElementById('query-results-content');
-            
+
             // Show loading state
             resultsDiv.style.display = 'block';
             resultsContent.innerHTML = '<p style="color: #64748b;">Processing query...</p>';
-            
+
             // Scroll to results
             resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
+
             try {
                 const response = await fetch('/api/query', {
                     method: 'POST',
@@ -624,22 +624,22 @@
                         k_context_chunks: 5,
                     }),
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`Query failed: ${response.statusText}`);
                 }
-                
+
                 const result = await response.json();
-                
+
                 // Format results nicely
                 let html = '';
-                
+
                 // Query
                 html += `<div style="margin-bottom: 16px; padding: 12px; background: #f1f5f9; border-radius: 8px; border-left: 4px solid #3b82f6;">`;
                 html += `<strong style="color: #1e293b; display: block; margin-bottom: 4px;">Query:</strong>`;
                 html += `<span style="color: #475569;">${query}</span>`;
                 html += `</div>`;
-                
+
                 // Answer - Clean and concise
                 if (result.answer) {
                     // Extract the main answer text (before "Community summaries" if present)
@@ -648,17 +648,17 @@
                     if (communityIndex > 0) {
                         answerText = answerText.substring(0, communityIndex).trim();
                     }
-                    
+
                     html += `<div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">`;
                     html += `<strong style="color: #1e293b; display: block; margin-bottom: 8px;">Answer:</strong>`;
                     html += `<p style="color: #166534; margin: 0; line-height: 1.6;">${answerText}</p>`;
                     html += `</div>`;
                 }
-                
+
                 // Retrieval Context
                 if (result.retrieval_context) {
                     const ctx = result.retrieval_context;
-                    
+
                     // Seed entities
                     if (ctx.seed_entities && ctx.seed_entities.length > 0) {
                         html += `<div style="margin-bottom: 12px;">`;
@@ -669,7 +669,7 @@
                         });
                         html += `</div></div>`;
                     }
-                    
+
                     // Communities
                     if (ctx.community_reports && ctx.community_reports.length > 0) {
                         html += `<div style="margin-bottom: 12px;">`;
@@ -679,8 +679,8 @@
                             html += `<div style="font-weight: 600; color: #6d28d9; margin-bottom: 6px; font-size: 13px;">Cluster ${report.cluster_id || idx + 1}</div>`;
                             if (report.summary) {
                                 // Show full summary if available, otherwise truncate
-                                const summaryText = report.summary.length > 200 
-                                    ? report.summary.substring(0, 200) + '...' 
+                                const summaryText = report.summary.length > 200
+                                    ? report.summary.substring(0, 200) + '...'
                                     : report.summary;
                                 html += `<div style="color: #475569; font-size: 12px; line-height: 1.6;">${summaryText}</div>`;
                             }
@@ -688,7 +688,7 @@
                         });
                         html += `</div>`;
                     }
-                    
+
                     // Entities count
                     if (ctx.entities && ctx.entities.length > 0) {
                         html += `<div style="margin-bottom: 8px; color: #64748b;">`;
@@ -696,14 +696,14 @@
                         html += `</div>`;
                     }
                 }
-                
+
                 resultsContent.innerHTML = html;
-                
+
                 // Highlight entities in graph if available
                 if (result.retrieval_context && result.retrieval_context.seed_entities && cy) {
                     // Clear previous highlights
                     cy.elements().removeClass('query-highlight');
-                    
+
                     // Highlight seed entities
                     result.retrieval_context.seed_entities.forEach(entityId => {
                         const node = cy.getElementById(entityId);
@@ -712,7 +712,7 @@
                         }
                     });
                 }
-                
+
             } catch (error) {
                 console.error('Error executing query:', error);
                 resultsContent.innerHTML = `<div style="padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444; color: #991b1b;">`;
@@ -720,12 +720,12 @@
                 resultsContent.innerHTML += `</div>`;
             }
         }
-        
+
         function changeLayout() {
             const select = document.getElementById('layout-select');
             currentLayout = select.value;
             localStorage.setItem('drg_layout', currentLayout);
-            
+
             if (cy) {
                 let layoutOptions = {
                     name: currentLayout,
@@ -734,7 +734,7 @@
                     spacingFactor: currentLayout === 'breadthfirst' ? 2.5 : (currentLayout === 'concentric' ? 3.0 : 2.2),
                     padding: 80,
                 };
-                
+
                 if (currentLayout === 'cose') {
                     layoutOptions.nodeRepulsion = function(node) {
                         const deg = node.degree(false);
@@ -753,18 +753,18 @@
                     layoutOptions.coolingFactor = 0.98;
                     layoutOptions.minTemp = 1.0;
                 }
-                
+
                 cy.layout(layoutOptions).run();
             }
         }
-        
+
         function resetView() {
             if (cy) {
                 cy.reset();
                 cy.fit();
             }
         }
-        
+
         // Initialize on page load
         window.addEventListener('load', function() {
             const hubToggle = document.getElementById('hub-split-toggle');

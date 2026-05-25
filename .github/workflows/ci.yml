@@ -80,7 +80,7 @@ jobs:
 
       - name: Run non-integration tests
         # Integration tests require live LLM keys and are skipped in CI.
-        run: pytest -m "not integration" --cov=drg --cov-report=xml
+        run: pytest -m "not integration" --cov=drg --cov-report=xml --cov-report=term
 
       - name: Upload coverage artifact
         if: matrix.python-version == '3.11'
@@ -89,3 +89,46 @@ jobs:
           name: coverage-xml
           path: coverage.xml
           if-no-files-found: ignore
+
+      - name: Upload coverage to Codecov
+        # Only upload once per CI run (from the 3.11 job) to avoid
+        # double-counting the same numbers across the matrix. Public
+        # repos can upload without a token; we still pass CODECOV_TOKEN
+        # when configured so private clones and Codecov's anti-spam
+        # rate limit keep working. The `fail_ci_if_error: false` keeps
+        # CI green if Codecov is temporarily unavailable — the test
+        # job has already provided pass/fail signal.
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  precommit:
+    name: Pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install package + dev extras
+        # Pre-commit's mypy hook resolves type stubs against the
+        # installed code (pydantic, dspy, …); the cleanest way to
+        # match local dev behaviour is to install the package itself.
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run pre-commit on all files
+        # Uses the official action for hook caching (substantially
+        # faster than a plain `pre-commit run --all-files` on cold CI).
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files --show-diff-on-failure

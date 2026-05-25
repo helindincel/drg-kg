@@ -217,5 +217,3 @@ Not: `docs/` klasörü sadece dokümantasyon içindir; kod taşımamalıdır.
 - **Dataset‑agnostic**: Aynı sistem farklı domain’lerde tekrar kullanılabilir.
 - **Enhanced schema + metadata**: EntityType/RelationGroup + description/detail alanları ile zengin temsil.
 - **Graph‑first analiz**: Clustering/community report gibi graph‑native çıktılar.
-
-
