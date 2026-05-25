@@ -70,7 +70,7 @@ jobs:
           python -c "import importlib.metadata; print('resolved version:', importlib.metadata.version('drg-kg'))" || true
 
       - name: Upload built artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
