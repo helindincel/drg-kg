@@ -9,6 +9,28 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Added (kg_core unit coverage)
+
+- `tests/test_graph_kg_core.py` (55 tests) — exhaustive unit
+  coverage of the most public-surface module in the library.
+  Covers `KGNode` / `KGEdge` / `Cluster` dataclass validation
+  (every guard clause + parametrised confidence boundaries),
+  full `to_dict` ↔ `from_dict` round-trips, the
+  `KGEdge.from_enriched_relationship` adapter (core fields,
+  optional `source_ref`, `is_negated` fallback, nested *and*
+  flat temporal metadata shapes), `EnhancedKG.add_node` /
+  `add_edge` / `add_cluster` referential-integrity guards, all
+  three exporters (`to_json`, `to_json_ld`, `to_enriched_format`)
+  including back-compat for confidence stored in metadata, the
+  `save_*` file-IO wrappers via `tmp_path`,
+  `from_enriched_relationships` factory, and `add_entity_embeddings`
+  with a deterministic stub provider (default and explicit
+  text-mapping paths).
+- `drg/graph/kg_core.py` line coverage jumped from **38 % to
+  99 %**, lifting overall project coverage from 60.3 % to
+  **62.3 %**. The two remaining uncovered branches are
+  defensive guards on impossible inputs, kept on purpose.
+
 ### Added (English documentation)
 
 - `docs/project_overview.md` — full English translation of the
