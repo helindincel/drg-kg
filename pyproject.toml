@@ -1,6 +1,12 @@
 [project]
 name = "drg-kg"
-version = "0.1.0a0"
+# Version is derived from the latest git tag via setuptools-scm (see
+# [build-system] and [tool.setuptools_scm] below). Declaring it `dynamic`
+# here means *don't read a static value* — the build backend will inject
+# it at install/build time. To bump, just tag the commit (`git tag vX.Y.Z`)
+# and push the tag; setuptools-scm handles the rest. This eliminates the
+# previous dual-source-of-truth between `pyproject.toml` and `drg/__init__.py`.
+dynamic = ["version"]
 description = "Declarative Relationship Generation (DRG) - schema-driven Knowledge Graph extraction"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -118,8 +124,23 @@ drg = "drg.cli:main"
 # Build / packaging
 # -----------------------------------------------------------------------------
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+# `setuptools_scm` lets the *git tag* be the single source of truth for the
+# version. The backend pins are conservative; tighten only if a real
+# incompatibility shows up.
+requires = ["setuptools>=68", "setuptools_scm[toml]>=8", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+# Write the resolved version into drg/_version.py at build time so the
+# installed wheel exposes a real `__version__` even when the package is
+# imported from a copy that has no .git history.
+write_to = "drg/_version.py"
+# Use vMAJOR.MINOR.PATCH[preN] tags (e.g. v0.1.0a0, v0.1.0, v1.2.3rc1).
+tag_regex = "^v(?P<version>.+)$"
+# Use a stable local-version scheme so editable installs in dirty trees
+# don't generate PyPI-rejected versions like 0.1.0+dXXXXXXXX. (PyPI rejects
+# local versions outright; we still want clean SemVer-ish strings.)
+local_scheme = "no-local-version"
 
 [tool.setuptools]
 # IMPORTANT: This repo uses flat-layout and also contains non-package top-level

@@ -9,6 +9,31 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Added (release automation)
+
+- `.github/workflows/release.yml` — tag-driven release pipeline. Tags
+  matching `vX.Y.Z` (final), `vX.Y.Za[N]`, `vX.Y.Zb[N]`, `vX.Y.Zrc[N]`
+  trigger a build + `twine check` + upload. Pre-releases land on
+  TestPyPI; only final-release tags publish to PyPI. Manual
+  `workflow_dispatch` is available for TestPyPI dry-runs. Both
+  uploads use the official `pypa/gh-action-pypi-publish` action and
+  GitHub environments (`pypi`, `testpypi`) for review gates.
+- `STATUS.md` (repo root) — project status & gap analysis covering
+  what the library does, how, why it exists, and an honest list of
+  remaining gaps (coverage, docs, release, CI, examples, benchmarks,
+  governance) with a suggested order of attack.
+
+### Changed (single-source version)
+
+- Adopted `setuptools_scm` as the single source of truth for the
+  package version. `pyproject.toml` now declares `version` as
+  `dynamic`, and `drg/__init__.py` reads `__version__` from the
+  build-generated `drg/_version.py` (falling back to
+  `importlib.metadata.version("drg-kg")`). This eliminates the
+  previous dual source-of-truth between `pyproject.toml` and
+  `drg/__init__.py`; bumps are now driven entirely by git tags.
+- `.gitignore` now excludes `drg/_version.py` (build-generated).
+
 ### Added (test coverage expansion)
 
 - Unit tests for `drg/graph/builders.py`, `drg/graph/auto_clusters.py`,

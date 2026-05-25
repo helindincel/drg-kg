@@ -1,6 +1,21 @@
 """DRG - Declarative Relationship Generation"""
 
-__version__ = "0.1.0a0"
+# Single source of truth: the version comes from setuptools_scm at build
+# time. In editable/installed mode we read it via importlib.metadata. In a
+# fresh checkout without a build step (rare; CI does build before test)
+# we fall back to "0.0.0+unknown" so imports never crash.
+#
+# To bump: tag the commit (e.g. `git tag v0.1.0 && git push --tags`).
+# Do NOT edit a hard-coded string here.
+try:
+    from ._version import __version__  # type: ignore[import-not-found]
+except ImportError:  # pragma: no cover - only hit before first build
+    try:
+        from importlib.metadata import PackageNotFoundError, version
+
+        __version__ = version("drg-kg")
+    except (ImportError, PackageNotFoundError):  # pragma: no cover
+        __version__ = "0.0.0+unknown"
 
 # Core schema types (lightweight - import directly)
 # Extraction functions can pull optional heavy dependencies (e.g., DSPy).

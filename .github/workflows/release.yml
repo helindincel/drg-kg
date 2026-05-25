@@ -1,0 +1,129 @@
+name: Release
+
+# Trigger:
+#   - Pushing a tag that looks like `vMAJOR.MINOR.PATCH` or `vX.Y.Zalpha`
+#     (e.g. v0.1.0, v0.1.0a1, v1.2.0rc1). setuptools_scm picks the version
+#     up from the tag, so the published version is exactly the tag minus
+#     the leading `v`.
+#   - Manual dispatch (workflow_dispatch) for dry-runs against TestPyPI.
+#
+# Secrets required (Settings -> Secrets and variables -> Actions):
+#   - PYPI_API_TOKEN       : a project-scoped token from pypi.org
+#   - TEST_PYPI_API_TOKEN  : a project-scoped token from test.pypi.org
+#
+# Both are scoped to the `drg-kg` project, not account-wide.
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+a[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+b[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Upload target"
+        required: true
+        default: "testpypi"
+        type: choice
+        options:
+          - testpypi
+          - pypi
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false  # never cancel a release mid-flight
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # setuptools_scm needs the full history + tags to compute version.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Verify metadata
+        # `twine check` flags rendered-README problems before upload,
+        # which TestPyPI/PyPI would otherwise reject silently.
+        run: python -m twine check dist/*
+
+      - name: Show resolved version
+        run: |
+          ls -la dist/
+          python -c "import importlib.metadata; print('resolved version:', importlib.metadata.version('drg-kg'))" || true
+
+      - name: Upload built artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    # Run on tag pushes AND manual dispatch when target=testpypi.
+    if: |
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'testpypi')
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/drg-kg/
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        # pypa/gh-action-pypi-publish is the official, audited uploader.
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          # skip-existing is essential for re-runs of the same tag in case
+          # PyPI flaked mid-upload.
+          skip-existing: true
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [build, publish-testpypi]
+    runs-on: ubuntu-latest
+    # Final-release tags only: vX.Y.Z without an alpha/beta/rc suffix.
+    # Manual dispatch with target=pypi also fires it.
+    if: |
+      (startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, 'a') && !contains(github.ref, 'b') && !contains(github.ref, 'rc')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/drg-kg/
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true

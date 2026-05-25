@@ -54,6 +54,11 @@ coverage.xml
 *.whl
 *.tar.gz
 
+# setuptools_scm writes the resolved version here at build time; it must
+# never be committed (would re-introduce dual-source-of-truth for the
+# version string).
+drg/_version.py
+
 # Runtime / generated artifacts
 outputs/*
 !outputs/.gitkeep
