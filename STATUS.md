@@ -3,7 +3,7 @@
 > **Audience:** Anyone trying to answer “what is this repo, why does it exist,
 > and is it ready for me to depend on?”
 >
-> **State as of:** 2026-05-25 · version `0.1.0a0` · 295 passing tests · ~60%
+> **State as of:** 2026-05-30 · version `0.1.0a1` · 295 passing tests · ~60%
 > coverage · alpha on `test.pypi.org`, not yet on real PyPI.
 
 ---
@@ -334,3 +334,75 @@ and (d) lowering the "try it in 30 s" barrier with a mocked, no-key
 quickstart.
 
 Everything else is steady-state polish.
+
+---
+
+## 8. v0.1.0a1 post-mortem (`1example` end-to-end run)
+
+First end-to-end run on `inputs/1example_text.txt` (4.8KB Apple Inc.
+profile), using `gemini/gemini-2.5-flash` with auto-generated schema.
+Outputs in `outputs/1example_*.json`.
+
+### Pipeline metrics
+
+| Stage | Output |
+|---|---|
+| Auto schema | 8 entity types, 4 relation groups, 16 relations |
+| Raw extraction | 31 entities, 38 triples |
+| KG (after build + hub-split) | 41 nodes, 47 edges |
+| Hub-split | 1 hub (`Apple Inc.`) → 9 proxy nodes, 26 edges re-routed |
+| Louvain clusters | 8 |
+| Community reports | 8 |
+| Wall time | ~2.5 min (one schema-gen retry due to truncation at 4096 tokens) |
+
+### What worked
+
+- Auto-schema produced a sensible domain ontology (Company / Person /
+  Product / OperatingSystem / Service / Location / Industry / Building)
+  on the first non-truncated attempt.
+- `apply_hub_relation_proxy_split` correctly recognised `Apple Inc.` as
+  a degree hub and produced legible per-relation proxy nodes.
+- Louvain communities matched intuitive groupings (products, services,
+  founders/CEOs, location, industries-led, R&D focus, specialisation).
+- The `EnhancedKG` JSON loaded into the FastAPI server / Cytoscape UI
+  without manual fixups.
+
+### What did not work (tracked for v0.1.0a2)
+
+These are the same issues now documented in the
+[`README.md` Known Limitations section](README.md#known-limitations-v010a1):
+
+1. **Entity recall gaps.** Schema-listed examples (`App Store`,
+   `Apple Music`, `Apple TV+`, the rest of the Mac line) were not
+   re-extracted from the source text.
+2. **Numeric / temporal facts dropped.** `revenue`, `founding_date`,
+   `employees`, `market_capitalization` schema slots remain unpopulated.
+3. **Type misclassification on abstract nouns.** Concepts like
+   `"hardware sales"` and `"services revenue"` typed as concrete
+   `Product` / `Service`. `"mobile app marketplace"` emitted with
+   `type: null`.
+4. **Inverse-relation duplication.** Auto-schema declared both
+   `RUNS_ON: Product → OperatingSystem` and `POWERS_DEVICE:
+   OperatingSystem → Product`, producing redundant edges.
+5. **Local-context misread.** `"watchOS for Apple Watch, and tvOS for
+   Apple TV"` produced `Apple Watch RUNS_ON tvOS`.
+6. **Singleton clusters not filtered.** Louvain emitted `cluster_1` with
+   one node and zero internal edges.
+7. **Community reports are statistical, not narrative.** Current
+   `CommunityReportGenerator` outputs template strings, not LLM
+   summaries.
+8. **Schema-gen token budget.** First attempt with
+   `DRG_MAX_TOKENS=4096` was truncated mid-JSON. `8192` was sufficient
+   for `1example` (4.8KB); larger inputs likely need more.
+
+### Action items before v0.1.0a2
+
+- [ ] Re-run pipeline on `3example` (10KB) and `4example` (13KB) to
+      distinguish `1example`-specific issues from systemic ones.
+- [ ] Open one GitHub issue per confirmed-systemic limitation above.
+- [ ] Decide post-processing strategy for inverse-relation dedup
+      (item 4) — schema-time guard or KG-time merge.
+- [ ] Add a `min_cluster_size` filter to `EnhancedKG` cluster export
+      (item 6) — pure code change, no LLM needed.
+- [ ] Bump `DRG_MAX_TOKENS` default for `generate_schema_from_text`
+      from 1500 to 8192 (item 8) — pure config change.

@@ -45,6 +45,9 @@ from drg import (
     RelationGroup,
     extract_typed,
 )
+from drg.utils.env_loader import load_dotenv
+
+load_dotenv(".env", override=False)
 
 SAMPLE_TEXT = """
 Marie Curie was a Polish-born physicist and chemist who later became a French

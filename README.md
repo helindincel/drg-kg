@@ -190,6 +190,61 @@ Each script is self-contained: define schema, run extraction, dump JSON KG.
 
 ---
 
+## Known Limitations (v0.1.0a1)
+
+DRG is alpha software. These limitations were observed on the `1example`
+(Apple Inc. corporate profile) end-to-end run with `gemini-2.5-flash` and are
+tracked for the v0.1.0a2 milestone. They are mostly **extraction-quality**
+issues; the pipeline (chunking → schema-gen → extraction → hub-split →
+clustering → reports → API) runs end-to-end without errors.
+
+1. **Entity recall is incomplete.** When the auto-generated schema lists
+   examples, the extractor does not always re-pull them from the text.
+   On `1example`, the schema's `Service` examples include `App Store`,
+   `Apple Music`, `Apple TV+`, but only `iCloud` and `Apple Arcade` were
+   extracted. Plural product families (e.g. the Mac line: `MacBook Air`,
+   `iMac`, `Mac Pro`, `Mac mini`) often produce only one representative.
+
+2. **Numeric and date facts are dropped.** Schema slots such as `revenue`,
+   `founding_date`, `employees`, `market_capitalization` are defined but
+   not populated by extraction. Triples like `Apple Inc. FOUNDED_IN
+   "April 1976"` or `Apple Inc. EMPLOYS 164000` are missed.
+
+3. **Type misclassification on abstract nouns.** Revenue streams /
+   concepts can be mis-typed as concrete entities — e.g. `"hardware
+   sales"` ends up as `Product`, `"services revenue"` as `Service`.
+   `"mobile app marketplace"` was emitted with `type: null`.
+
+4. **Inverse-relation duplication.** Auto-generated schemas occasionally
+   declare both directions of the same fact (e.g. `RUNS_ON: Product →
+   OperatingSystem` AND `POWERS_DEVICE: OperatingSystem → Product`),
+   producing redundant edges. Post-processing does not currently dedupe.
+
+5. **Local-context misreads.** The extractor can be fooled by ambiguous
+   sentence structure. Example: `"watchOS for Apple Watch, and tvOS for
+   Apple TV"` produced `Apple Watch RUNS_ON tvOS` (wrong — tvOS is for
+   Apple TV, not the Watch).
+
+6. **Singleton clusters are not filtered.** Louvain may emit a community
+   with a single node and zero internal edges; this is exported as-is.
+
+7. **Community reports are statistical, not narrative.** The current
+   `CommunityReportGenerator` produces template strings like
+   *"Cluster cluster_2 contains 4 entities primarily of type 'Service'…"*.
+   No LLM-generated semantic summary is attached.
+
+8. **Free-tier rate limits.** Default model is `gemini-2.5-flash`. The
+   `generate_schema_from_text` step alone can hit the per-minute input-
+   token cap on Google's free tier (especially for ≥10KB inputs); see
+   [docs](https://ai.google.dev/gemini-api/docs/rate-limits). Wait for
+   the per-minute reset, lower `DRG_MAX_TOKENS`, or use a billing-enabled
+   project. Local Ollama (`ollama_chat/...`) avoids the issue entirely.
+
+If you hit a different issue or have a concrete repro, please open a
+GitHub issue with the text input, schema, and resulting JSON.
+
+---
+
 ## CLI
 
 ```bash
