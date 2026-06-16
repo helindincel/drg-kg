@@ -462,12 +462,15 @@ def extract_from_chunks(
         logger.warning("No DSPy LM configured; returning empty extraction (mock mode).")
         return [], []
 
+    all_entities: list[tuple[str, str]] = []
+    all_triples: list[tuple[str, str, str]] = []
+
     if two_pass_extraction:
         logger.info("Using two-pass extraction mode")
 
         # PASS 1: extract all entities from all chunks.
         logger.info("Pass 1: Extracting entities from all chunks...")
-        all_entities: list[tuple[str, str]] = []
+        all_entities = []
         chunk_texts: list[str] = []
         chunk_entities_list: list[list[tuple[str, str]]] = []
 
@@ -508,7 +511,7 @@ def extract_from_chunks(
 
         # PASS 2: extract relations with global entity context.
         logger.info(f"Pass 2: Extracting relations with {len(all_entities)} global entities...")
-        all_triples: list[tuple[str, str, str]] = []
+        all_triples = []
 
         for i, chunk_text in enumerate(chunk_texts):
             if not chunk_text.strip():
@@ -566,8 +569,6 @@ def extract_from_chunks(
 
     else:
         logger.info("Using single-pass extraction mode")
-        all_entities: list[tuple[str, str]] = []
-        all_triples: list[tuple[str, str, str]] = []
         context_entities: list[tuple[str, str]] = []
 
         for i, chunk in enumerate(chunks):
