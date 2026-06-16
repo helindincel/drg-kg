@@ -7,13 +7,19 @@ This module provides fixtures and configuration that are shared across all tests
 import os
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, MagicMock, patch
 
 import pytest
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
+
+# drg/extract/__init__.py imports dspy at module level (so tests can patch it).
+# Stub it here — before any drg module is imported — so that the entire test
+# suite can collect and run without requiring a live dspy installation.
+# Tests that need a real LLM are marked `integration` and skipped in CI.
+sys.modules.setdefault("dspy", MagicMock())
 
 
 @pytest.fixture

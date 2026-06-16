@@ -55,7 +55,7 @@ class ChunkValidator:
         Returns:
             List of issues
         """
-        issues = []
+        issues: list[str] = []
 
         if len(chunks) < 2:
             return issues

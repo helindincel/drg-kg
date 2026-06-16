@@ -9,44 +9,9 @@ This module provides:
 - Community reports
 """
 
-# Legacy KG class (from graph.py)
-import json
-from typing import Any
-
-
-class KG:
-    """Simple Knowledge Graph class."""
-
-    def __init__(self):
-        self.nodes: dict[str, dict[str, Any]] = {}
-        self.edges: list[tuple[str, str, str]] = []
-
-    @classmethod
-    def from_typed(cls, entities_typed: list[tuple[str, str]], triples: list[tuple[str, str, str]]):
-        kg = cls()
-        for name, etype in entities_typed:
-            kg.nodes.setdefault(name, {"type": etype})
-        for s, r, o in triples:
-            kg.nodes.setdefault(s, {"type": None})
-            kg.nodes.setdefault(o, {"type": None})
-            kg.edges.append((s, r, o))
-        return kg
-
-    @classmethod
-    def from_triples(cls, triples: list[tuple[str, str, str]]):
-        kg = cls()
-        for s, r, o in triples:
-            kg.nodes.setdefault(s, {"type": None})
-            kg.nodes.setdefault(o, {"type": None})
-            kg.edges.append((s, r, o))
-        return kg
-
-    def to_json(self, indent: int = 2) -> str:
-        data = {
-            "nodes": [{"id": n, **attr} for n, attr in self.nodes.items()],
-            "edges": [{"source": s, "type": r, "target": o} for s, r, o in self.edges],
-        }
-        return json.dumps(data, indent=indent)
+# Legacy KG class — moved to _legacy.py, kept here for backward compatibility.
+# Instantiating KG will raise DeprecationWarning; use EnhancedKG instead.
+from ._legacy import KG
 
 
 # Schema Generator

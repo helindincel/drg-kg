@@ -1,9 +1,35 @@
 """
 MCP (Model Context Protocol) API wrapper for DRG.
 
-This module provides an MCP-style API interface for the DRG system,
-allowing AI agents to interact with DRG's knowledge graph extraction capabilities.
+.. deprecated::
+    This module implements MCP manually (JSON-RPC 2.0 dataclasses) and does **not**
+    use the official `mcp` Python SDK.  It has no transport layer (stdio / HTTP+SSE)
+    and will not work as a real MCP server.
+
+    Use :mod:`drg.mcp_server` instead, which is built on top of the official SDK
+    (``pip install drg-kg[mcp]``).  This module is kept for backward compatibility
+    only and will be removed in a future major version.
+
+Legacy usage (still works, but deprecated)::
+
+    from drg.mcp_api import DRGMCPAPI  # DeprecationWarning raised at import
+
+For a real MCP server::
+
+    from drg.mcp_server import create_mcp_server
+    mcp = create_mcp_server()
+    mcp.run()
 """
+
+import warnings
+
+warnings.warn(
+    "drg.mcp_api is deprecated and will be removed in a future major version. "
+    "Use drg.mcp_server (pip install drg-kg[mcp]) for a real MCP server built on "
+    "the official MCP Python SDK.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 import json
 from dataclasses import dataclass, field
@@ -437,11 +463,11 @@ class DRGMCPAPI:
 
         self._knowledge_graphs[kg_id] = kg
 
-        stats = kg.get_statistics()
         return {
             "kg_id": kg_id,
             "status": "built",
-            "statistics": stats,
+            "node_count": len(kg.nodes),
+            "edge_count": len(kg.edges),
         }
 
     def _get_kg(self, params: dict[str, Any]) -> dict[str, Any]:
@@ -455,7 +481,7 @@ class DRGMCPAPI:
             raise ValueError(f"Knowledge graph '{kg_id}' not found")
 
         kg = self._knowledge_graphs[kg_id]
-        return kg.to_dict()
+        return json.loads(kg.to_json())
 
     def _export_kg(self, params: dict[str, Any]) -> dict[str, Any]:
         """Export a knowledge graph in specified format."""
@@ -471,7 +497,7 @@ class DRGMCPAPI:
         kg = self._knowledge_graphs[kg_id]
 
         if format_type == "json":
-            return {"format": "json", "data": kg.to_dict()}
+            return {"format": "json", "data": json.loads(kg.to_json())}
         elif format_type == "jsonld":
             jsonld_str = kg.to_json_ld()
             return {"format": "jsonld", "data": json.loads(jsonld_str)}

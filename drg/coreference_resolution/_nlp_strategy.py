@@ -70,7 +70,21 @@ class NLPCoreferenceStrategy(CoreferenceStrategy):
         # Prefer coreferee (actively maintained); fall back to neuralcoref.
         try:
             import coreferee  # noqa: F401
+            import spacy as _spacy
 
+            _spacy_version = tuple(int(x) for x in _spacy.__version__.split(".")[:2])
+            if _spacy_version >= (3, 7):
+                import warnings
+
+                warnings.warn(
+                    f"coreferee is not actively maintained (last release 2023) and has known "
+                    f"compatibility issues with spaCy {_spacy.__version__}. "
+                    "Neural coreference may silently fail or produce incorrect results. "
+                    "Consider switching to a HuggingFace-based coref model "
+                    "(e.g. coreferee alternative: https://github.com/explosion/spacy-experimental).",
+                    UserWarning,
+                    stacklevel=2,
+                )
             self.nlp.add_pipe("coreferee")
             self.neural_coref = "coreferee"
             logger.info("Neural coreference (coreferee) enabled")

@@ -79,7 +79,7 @@ class ClusterSummarizer:
 
         # Extract key relations
         key_relations = []
-        relation_counts = {}
+        relation_counts: dict[str, int] = {}
         for source, relation, target in cluster.edges:
             rel_key = f"{source} → {relation} → {target}"
             relation_counts[rel_key] = relation_counts.get(rel_key, 0) + 1

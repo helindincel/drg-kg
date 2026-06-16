@@ -65,9 +65,19 @@ def generate_schema_from_text(text: str) -> EnhancedDRGSchema:
     settings if needed.
 
     Raises:
+        ValueError: If the input text exceeds the configured character limit
+            (``DRG_MAX_TEXT_CHARS``, default 100 000).
         RuntimeError: If LLM invocation, JSON parsing, or schema validation
             fails. The error message contains diagnostic info for the user.
     """
+    # Input length guard — protects against prompt injection via oversized inputs.
+    _max_chars = int(os.getenv("DRG_MAX_TEXT_CHARS", "100000"))
+    if len(text) > _max_chars:
+        raise ValueError(
+            f"Input text is too long ({len(text):,} chars). "
+            f"Maximum allowed: {_max_chars:,} chars (set DRG_MAX_TEXT_CHARS to override)."
+        )
+
     # Lazy import to avoid circular dependency with the package __init__.
     from . import _configure_llm_auto
 
@@ -90,7 +100,7 @@ def generate_schema_from_text(text: str) -> EnhancedDRGSchema:
             throttle_llm_calls()
             schema_result = schema_generator(text=sample_text)
             schema_str = getattr(schema_result, "generated_schema", "{}")
-        logger.info("Schema generation tamamlandı")
+        logger.info("Schema generation completed")
     except Exception as e:
         logger.error(f"Schema generation failed: {e}")
         raise SchemaGenerationError(
@@ -189,8 +199,8 @@ def generate_schema_from_text(text: str) -> EnhancedDRGSchema:
 
     total_relations_count = sum(len(rg.relations) for rg in schema.relation_groups)
     logger.info(
-        f"Enhanced schema oluşturuldu: {len(schema.entity_types)} entity type, "
-        f"{len(schema.relation_groups)} relation group, {total_relations_count} relation"
+        f"Enhanced schema created: {len(schema.entity_types)} entity types, "
+        f"{len(schema.relation_groups)} relation groups, {total_relations_count} relations"
     )
     return schema
 
@@ -215,7 +225,7 @@ def _sample_text_for_schema_generation(text: str) -> str:
 
     doc_len = len(text)
     if doc_len <= max_total_chars:
-        logger.info(f"Metin kısa/orta ({doc_len:,} karakter), tamamı kullanılıyor...")
+        logger.info(f"Text is short/medium ({doc_len:,} chars), using full text...")
         return text
 
     desired = min(
@@ -279,8 +289,8 @@ def _sample_text_for_schema_generation(text: str) -> str:
     sampled = sep.join(out_parts)
     coverage = (sum(len(p) for p in out_parts) / doc_len) * 100.0
     logger.info(
-        f"Metin çok uzun ({doc_len:,} karakter), {len(out_parts)} parça örnekleniyor "
-        f"(~{sum(len(p) for p in out_parts):,} karakter, %{coverage:.1f} kapsam, "
-        f"bütçe={max_total_chars:,})..."
+        f"Text too long ({doc_len:,} chars), sampling {len(out_parts)} parts "
+        f"(~{sum(len(p) for p in out_parts):,} chars, {coverage:.1f}% coverage, "
+        f"budget={max_total_chars:,})..."
     )
     return sampled

@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .errors import SchemaError
+
 
 @dataclass(frozen=True)
 class Entity:
@@ -22,8 +24,8 @@ class Relation:
     name: str
     src: str  # Source entity type name
     dst: str  # Destination entity type name
-    description: str = ""  # Bağlantı sebebi (relationship type açıklaması)
-    detail: str = ""  # Bağlantı detayı (tek cümleyle neden bağlantılı olduğu)
+    description: str = ""  # Why this relation exists (relationship type description)
+    detail: str = ""  # One-sentence evidence for the connection
 
 
 @dataclass
@@ -38,9 +40,9 @@ class EntityType:
     def __post_init__(self):
         """Validate entity type."""
         if not self.name:
-            raise ValueError("EntityType name cannot be empty")
+            raise SchemaError("EntityType name cannot be empty")
         if not self.description:
-            raise ValueError("EntityType description cannot be empty")
+            raise SchemaError("EntityType description cannot be empty")
 
 
 @dataclass
@@ -55,9 +57,9 @@ class EntityGroup:
     def __post_init__(self):
         """Validate entity group."""
         if not self.name:
-            raise ValueError("EntityGroup name cannot be empty")
+            raise SchemaError("EntityGroup name cannot be empty")
         if not self.entity_types:
-            raise ValueError("EntityGroup must contain at least one EntityType")
+            raise SchemaError("EntityGroup must contain at least one EntityType")
 
     def get_entity_type_names(self) -> list[str]:
         """Get list of entity type names in this group."""
@@ -76,9 +78,9 @@ class PropertyGroup:
     def __post_init__(self):
         """Validate property group."""
         if not self.name:
-            raise ValueError("PropertyGroup name cannot be empty")
+            raise SchemaError("PropertyGroup name cannot be empty")
         if not self.properties:
-            raise ValueError("PropertyGroup must contain at least one property")
+            raise SchemaError("PropertyGroup must contain at least one property")
 
 
 @dataclass
@@ -93,9 +95,9 @@ class RelationGroup:
     def __post_init__(self):
         """Validate relation group."""
         if not self.name:
-            raise ValueError("RelationGroup name cannot be empty")
+            raise SchemaError("RelationGroup name cannot be empty")
         if not self.relations:
-            raise ValueError("RelationGroup must contain at least one Relation")
+            raise SchemaError("RelationGroup must contain at least one Relation")
 
     def get_relation_triples(self) -> list[tuple[str, str, str]]:
         """Get list of (relation_name, src, dst) tuples."""
@@ -114,7 +116,7 @@ class DRGSchema:
         entity_names = {e.name for e in self.entities}
         for r in self.relations:
             if r.src not in entity_names or r.dst not in entity_names:
-                raise ValueError(f"Relation {r.name} refers to unknown entity: {r.src}->{r.dst}")
+                raise SchemaError(f"Relation {r.name} refers to unknown entity: {r.src}->{r.dst}")
 
     def relation_types(self) -> list[tuple[str, str, str]]:
         return [(r.name, r.src, r.dst) for r in self.relations]
@@ -145,18 +147,18 @@ class EnhancedDRGSchema:
         # Check entity type names are unique
         entity_names = {et.name for et in self.entity_types}
         if len(entity_names) != len(self.entity_types):
-            raise ValueError("EntityType names must be unique")
+            raise SchemaError("EntityType names must be unique")
 
         # Check relation groups reference valid entity types
         all_relation_triples = []
         for rg in self.relation_groups:
             for rel in rg.relations:
                 if rel.src not in entity_names:
-                    raise ValueError(
+                    raise SchemaError(
                         f"Relation {rel.name} in group '{rg.name}' references unknown entity type: {rel.src}"
                     )
                 if rel.dst not in entity_names:
-                    raise ValueError(
+                    raise SchemaError(
                         f"Relation {rel.name} in group '{rg.name}' references unknown entity type: {rel.dst}"
                     )
                 all_relation_triples.append((rel.name, rel.src, rel.dst))
@@ -166,7 +168,7 @@ class EnhancedDRGSchema:
         for eg in self.entity_groups:
             for et in eg.entity_types:
                 if et.name not in entity_type_map:
-                    raise ValueError(
+                    raise SchemaError(
                         f"EntityGroup '{eg.name}' references unknown EntityType: {et.name}"
                     )
 
@@ -454,7 +456,7 @@ def load_schema_from_json(schema_path: str | Path) -> DRGSchema | EnhancedDRGSch
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in schema file: {e}") from e
 
-    # Enhanced schema formatını kontrol et
+    # Check whether this is an enhanced schema (entity_types key present)
     if "entity_types" in schema_data:
         return EnhancedDRGSchema.from_dict(schema_data)
     else:

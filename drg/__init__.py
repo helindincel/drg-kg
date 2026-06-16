@@ -1,5 +1,33 @@
 """DRG - Declarative Relationship Generation"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+# Static type stubs for IDE autocompletion.
+# These imports are never executed at runtime (TYPE_CHECKING is False), so they
+# don't trigger heavy optional dependencies. They DO make extract_typed,
+# KGExtractor, etc. visible to pyright/mypy and IDE intellisense.
+if TYPE_CHECKING:
+    from .extract import (
+        KGExtractor,
+        create_kgedge_from_triple,
+        extract_from_chunks,
+        extract_from_chunks_async,
+        extract_triples,
+        extract_typed,
+        extract_typed_async,
+        generate_schema_from_text,
+    )
+    from .graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode
+    from .clustering import (
+        ClusterResult,
+        ClusteringAlgorithm,
+        LouvainClustering,
+        LeidenClustering,
+        SpectralClustering,
+    )
+
 # Single source of truth: the version comes from setuptools_scm at build
 # time. In editable/installed mode we read it via importlib.metadata. In a
 # fresh checkout without a build step (rare; CI does build before test)

@@ -87,8 +87,10 @@ __all__ = [
     "SchemaOutput",
     "create_kgedge_from_triple",
     "extract_from_chunks",
+    "extract_from_chunks_async",
     "extract_triples",
     "extract_typed",
+    "extract_typed_async",
     "generate_schema_from_text",
 ]
 
@@ -226,7 +228,7 @@ class KGExtractor(dspy.Module):
     ) -> ExtractionResult:
         """Actual extraction logic (kept separate so ``forward`` can scope it
         with an injected LM context)."""
-        logger.info("Entity extraction başlatılıyor...")
+        logger.info("Starting entity extraction...")
 
         if self._use_typed_predictor:
             entity_result = self.entity_extractor(text=text)
@@ -281,13 +283,13 @@ class KGExtractor(dspy.Module):
         if entities_list:
             entities_list = [(name, etype) for name, etype in entities_list if name.strip()]
 
-        logger.info(f"Entity extraction tamamlandı: {len(entities_list)} entity bulundu")
+        logger.info(f"Entity extraction complete: {len(entities_list)} entities found")
 
         # Relation extraction with full entity context.
         context_count = len(context_entities) if context_entities else 0
         current_count = len(entities_list) - context_count
         logger.info(
-            f"Relation extraction başlatılıyor: {current_count} current + "
+            f"Starting relation extraction: {current_count} current + "
             f"{context_count} context = {len(entities_list)} total entities."
         )
 
@@ -337,7 +339,7 @@ class KGExtractor(dspy.Module):
         temporal_info = heur.get("temporal_info")
         negations = heur.get("negations")
 
-        logger.info(f"Relation extraction tamamlandı: {len(relations_list)} relation bulundu")
+        logger.info(f"Relation extraction complete: {len(relations_list)} relations found")
 
         enriched_relations = [
             {
@@ -556,8 +558,8 @@ def extract_from_chunks(
 
     else:
         logger.info("Using single-pass extraction mode")
-        all_entities = []
-        all_triples = []
+        all_entities: list[tuple[str, str]] = []
+        all_triples: list[tuple[str, str, str]] = []
         context_entities: list[tuple[str, str]] = []
 
         for i, chunk in enumerate(chunks):
@@ -751,6 +753,14 @@ def extract_typed(
         if return_enriched:
             return [], [], []
         return [], []
+
+    # Input length guard — protects against prompt injection via oversized inputs.
+    _max_chars = int(os.getenv("DRG_MAX_TEXT_CHARS", "100000"))
+    if len(text) > _max_chars:
+        raise ValueError(
+            f"Input text is too long ({len(text):,} chars). "
+            f"Maximum allowed: {_max_chars:,} chars (set DRG_MAX_TEXT_CHARS to override)."
+        )
 
     extractor = _get_extractor(schema, lm=lm)
 
@@ -1138,3 +1148,51 @@ def create_kgedge_from_triple(
         confidence=confidence,
         is_negated=is_negated,
     )
+
+
+# ---------------------------------------------------------------------------
+# Async wrappers
+# ---------------------------------------------------------------------------
+
+import asyncio as _asyncio
+import functools as _functools
+
+
+async def extract_typed_async(
+    text: str,
+    schema: DRGSchema | EnhancedDRGSchema,
+    **kwargs: Any,
+) -> tuple[list[tuple[str, str]], list[tuple[str, str, str]]] | tuple[
+    list[tuple[str, str]], list[tuple[str, str, str]], list[dict[str, Any]]
+]:
+    """Async version of :func:`extract_typed`.
+
+    Runs the synchronous extraction in a thread pool so the event loop is not
+    blocked during LLM calls.  All keyword arguments are forwarded to
+    :func:`extract_typed`.
+
+    Example::
+
+        entities, triples = await extract_typed_async(text, schema)
+    """
+    return await _asyncio.to_thread(_functools.partial(extract_typed, text, schema, **kwargs))
+
+
+async def extract_from_chunks_async(
+    chunks: list[dict[str, Any]],
+    schema: DRGSchema | EnhancedDRGSchema,
+    **kwargs: Any,
+) -> tuple[list[tuple[str, str]], list[tuple[str, str, str]]]:
+    """Async version of :func:`extract_from_chunks`.
+
+    Runs the synchronous multi-chunk extraction in a thread pool.
+    All keyword arguments are forwarded to :func:`extract_from_chunks`.
+
+    Example::
+
+        entities, triples = await extract_from_chunks_async(chunks, schema)
+    """
+    return await _asyncio.to_thread(
+        _functools.partial(extract_from_chunks, chunks, schema, **kwargs)
+    )
+

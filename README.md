@@ -27,7 +27,7 @@ extraction, and layers clustering, community reports, and visualization on top.
 For a deeper dive into **architecture and philosophy** (recommended for first-time
 readers), see:
 
-- [`docs/project_overview.md`](docs/project_overview.md)
+- [`docs/project_overview.md`](https://github.com/helindincel/drg-kg/blob/main/docs/project_overview.md)
 
 That document clarifies in particular:
 
@@ -78,7 +78,7 @@ pip install -e ".[dev]"
 ```
 
 For detailed installation and troubleshooting, see
-[`docs/setup.md`](docs/setup.md).
+[`docs/setup.md`](https://github.com/helindincel/drg-kg/blob/main/docs/setup.md).
 
 ### Requirements
 
@@ -107,7 +107,7 @@ Common variables:
 | `DRG_MAX_TOKENS` | `1500` | LLM output budget |
 | `DRG_BASE_URL` | — | Ollama / self-hosted gateway |
 
-Full variable list: [`docs/setup.md`](docs/setup.md).
+Full variable list: [`docs/setup.md`](https://github.com/helindincel/drg-kg/blob/main/docs/setup.md).
 
 ---
 
@@ -178,7 +178,7 @@ print(kg.to_json())
 ### Runnable showcase examples
 
 For end-to-end, copy-pasteable scripts on three different domains, see
-[`examples/quickstarts/`](examples/quickstarts/):
+[`examples/quickstarts/`](https://github.com/helindincel/drg-kg/tree/main/examples/quickstarts/):
 
 | Script | Domain |
 |--------|--------|
@@ -274,7 +274,7 @@ python examples/api_server_example.py
 # Docs:  http://localhost:8000/docs
 ```
 
-Details and endpoint list: [`docs/api_server.md`](docs/api_server.md).
+Details and endpoint list: [`docs/api_server.md`](https://github.com/helindincel/drg-kg/blob/main/docs/api_server.md).
 
 ---
 
@@ -414,16 +414,16 @@ Python API, code comments, and error messages are English.
 
 | Doc | EN | TR |
 |---|:-:|:-:|
-| Architecture & philosophy | [`project_overview.md`](docs/project_overview.md) | [`project_overview.tr.md`](docs/project_overview.tr.md) |
-| Pipeline flow | [`pipeline_overview.md`](docs/pipeline_overview.md) | [`pipeline_overview.tr.md`](docs/pipeline_overview.tr.md) |
-| Setup | [`setup.md`](docs/setup.md) | — |
-| API + UI | [`api_server.md`](docs/api_server.md) | — |
-| Schema design | — | [`schema_design.md`](docs/schema_design.md) |
-| Chunking strategy | — | [`chunking_strategy.md`](docs/chunking_strategy.md) |
-| Relationship model | — | [`relationship_model.md`](docs/relationship_model.md) |
-| Clustering & summarisation | — | [`clustering_summarization.md`](docs/clustering_summarization.md) |
-| DSPy optimizer | — | [`optimizer_design.md`](docs/optimizer_design.md) |
-| MCP integration | — | [`mcp_integration.md`](docs/mcp_integration.md) |
+| Architecture & philosophy | [`project_overview.md`](https://github.com/helindincel/drg-kg/blob/main/docs/project_overview.md) | [`project_overview.tr.md`](https://github.com/helindincel/drg-kg/blob/main/docs/project_overview.tr.md) |
+| Pipeline flow | [`pipeline_overview.md`](https://github.com/helindincel/drg-kg/blob/main/docs/pipeline_overview.md) | [`pipeline_overview.tr.md`](https://github.com/helindincel/drg-kg/blob/main/docs/pipeline_overview.tr.md) |
+| Setup | [`setup.md`](https://github.com/helindincel/drg-kg/blob/main/docs/setup.md) | — |
+| API + UI | [`api_server.md`](https://github.com/helindincel/drg-kg/blob/main/docs/api_server.md) | — |
+| Schema design | — | [`schema_design.md`](https://github.com/helindincel/drg-kg/blob/main/docs/schema_design.md) |
+| Chunking strategy | — | [`chunking_strategy.md`](https://github.com/helindincel/drg-kg/blob/main/docs/chunking_strategy.md) |
+| Relationship model | — | [`relationship_model.md`](https://github.com/helindincel/drg-kg/blob/main/docs/relationship_model.md) |
+| Clustering & summarisation | — | [`clustering_summarization.md`](https://github.com/helindincel/drg-kg/blob/main/docs/clustering_summarization.md) |
+| DSPy optimizer | — | [`optimizer_design.md`](https://github.com/helindincel/drg-kg/blob/main/docs/optimizer_design.md) |
+| MCP integration | — | [`mcp_integration.md`](https://github.com/helindincel/drg-kg/blob/main/docs/mcp_integration.md) |
 
 ---
 

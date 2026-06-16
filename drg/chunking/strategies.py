@@ -430,7 +430,7 @@ class SentenceBasedChunker(ChunkingStrategy):
         ]
 
         chunks = []
-        current_chunk_sentences = []
+        current_chunk_sentences: list[str] = []
         current_token_count = 0
         chunk_index = 0
 

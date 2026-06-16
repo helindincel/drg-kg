@@ -16,7 +16,7 @@ from .utils.env_loader import load_dotenv
 
 
 def create_default_schema():
-    """Varsayılan şema: Company -> Product"""
+    """Default schema: Company -> Product."""
     return DRGSchema(
         entities=[Entity("Company"), Entity("Product")],
         relations=[Relation("produces", "Company", "Product")],
@@ -133,7 +133,7 @@ Examples:
     else:
         schema = create_default_schema()
 
-    # Set environment variables for automatic LLM configuration (DSPy otomatik okur)
+    # Set environment variables for automatic LLM configuration (read by DSPy)
     import os
 
     if args.no_hub_validation:

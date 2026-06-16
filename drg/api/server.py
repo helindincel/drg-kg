@@ -11,20 +11,54 @@ Endpoints:
 - GET /api/visualization/{format} - Graph visualization data (cytoscape, vis-network, d3)
 """
 
+import asyncio
 import logging
+import os
 import uuid
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+
+# ---------------------------------------------------------------------------
+# Input limits (defence against prompt injection and runaway requests).
+# Override via environment variables for custom deployments.
+# ---------------------------------------------------------------------------
+_MAX_QUERY_CHARS: int = int(os.getenv("DRG_MAX_QUERY_CHARS", "2000"))
+_MAX_TEXT_CHARS: int = int(os.getenv("DRG_MAX_TEXT_CHARS", "100_000"))
 
 try:
-    from fastapi import FastAPI, HTTPException, Query
+    from fastapi import Depends, FastAPI, HTTPException, Query, Security
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import HTMLResponse
+    from fastapi.security.api_key import APIKeyHeader
     from fastapi.staticfiles import StaticFiles
 except ImportError:
     FastAPI = None
+
+
+# ---------------------------------------------------------------------------
+# Optional API-key authentication
+# ---------------------------------------------------------------------------
+# Set the DRG_API_KEY environment variable to enable authentication.
+# When the variable is absent (or empty) the server runs without auth — suitable
+# for local / trusted-network deployments only.
+#
+# Example:
+#   export DRG_API_KEY="my-secret-token"
+#   curl -H "X-API-Key: my-secret-token" http://localhost:8000/api/graph
+
+_API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False) if FastAPI else None
+
+
+def _require_api_key(api_key: str | None = Security(_API_KEY_HEADER)) -> None:
+    """FastAPI dependency that enforces the DRG_API_KEY when it is configured."""
+    expected = os.getenv("DRG_API_KEY", "").strip()
+    if not expected:
+        # Auth not configured — allow all requests.
+        return
+    if not api_key or api_key != expected:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key.")
 
 from ..graph import (
     EnhancedKG,
@@ -47,10 +81,22 @@ logger = logging.getLogger(__name__)
 class QueryRequest(BaseModel):
     """Query request model."""
 
-    query: str
-    k_entities: int = 10
-    k_reports: int = 5
-    k_context_chunks: int = 5
+    query: str = Field(..., max_length=2000)
+    k_entities: int = Field(10, ge=1, le=100)
+    k_reports: int = Field(5, ge=0, le=50)
+    k_context_chunks: int = Field(5, ge=0, le=50)
+
+    @field_validator("query")
+    @classmethod
+    def _strip_and_validate_query(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("query must not be empty or whitespace")
+        # Reject null bytes and non-printable control characters that have
+        # no legitimate use in a KG query but are common in injection payloads.
+        if any(ord(c) < 32 and c not in ("\t", "\n") for c in v):
+            raise ValueError("query contains invalid control characters")
+        return v
 
 
 class QueryResponse(BaseModel):
@@ -86,12 +132,18 @@ def create_app(
         title="DRG Knowledge Graph API",
         description="API for DRG Knowledge Graph visualization and querying",
         version="1.0.0",
+        dependencies=[Depends(_require_api_key)],
     )
 
     # CORS middleware
+    # DRG_CORS_ORIGINS: comma-separated list of allowed origins.
+    # Defaults to ["*"] for local development; restrict in production:
+    #   export DRG_CORS_ORIGINS="https://app.example.com,https://admin.example.com"
+    _cors_origins_env = os.getenv("DRG_CORS_ORIGINS", "*").strip()
+    cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -142,12 +194,12 @@ def create_app(
         ensure_clusters(kg)
 
         # Calculate statistics
-        node_types = {}
+        node_types: dict[str, int] = {}
         for node in kg.nodes.values():
             node_type = node.type or "Unknown"
             node_types[node_type] = node_types.get(node_type, 0) + 1
 
-        relationship_types = {}
+        relationship_types: dict[str, int] = {}
         for edge in kg.edges:
             rel_type = edge.relationship_type
             relationship_types[rel_type] = relationship_types.get(rel_type, 0) + 1
@@ -191,7 +243,7 @@ def create_app(
         from ..graph.community_report import CommunityReportGenerator
 
         report_generator = CommunityReportGenerator(kg)
-        report = report_generator.generate_report(cluster)
+        report = await asyncio.to_thread(report_generator.generate_report, cluster)
 
         return report.to_dict()
 
@@ -283,12 +335,11 @@ def create_app(
         if kg is None:
             raise HTTPException(status_code=404, detail="Knowledge graph not loaded")
 
-        q = (request.query or "").strip()
-        if not q:
-            raise HTTPException(status_code=400, detail="Query cannot be empty")
+        q = request.query  # already stripped and validated by QueryRequest
 
-        # Deterministic graph query
-        result = execute_deterministic_query(
+        # Deterministic graph query (run in thread pool to avoid blocking event loop)
+        result = await asyncio.to_thread(
+            execute_deterministic_query,
             kg=kg,
             query=q,
             k_entities=request.k_entities,

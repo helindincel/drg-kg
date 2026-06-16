@@ -123,7 +123,7 @@ class CommunityReportGenerator:
 
     def _identify_top_actors(self, node_ids: set[str], max_actors: int) -> list[tuple[str, int]]:
         """Identify top actors (nodes with most connections)."""
-        connection_counts = Counter()
+        connection_counts: Counter[str] = Counter()
         for edge in self.kg.edges:
             if edge.source in node_ids:
                 connection_counts[edge.source] += 1

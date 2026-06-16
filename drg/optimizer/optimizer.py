@@ -328,7 +328,7 @@ class DRGOptimizer:
         all_f1s = []
         all_accuracies = []
 
-        details = {
+        details: dict[str, list[float]] = {
             "entity_precisions": [],
             "entity_recalls": [],
             "relation_precisions": [],

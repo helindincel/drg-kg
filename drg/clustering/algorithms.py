@@ -2,20 +2,60 @@
 
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class Cluster:
-    """Represents a graph cluster."""
+class ClusterResult:
+    """Algorithm-output cluster produced by a clustering pass.
+
+    This is the *computation result* returned by :class:`ClusteringAlgorithm`
+    implementations. It carries full edge information (useful for the
+    summarisation step) and uses an integer ``cluster_id`` (the native ID
+    produced by the underlying graph libraries).
+
+    To store a community inside :class:`drg.graph.kg_core.EnhancedKG`, convert
+    with :meth:`to_kg_cluster`.
+
+    Fields:
+        cluster_id: Integer community index assigned by the algorithm.
+        nodes: Ordered list of node IDs belonging to this cluster.
+        edges: Intra-cluster edges as ``(source, relation, target)`` tuples.
+        metadata: Algorithm-specific metadata (algorithm name, resolution, …).
+    """
 
     cluster_id: int
     nodes: list[str]
     edges: list[tuple]  # (source, relation, target)
-    metadata: dict[str, Any]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_kg_cluster(self) -> "Any":
+        """Convert to :class:`drg.graph.kg_core.Cluster` for use in EnhancedKG.
+
+        The integer ``cluster_id`` is converted to a string ``id`` and
+        ``nodes`` is converted to a ``node_ids`` set. Edge information is
+        preserved in ``metadata``.
+        """
+        from drg.graph.kg_core import Cluster as KGCluster
+
+        meta = dict(self.metadata)
+        if self.edges:
+            meta["edges"] = [(s, r, t) for s, r, t in self.edges]
+        return KGCluster(
+            id=str(self.cluster_id),
+            node_ids=set(self.nodes),
+            metadata=meta,
+        )
+
+
+# Backward-compatibility alias.
+# New code should use ClusterResult; the alias keeps existing imports working.
+# To store a community in EnhancedKG use ClusterResult.to_kg_cluster() which
+# returns a drg.graph.kg_core.Cluster (a separate, storage-oriented class).
+Cluster = ClusterResult
 
 
 class ClusteringAlgorithm(ABC):
@@ -130,7 +170,7 @@ class LouvainClustering(ClusteringAlgorithm):
         )
 
         # Convert partition to clusters
-        clusters = {}
+        clusters: dict[int, dict[str, list]] = {}
         for node, cluster_id in partition.items():
             if cluster_id not in clusters:
                 clusters[cluster_id] = {
@@ -226,7 +266,7 @@ class LeidenClustering(ClusteringAlgorithm):
         )
 
         # Convert partition to clusters
-        clusters = {}
+        clusters: dict[int, dict[str, list]] = {}
         for i, cluster_id in enumerate(partition.membership):
             node = node_list[i]
             if cluster_id not in clusters:
@@ -323,7 +363,7 @@ class SpectralClustering(ClusteringAlgorithm):
         labels = clustering.fit_predict(adj_matrix)
 
         # Convert labels to clusters
-        clusters = {}
+        clusters: dict[int, dict[str, list]] = {}
         for i, node in enumerate(node_list):
             cluster_id = int(labels[i])
             if cluster_id not in clusters:
