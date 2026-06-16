@@ -198,7 +198,11 @@ branch = true
 omit = [
     # CLI / web glue: covered by integration tests, not unit coverage.
     "drg/cli.py",
-    # API server is now covered by tests/test_api_server.py; removed from omit.
+    # API server requires fastapi (optional dep); skipped in base CI environment.
+    "drg/api/server.py",
+    "drg/api/__init__.py",
+    # MCP server requires mcp SDK (optional dep); skipped in base CI environment.
+    "drg/mcp_server.py",
     "drg/mcp_api.py",
     # Visualization is rendering glue — exercised in examples, not unit-tested.
     "drg/graph/visualization.py",
