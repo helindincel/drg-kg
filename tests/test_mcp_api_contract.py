@@ -10,20 +10,16 @@ from __future__ import annotations
 import sys
 from unittest.mock import MagicMock
 
-import pytest
-
 # drg/mcp_api imports from drg.extract which imports dspy at module level.
 # Stub it so these contract tests don't need dspy installed.
 sys.modules.setdefault("dspy", MagicMock())
 
-from drg.mcp_api import (
-    DRGMCPAPI,
+from drg.mcp_api import (  # noqa: E402
     MCPErrorCode,
     MCPRequest,
     MCPResponse,
     create_mcp_api,
 )
-
 
 # ---------------------------------------------------------------------------
 # MCPRequest
@@ -210,35 +206,41 @@ class TestDRGMCPAPIDefineSchema:
 
     def test_get_defined_schema(self):
         # Define first
-        self.api.handle_request({
-            "jsonrpc": "2.0",
-            "method": "drg/define_schema",
-            "params": {
-                "schema_id": "s1",
-                "schema": {
-                    "entities": [{"name": "A"}, {"name": "B"}],
-                    "relations": [{"name": "rel", "src": "A", "dst": "B"}],
+        self.api.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "method": "drg/define_schema",
+                "params": {
+                    "schema_id": "s1",
+                    "schema": {
+                        "entities": [{"name": "A"}, {"name": "B"}],
+                        "relations": [{"name": "rel", "src": "A", "dst": "B"}],
+                    },
                 },
-            },
-            "id": 1,
-        })
+                "id": 1,
+            }
+        )
         # Now get it
-        resp = self.api.handle_request({
-            "jsonrpc": "2.0",
-            "method": "drg/get_schema",
-            "params": {"schema_id": "s1"},
-            "id": 2,
-        })
+        resp = self.api.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "method": "drg/get_schema",
+                "params": {"schema_id": "s1"},
+                "id": 2,
+            }
+        )
         assert resp.error is None
         assert resp.result is not None
 
     def test_get_nonexistent_schema_returns_error(self):
-        resp = self.api.handle_request({
-            "jsonrpc": "2.0",
-            "method": "drg/get_schema",
-            "params": {"schema_id": "no_such"},
-            "id": 1,
-        })
+        resp = self.api.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "method": "drg/get_schema",
+                "params": {"schema_id": "no_such"},
+                "id": 1,
+            }
+        )
         assert resp.error is not None
 
 
@@ -272,54 +274,62 @@ class TestDRGMCPAPIBuildKG:
         assert resp.result["node_count"] == 2
 
     def test_build_kg_missing_id_returns_error(self):
-        resp = self.api.handle_request({
-            "jsonrpc": "2.0",
-            "method": "drg/build_kg",
-            "params": {"entities": [], "triples": []},
-            "id": 1,
-        })
+        resp = self.api.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "method": "drg/build_kg",
+                "params": {"entities": [], "triples": []},
+                "id": 1,
+            }
+        )
         assert resp.error is not None
 
     def test_get_kg_after_build(self):
         self.api.handle_request(
             self._build_req("kg2", [["A", "T"], ["B", "T"]], [["A", "rel", "B"]])
         )
-        resp = self.api.handle_request({
-            "jsonrpc": "2.0",
-            "method": "drg/get_kg",
-            "params": {"kg_id": "kg2"},
-            "id": 1,
-        })
+        resp = self.api.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "method": "drg/get_kg",
+                "params": {"kg_id": "kg2"},
+                "id": 1,
+            }
+        )
         assert resp.error is None
         assert resp.result is not None
 
     def test_get_nonexistent_kg_returns_error(self):
-        resp = self.api.handle_request({
-            "jsonrpc": "2.0",
-            "method": "drg/get_kg",
-            "params": {"kg_id": "no_kg"},
-            "id": 1,
-        })
+        resp = self.api.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "method": "drg/get_kg",
+                "params": {"kg_id": "no_kg"},
+                "id": 1,
+            }
+        )
         assert resp.error is not None
 
     def test_export_kg_json_format(self):
-        self.api.handle_request(
-            self._build_req("kg3", [["X", "T"], ["Y", "T"]], [["X", "r", "Y"]])
+        self.api.handle_request(self._build_req("kg3", [["X", "T"], ["Y", "T"]], [["X", "r", "Y"]]))
+        resp = self.api.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "method": "drg/export_kg",
+                "params": {"kg_id": "kg3", "format": "json"},
+                "id": 1,
+            }
         )
-        resp = self.api.handle_request({
-            "jsonrpc": "2.0",
-            "method": "drg/export_kg",
-            "params": {"kg_id": "kg3", "format": "json"},
-            "id": 1,
-        })
         assert resp.error is None
         assert "export" in resp.result or "data" in resp.result or resp.result is not None
 
     def test_extract_without_schema_returns_error(self):
-        resp = self.api.handle_request({
-            "jsonrpc": "2.0",
-            "method": "drg/extract",
-            "params": {"text": "Apple makes iPhones", "schema_id": "no_schema"},
-            "id": 1,
-        })
+        resp = self.api.handle_request(
+            {
+                "jsonrpc": "2.0",
+                "method": "drg/extract",
+                "params": {"text": "Apple makes iPhones", "schema_id": "no_schema"},
+                "id": 1,
+            }
+        )
         assert resp.error is not None

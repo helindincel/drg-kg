@@ -12,7 +12,6 @@ from drg.graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode
 from drg.graph.relationship_model._enriched import EnrichedRelationship
 from drg.graph.relationship_model._types import RelationshipType
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -23,7 +22,9 @@ def _node(id_: str, type_: str = "Entity") -> KGNode:
 
 
 def _edge(src: str, tgt: str, rel: str = "related_to") -> KGEdge:
-    return KGEdge(source=src, target=tgt, relationship_type=rel, relationship_detail=f"{src} {rel} {tgt}")
+    return KGEdge(
+        source=src, target=tgt, relationship_type=rel, relationship_detail=f"{src} {rel} {tgt}"
+    )
 
 
 def _kg_with_two_nodes() -> EnhancedKG:
@@ -75,7 +76,9 @@ class TestKGNode:
         assert node.to_dict()["embedding"] == [0.1, 0.2, 0.3]
 
     def test_from_dict_round_trip(self):
-        node = KGNode(id="Bob", type="Person", properties={"role": "engineer"}, metadata={"src": "x"})
+        node = KGNode(
+            id="Bob", type="Person", properties={"role": "engineer"}, metadata={"src": "x"}
+        )
         restored = KGNode.from_dict(node.to_dict())
         assert restored.id == node.id
         assert restored.type == node.type
@@ -112,14 +115,28 @@ class TestKGEdge:
 
     def test_invalid_confidence_raises(self):
         with pytest.raises(ValueError):
-            KGEdge(source="A", target="B", relationship_type="r", relationship_detail="d", confidence=1.5)
+            KGEdge(
+                source="A",
+                target="B",
+                relationship_type="r",
+                relationship_detail="d",
+                confidence=1.5,
+            )
 
     def test_negative_confidence_raises(self):
         with pytest.raises(ValueError):
-            KGEdge(source="A", target="B", relationship_type="r", relationship_detail="d", confidence=-0.1)
+            KGEdge(
+                source="A",
+                target="B",
+                relationship_type="r",
+                relationship_detail="d",
+                confidence=-0.1,
+            )
 
     def test_valid_confidence_accepted(self):
-        edge = KGEdge(source="A", target="B", relationship_type="r", relationship_detail="d", confidence=0.75)
+        edge = KGEdge(
+            source="A", target="B", relationship_type="r", relationship_detail="d", confidence=0.75
+        )
         assert edge.confidence == 0.75
 
     def test_to_dict_basic(self):
@@ -137,21 +154,34 @@ class TestKGEdge:
         assert "is_negated" not in d
 
     def test_to_dict_includes_temporal_when_set(self):
-        edge = KGEdge(source="A", target="B", relationship_type="r",
-                      relationship_detail="d", start_time="2020-01", end_time="2021-01")
+        edge = KGEdge(
+            source="A",
+            target="B",
+            relationship_type="r",
+            relationship_detail="d",
+            start_time="2020-01",
+            end_time="2021-01",
+        )
         d = edge.to_dict()
         assert d["start_time"] == "2020-01"
         assert d["end_time"] == "2021-01"
 
     def test_to_dict_includes_is_negated_when_true(self):
-        edge = KGEdge(source="A", target="B", relationship_type="r",
-                      relationship_detail="d", is_negated=True)
+        edge = KGEdge(
+            source="A", target="B", relationship_type="r", relationship_detail="d", is_negated=True
+        )
         assert edge.to_dict()["is_negated"] is True
 
     def test_from_dict_round_trip(self):
-        edge = KGEdge(source="A", target="B", relationship_type="produces",
-                      relationship_detail="A produces B", confidence=0.8,
-                      start_time="2020", is_negated=False)
+        edge = KGEdge(
+            source="A",
+            target="B",
+            relationship_type="produces",
+            relationship_detail="A produces B",
+            confidence=0.8,
+            start_time="2020",
+            is_negated=False,
+        )
         restored = KGEdge.from_dict(edge.to_dict())
         assert restored.source == "A"
         assert restored.confidence == 0.8
@@ -159,7 +189,8 @@ class TestKGEdge:
 
     def test_from_enriched_relationship(self):
         rel = EnrichedRelationship(
-            source="Apple", target="iPhone",
+            source="Apple",
+            target="iPhone",
             relationship_type=RelationshipType.PRODUCES,
             relationship_detail="Apple manufactures iPhone",
             confidence=0.95,
@@ -330,7 +361,8 @@ class TestEnhancedKGFromEnrichedRelationships:
         nodes = [KGNode(id="Apple", type="Company"), KGNode(id="iPhone", type="Product")]
         rels = [
             EnrichedRelationship(
-                source="Apple", target="iPhone",
+                source="Apple",
+                target="iPhone",
                 relationship_type=RelationshipType.PRODUCES,
                 relationship_detail="Apple makes iPhone",
             )

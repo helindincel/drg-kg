@@ -30,7 +30,6 @@ from drg.extract import (  # noqa: E402
 )
 from drg.schema import DRGSchema, Entity, Relation  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -176,9 +175,7 @@ class TestAsyncWrappers:
         coro.close()
 
     def test_extract_typed_async_runs(self, simple_schema: DRGSchema):
-        result = asyncio.get_event_loop().run_until_complete(
-            extract_typed_async("", simple_schema)
-        )
+        result = asyncio.get_event_loop().run_until_complete(extract_typed_async("", simple_schema))
         assert isinstance(result, tuple)
 
     def test_extract_from_chunks_async_runs(self, simple_schema: DRGSchema):
@@ -188,9 +185,7 @@ class TestAsyncWrappers:
         )
         assert isinstance(result, tuple)
 
-    def test_extract_typed_async_respects_length_limit(
-        self, simple_schema: DRGSchema, monkeypatch
-    ):
+    def test_extract_typed_async_respects_length_limit(self, simple_schema: DRGSchema, monkeypatch):
         monkeypatch.setenv("DRG_MAX_TEXT_CHARS", "5")
         with pytest.raises(ValueError, match="too long"):
             asyncio.get_event_loop().run_until_complete(
@@ -210,9 +205,7 @@ class TestSchemaFiltering:
     and check that extract_typed discards them.
     """
 
-    def _mock_extractor_result(
-        self, entities: list, relations: list
-    ) -> Any:
+    def _mock_extractor_result(self, entities: list, relations: list) -> Any:
         result = MagicMock()
         result.entities = entities
         result.relations = relations
@@ -226,11 +219,13 @@ class TestSchemaFiltering:
         )
         mock_extractor = Mock(return_value=mock_result)
 
-        with patch("drg.extract._get_extractor", return_value=mock_extractor), \
-             patch("drg.extract.dspy") as mock_dspy:
+        with (
+            patch("drg.extract._get_extractor", return_value=mock_extractor),
+            patch("drg.extract.dspy") as mock_dspy,
+        ):
             # Simulate a configured LM so mock-mode is not triggered
             mock_dspy.settings.lm = Mock()
-            entities, triples = extract_typed("text", simple_schema)
+            entities, _triples = extract_typed("text", simple_schema)
 
         # Only Company is in schema; Person should be filtered
         entity_types = {etype for _, etype in entities}
@@ -241,16 +236,18 @@ class TestSchemaFiltering:
         mock_result = self._mock_extractor_result(
             entities=[("Apple", "Company"), ("iPhone", "Product")],
             relations=[
-                ("Apple", "produces", "iPhone"),    # valid
-                ("Apple", "invented_by", "Jobs"),   # not in schema
+                ("Apple", "produces", "iPhone"),  # valid
+                ("Apple", "invented_by", "Jobs"),  # not in schema
             ],
         )
         mock_extractor = Mock(return_value=mock_result)
 
-        with patch("drg.extract._get_extractor", return_value=mock_extractor), \
-             patch("drg.extract.dspy") as mock_dspy:
+        with (
+            patch("drg.extract._get_extractor", return_value=mock_extractor),
+            patch("drg.extract.dspy") as mock_dspy,
+        ):
             mock_dspy.settings.lm = Mock()
-            entities, triples = extract_typed("text", simple_schema)
+            _entities, triples = extract_typed("text", simple_schema)
 
         relation_names = {r[1] for r in triples}
         assert "invented_by" not in relation_names

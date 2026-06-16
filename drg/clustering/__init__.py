@@ -2,8 +2,8 @@
 
 from .algorithms import (
     Cluster,  # backward-compat alias for ClusterResult
-    ClusterResult,
     ClusteringAlgorithm,
+    ClusterResult,
     LeidenClustering,
     LouvainClustering,
     SpectralClustering,

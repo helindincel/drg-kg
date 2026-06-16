@@ -13,7 +13,6 @@ This module provides:
 # Instantiating KG will raise DeprecationWarning; use EnhancedKG instead.
 from ._legacy import KG
 
-
 # Schema Generator
 # Community Report
 from .community_report import (

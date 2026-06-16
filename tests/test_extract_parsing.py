@@ -14,7 +14,6 @@ sys.modules.setdefault("dspy", MagicMock())
 
 from drg.extract._parsing import _parse_json_output  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Happy-path: strict JSON
 # ---------------------------------------------------------------------------
@@ -62,11 +61,11 @@ class TestMarkdownFenceStripping:
         assert _parse_json_output(raw, expected_format="array") == [1, 2, 3]
 
     def test_strips_fence_with_whitespace(self):
-        raw = "```json\n  {\"x\": 1}\n```"
+        raw = '```json\n  {"x": 1}\n```'
         assert _parse_json_output(raw, expected_format="object") == {"x": 1}
 
     def test_strips_fence_no_trailing_newline(self):
-        raw = "```json\n[\"a\",\"b\"]```"
+        raw = '```json\n["a","b"]```'
         assert _parse_json_output(raw, expected_format="array") == ["a", "b"]
 
 

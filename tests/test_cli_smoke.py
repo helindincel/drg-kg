@@ -12,7 +12,9 @@ import pytest
 # Use importlib.metadata (package registry) rather than import — other test
 # files add a MagicMock stub to sys.modules which would fool an import check.
 try:
-    from importlib.metadata import PackageNotFoundError, version as _pkg_version
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as _pkg_version
+
     _pkg_version("dspy")
     dspy_available = True
 except (ImportError, PackageNotFoundError):
@@ -26,7 +28,7 @@ pytestmark = pytest.mark.skipif(
 
 def _run(*args: str, input_: str | None = None) -> subprocess.CompletedProcess:
     """Run `drg <args>` as a subprocess and return the result."""
-    cmd = [sys.executable, "-m", "drg.cli"] + list(args)
+    cmd = [sys.executable, "-m", "drg.cli", *list(args)]
     return subprocess.run(
         cmd,
         input=input_,

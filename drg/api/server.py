@@ -36,6 +36,19 @@ try:
 except ImportError:
     FastAPI = None
 
+from ..graph import (  # noqa: E402
+    EnhancedKG,
+    Neo4jConfig,
+    Neo4jExporter,
+    ProvenanceEdge,
+    ProvenanceGraph,
+    ProvenanceNode,
+    VisualizationAdapter,
+)
+from ..graph.auto_clusters import ensure_clusters  # noqa: E402
+
+# GraphRAG removed - not part of this project
+from ..graph.query_engine import execute_query as execute_deterministic_query  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Optional API-key authentication
@@ -60,19 +73,6 @@ def _require_api_key(api_key: str | None = Security(_API_KEY_HEADER)) -> None:
     if not api_key or api_key != expected:
         raise HTTPException(status_code=401, detail="Invalid or missing API key.")
 
-from ..graph import (
-    EnhancedKG,
-    Neo4jConfig,
-    Neo4jExporter,
-    ProvenanceEdge,
-    ProvenanceGraph,
-    ProvenanceNode,
-    VisualizationAdapter,
-)
-from ..graph.auto_clusters import ensure_clusters
-
-# GraphRAG removed - not part of this project
-from ..graph.query_engine import execute_query as execute_deterministic_query
 
 logger = logging.getLogger(__name__)
 

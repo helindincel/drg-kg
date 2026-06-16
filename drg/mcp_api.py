@@ -31,14 +31,14 @@ warnings.warn(
     stacklevel=2,
 )
 
-import json
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any
+import json  # noqa: E402
+from dataclasses import dataclass, field  # noqa: E402
+from enum import Enum  # noqa: E402
+from typing import Any  # noqa: E402
 
-from .extract import extract_typed
-from .graph.kg_core import EnhancedKG, KGNode
-from .schema import DRGSchema, EnhancedDRGSchema, Entity, Relation
+from .extract import extract_typed  # noqa: E402
+from .graph.kg_core import EnhancedKG, KGNode  # noqa: E402
+from .schema import DRGSchema, EnhancedDRGSchema, Entity, Relation  # noqa: E402
 
 
 class MCPErrorCode(str, Enum):

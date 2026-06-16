@@ -9,7 +9,14 @@ from typing import TYPE_CHECKING
 # don't trigger heavy optional dependencies. They DO make extract_typed,
 # KGExtractor, etc. visible to pyright/mypy and IDE intellisense.
 if TYPE_CHECKING:
-    from .extract import (
+    from .clustering import (  # noqa: F401
+        ClusteringAlgorithm,
+        ClusterResult,
+        LeidenClustering,
+        LouvainClustering,
+        SpectralClustering,
+    )
+    from .extract import (  # noqa: F401
         KGExtractor,
         create_kgedge_from_triple,
         extract_from_chunks,
@@ -19,14 +26,7 @@ if TYPE_CHECKING:
         extract_typed_async,
         generate_schema_from_text,
     )
-    from .graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode
-    from .clustering import (
-        ClusterResult,
-        ClusteringAlgorithm,
-        LouvainClustering,
-        LeidenClustering,
-        SpectralClustering,
-    )
+    from .graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode  # noqa: F401
 
 # Single source of truth: the version comes from setuptools_scm at build
 # time. In editable/installed mode we read it via importlib.metadata. In a

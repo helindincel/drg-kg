@@ -7,7 +7,7 @@ This module provides fixtures and configuration that are shared across all tests
 import os
 import sys
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -19,7 +19,25 @@ sys.path.insert(0, str(project_root))
 # Stub it here — before any drg module is imported — so that the entire test
 # suite can collect and run without requiring a live dspy installation.
 # Tests that need a real LLM are marked `integration` and skipped in CI.
-sys.modules.setdefault("dspy", MagicMock())
+#
+# IMPORTANT: dspy.Module must be a real Python type so that `class KGExtractor(dspy.Module)`
+# creates a proper class (not a MagicMock). Using a plain MagicMock as the base makes
+# Python treat MagicMock as the metaclass, turning KGExtractor itself into a MagicMock.
+_dspy_stub = MagicMock()
+_dspy_stub.Module = type(
+    "Module",
+    (),
+    {
+        "__init__": lambda self, *args, **kwargs: None,
+        # dspy.Module.__call__ delegates to forward() — replicate that behaviour.
+        "__call__": lambda self, *args, **kwargs: self.forward(*args, **kwargs),
+    },
+)
+# dspy.settings.lm must be None so mock-mode short-circuit fires when no real LM
+# is configured (extract_typed checks `dspy.settings.lm is None`).
+_dspy_stub.settings = MagicMock()
+_dspy_stub.settings.lm = None
+sys.modules.setdefault("dspy", _dspy_stub)
 
 
 @pytest.fixture

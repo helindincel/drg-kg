@@ -5,19 +5,17 @@ from __future__ import annotations
 import sys
 from unittest.mock import MagicMock
 
-import pytest
-
 # drg/extract/__init__.py imports dspy at module level.
 # Stub it so these pure-Python tests don't need dspy installed.
 sys.modules.setdefault("dspy", MagicMock())
 
-from drg.extract._relations import (
+from drg.extract._relations import (  # noqa: E402
     REVERSE_RELATION_PATTERNS,
     _add_reverse_relations,
     _infer_reverse_relation_name,
     _normalize_schema,
 )
-from drg.schema import (
+from drg.schema import (  # noqa: E402
     DRGSchema,
     EnhancedDRGSchema,
     Entity,
@@ -25,7 +23,6 @@ from drg.schema import (
     Relation,
     RelationGroup,
 )
-
 
 # ---------------------------------------------------------------------------
 # REVERSE_RELATION_PATTERNS — basic sanity
@@ -165,16 +162,12 @@ class TestAddReverseRelations:
     def _make_entity_types(self, *names: str) -> list[EntityType]:
         return [EntityType(n, f"Type {n}") for n in names]
 
-    def _make_relation_group(
-        self, name: str, relations: list[Relation]
-    ) -> RelationGroup:
+    def _make_relation_group(self, name: str, relations: list[Relation]) -> RelationGroup:
         return RelationGroup(name, f"Group {name}", relations)
 
     def test_adds_reverse_for_known_pattern(self):
         entity_types = self._make_entity_types("Company", "Product")
-        rg = self._make_relation_group(
-            "prod", [Relation("produces", "Company", "Product")]
-        )
+        rg = self._make_relation_group("prod", [Relation("produces", "Company", "Product")])
         result = _add_reverse_relations([rg], entity_types)
         all_names = {r.name for r in result[0].relations}
         assert "produces" in all_names
@@ -182,9 +175,7 @@ class TestAddReverseRelations:
 
     def test_reverse_has_swapped_src_dst(self):
         entity_types = self._make_entity_types("Company", "Product")
-        rg = self._make_relation_group(
-            "prod", [Relation("produces", "Company", "Product")]
-        )
+        rg = self._make_relation_group("prod", [Relation("produces", "Company", "Product")])
         result = _add_reverse_relations([rg], entity_types)
         rev = next(r for r in result[0].relations if r.name == "produced_by")
         assert rev.src == "Product"
@@ -206,9 +197,7 @@ class TestAddReverseRelations:
     def test_skips_reverse_when_entity_type_missing(self):
         # Only "Company" exists — "Product" is not an entity type
         entity_types = self._make_entity_types("Company")
-        rg = self._make_relation_group(
-            "prod", [Relation("produces", "Company", "Product")]
-        )
+        rg = self._make_relation_group("prod", [Relation("produces", "Company", "Product")])
         result = _add_reverse_relations([rg], entity_types)
         # produced_by would require "Product" as src which is not in entity_types
         all_names = {r.name for r in result[0].relations}
@@ -216,21 +205,15 @@ class TestAddReverseRelations:
 
     def test_no_known_reverse_does_not_add_relation(self):
         entity_types = self._make_entity_types("A", "B")
-        rg = self._make_relation_group(
-            "misc", [Relation("custom_relation_xyz", "A", "B")]
-        )
+        rg = self._make_relation_group("misc", [Relation("custom_relation_xyz", "A", "B")])
         result = _add_reverse_relations([rg], entity_types)
         # custom_relation_xyz is not in REVERSE_RELATION_PATTERNS
         assert len(result[0].relations) == 1
 
     def test_handles_multiple_groups(self):
         entity_types = self._make_entity_types("Company", "Person", "City")
-        rg1 = self._make_relation_group(
-            "work", [Relation("employs", "Company", "Person")]
-        )
-        rg2 = self._make_relation_group(
-            "loc", [Relation("located_in", "Company", "City")]
-        )
+        rg1 = self._make_relation_group("work", [Relation("employs", "Company", "Person")])
+        rg2 = self._make_relation_group("loc", [Relation("located_in", "Company", "City")])
         result = _add_reverse_relations([rg1, rg2], entity_types)
         assert len(result) == 2
         rg1_names = {r.name for r in result[0].relations}
@@ -246,9 +229,7 @@ class TestAddReverseRelations:
     def test_symmetric_relation_not_duplicated(self):
         entity_types = self._make_entity_types("Person", "Person")
         # "related_to" maps to itself — should not duplicate
-        rg = self._make_relation_group(
-            "sym", [Relation("related_to", "Person", "Person")]
-        )
+        rg = self._make_relation_group("sym", [Relation("related_to", "Person", "Person")])
         result = _add_reverse_relations([rg], entity_types)
         names = [r.name for r in result[0].relations]
         assert names.count("related_to") == 1

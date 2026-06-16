@@ -11,23 +11,21 @@ Covers:
 
 from __future__ import annotations
 
-import os
-
 import pytest
 
 # Skip the entire module if fastapi / httpx (required by TestClient) are not installed.
 pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
 
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from drg.api.server import create_app  # noqa: E402
-from drg.graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode  # noqa: E402
-
+from drg.api.server import create_app
+from drg.graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_sample_kg() -> EnhancedKG:
     """Return a small but complete EnhancedKG."""

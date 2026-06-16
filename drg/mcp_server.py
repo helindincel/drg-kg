@@ -37,9 +37,16 @@ except ImportError as _exc:
         "Install it with: pip install drg-kg[mcp]"
     ) from _exc
 
-from .extract import extract_typed
-from .graph.kg_core import EnhancedKG, KGEdge, KGNode
-from .schema import DRGSchema, EnhancedDRGSchema, Entity, EntityType, Relation, RelationGroup
+from .extract import extract_typed  # noqa: E402
+from .graph.kg_core import EnhancedKG, KGEdge, KGNode  # noqa: E402
+from .schema import (  # noqa: E402
+    DRGSchema,
+    EnhancedDRGSchema,
+    Entity,
+    EntityType,
+    Relation,
+    RelationGroup,
+)
 
 # ---------------------------------------------------------------------------
 # In-memory stores (stateful across tool calls within one server session)
@@ -56,6 +63,7 @@ mcp = FastMCP("DRG Knowledge Graph")
 # ---------------------------------------------------------------------------
 # Helper functions
 # ---------------------------------------------------------------------------
+
 
 def _parse_schema(schema_data: dict[str, Any]) -> DRGSchema | EnhancedDRGSchema:
     """Parse a schema dict into a DRGSchema or EnhancedDRGSchema."""
@@ -112,6 +120,7 @@ def _schema_summary(schema: DRGSchema | EnhancedDRGSchema) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Tools
 # ---------------------------------------------------------------------------
+
 
 @mcp.tool()
 def drg_define_schema(schema_id: str, schema: dict) -> dict:
@@ -273,6 +282,7 @@ def drg_list_kgs() -> dict:
 # ---------------------------------------------------------------------------
 # Factory helper (for embedding in existing apps)
 # ---------------------------------------------------------------------------
+
 
 def create_mcp_server() -> FastMCP:
     """Return the configured FastMCP server instance.

@@ -12,7 +12,9 @@ Mock-friendly attributes intentionally live at this top-level namespace
 
 from __future__ import annotations
 
+import asyncio as _asyncio
 import contextlib
+import functools as _functools
 import json
 import os
 from collections import Counter
@@ -453,6 +455,12 @@ def extract_from_chunks(
             preserves the legacy auto-configuration behaviour.
     """
     extractor = _get_extractor(schema, lm=lm)
+
+    # Mock-mode short-circuit: if no LM is configured, return empty results.
+    effective_lm = lm if lm is not None else getattr(getattr(dspy, "settings", None), "lm", None)
+    if effective_lm is None and isinstance(extractor, KGExtractor):
+        logger.warning("No DSPy LM configured; returning empty extraction (mock mode).")
+        return [], []
 
     if two_pass_extraction:
         logger.info("Using two-pass extraction mode")
@@ -1154,17 +1162,15 @@ def create_kgedge_from_triple(
 # Async wrappers
 # ---------------------------------------------------------------------------
 
-import asyncio as _asyncio
-import functools as _functools
-
 
 async def extract_typed_async(
     text: str,
     schema: DRGSchema | EnhancedDRGSchema,
     **kwargs: Any,
-) -> tuple[list[tuple[str, str]], list[tuple[str, str, str]]] | tuple[
-    list[tuple[str, str]], list[tuple[str, str, str]], list[dict[str, Any]]
-]:
+) -> (
+    tuple[list[tuple[str, str]], list[tuple[str, str, str]]]
+    | tuple[list[tuple[str, str]], list[tuple[str, str, str]], list[dict[str, Any]]]
+):
     """Async version of :func:`extract_typed`.
 
     Runs the synchronous extraction in a thread pool so the event loop is not
@@ -1195,4 +1201,3 @@ async def extract_from_chunks_async(
     return await _asyncio.to_thread(
         _functools.partial(extract_from_chunks, chunks, schema, **kwargs)
     )
-
