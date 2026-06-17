@@ -312,6 +312,41 @@ def test_build_enhanced_kg_skips_evidence_when_terms_absent_from_text():
     assert edge.relationship_detail == "Apple produces iPhone"
 
 
+def test_build_enhanced_kg_propagates_temporal_from_enriched_relations():
+    enriched = [
+        {
+            "relation": ("Steve Jobs", "CEO_OF", "Apple"),
+            "confidence": 0.9,
+            "temporal": {"start": "1997", "end": "2011", "precision": "year"},
+            "is_negated": False,
+        },
+        {
+            "relation": ("Tim Cook", "CEO_OF", "Apple"),
+            "confidence": 0.9,
+            "temporal": {"start": "2011", "end": None, "precision": "year"},
+            "is_negated": False,
+        },
+    ]
+    kg = build_enhanced_kg(
+        entities_typed=[
+            ("Steve Jobs", "Person"),
+            ("Tim Cook", "Person"),
+            ("Apple", "Company"),
+        ],
+        triples=[
+            ("Steve Jobs", "CEO_OF", "Apple"),
+            ("Tim Cook", "CEO_OF", "Apple"),
+        ],
+        enriched_relations=enriched,
+    )
+    by_source = {e.source: e for e in kg.edges}
+    assert by_source["Steve Jobs"].start_time == "1997"
+    assert by_source["Steve Jobs"].end_time == "2011"
+    assert by_source["Tim Cook"].start_time == "2011"
+    assert by_source["Tim Cook"].end_time is None
+    assert "temporal" in by_source["Steve Jobs"].metadata
+
+
 def test_build_enhanced_kg_handles_legacy_drg_schema_without_crashing():
     # Legacy DRGSchema has no relation_groups attribute path, but the helper
     # still resolves cleanly via _relation_docs_from_schema's hasattr guard.

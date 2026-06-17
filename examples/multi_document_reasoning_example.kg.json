@@ -1,0 +1,511 @@
+{
+  "nodes": [
+    {
+      "id": "Apple",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "doc_A_apple_news"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "id": "Beats",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "doc_A_apple_news",
+          "doc_B_iovine_bio",
+          "doc_C_location_facts"
+        ],
+        "merged_from": [
+          {
+            "id": "Beats",
+            "type": "Company",
+            "metadata": {
+              "source_documents": [
+                "doc_B_iovine_bio"
+              ]
+            }
+          },
+          {
+            "id": "Beats",
+            "type": "Company",
+            "metadata": {
+              "source_documents": [
+                "doc_C_location_facts"
+              ]
+            }
+          }
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "id": "Jimmy Iovine",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "doc_B_iovine_bio"
+        ]
+      },
+      "confidence": 0.65
+    },
+    {
+      "id": "Culver City",
+      "type": "Place",
+      "metadata": {
+        "source_documents": [
+          "doc_C_location_facts"
+        ]
+      },
+      "confidence": 0.65
+    },
+    {
+      "id": "California",
+      "type": "Place",
+      "metadata": {
+        "source_documents": [
+          "doc_C_location_facts"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "id": "United States",
+      "type": "Place",
+      "metadata": {
+        "source_documents": [
+          "doc_C_location_facts"
+        ]
+      },
+      "confidence": 0.65
+    }
+  ],
+  "edges": [
+    {
+      "source": "Apple",
+      "target": "Beats",
+      "relationship_type": "ACQUIRED",
+      "relationship_detail": "Apple ACQUIRED Beats",
+      "metadata": {
+        "triple": [
+          "Apple",
+          "ACQUIRED",
+          "Beats"
+        ],
+        "source_ref": "doc_A_apple_news",
+        "relationship_description": "Auto-extracted relation 'ACQUIRED'."
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Jimmy Iovine",
+      "target": "Beats",
+      "relationship_type": "FOUNDED",
+      "relationship_detail": "Jimmy Iovine FOUNDED Beats",
+      "metadata": {
+        "triple": [
+          "Jimmy Iovine",
+          "FOUNDED",
+          "Beats"
+        ],
+        "source_ref": "doc_B_iovine_bio",
+        "relationship_description": "Auto-extracted relation 'FOUNDED'."
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Beats",
+      "target": "Culver City",
+      "relationship_type": "HEADQUARTERED_IN",
+      "relationship_detail": "Beats HEADQUARTERED_IN Culver City",
+      "metadata": {
+        "triple": [
+          "Beats",
+          "HEADQUARTERED_IN",
+          "Culver City"
+        ],
+        "source_ref": "doc_C_location_facts",
+        "relationship_description": "Auto-extracted relation 'HEADQUARTERED_IN'."
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Culver City",
+      "target": "California",
+      "relationship_type": "part_of",
+      "relationship_detail": "Culver City part_of California",
+      "metadata": {
+        "triple": [
+          "Culver City",
+          "part_of",
+          "California"
+        ],
+        "source_ref": "doc_C_location_facts",
+        "relationship_description": "Auto-extracted relation 'part_of'."
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "California",
+      "target": "United States",
+      "relationship_type": "part_of",
+      "relationship_detail": "California part_of United States",
+      "metadata": {
+        "triple": [
+          "California",
+          "part_of",
+          "United States"
+        ],
+        "source_ref": "doc_C_location_facts",
+        "relationship_description": "Auto-extracted relation 'part_of'."
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Beats",
+      "target": "Apple",
+      "relationship_type": "acquired_by",
+      "relationship_detail": "Beats acquired_by Apple follows by inverse from Apple —[ACQUIRED]→ Beats (source: doc_A_apple_news).",
+      "metadata": {
+        "inferred": true,
+        "inference": {
+          "rule": "inverse",
+          "evidence_chain": [
+            {
+              "triple": [
+                "Apple",
+                "ACQUIRED",
+                "Beats"
+              ],
+              "source_ref": "doc_A_apple_news",
+              "confidence": 0.6
+            }
+          ],
+          "source_documents": [
+            "doc_A_apple_news"
+          ],
+          "explanation": "Beats acquired_by Apple follows by inverse from Apple —[ACQUIRED]→ Beats (source: doc_A_apple_news).",
+          "confidence": 0.6
+        }
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Beats",
+      "target": "Jimmy Iovine",
+      "relationship_type": "founded_by",
+      "relationship_detail": "Beats founded_by Jimmy Iovine follows by inverse from Jimmy Iovine —[FOUNDED]→ Beats (source: doc_B_iovine_bio).",
+      "metadata": {
+        "inferred": true,
+        "inference": {
+          "rule": "inverse",
+          "evidence_chain": [
+            {
+              "triple": [
+                "Jimmy Iovine",
+                "FOUNDED",
+                "Beats"
+              ],
+              "source_ref": "doc_B_iovine_bio",
+              "confidence": 0.6
+            }
+          ],
+          "source_documents": [
+            "doc_B_iovine_bio"
+          ],
+          "explanation": "Beats founded_by Jimmy Iovine follows by inverse from Jimmy Iovine —[FOUNDED]→ Beats (source: doc_B_iovine_bio).",
+          "confidence": 0.6
+        }
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "California",
+      "target": "Culver City",
+      "relationship_type": "contains",
+      "relationship_detail": "California contains Culver City follows by inverse from Culver City —[part_of]→ California (source: doc_C_location_facts).",
+      "metadata": {
+        "inferred": true,
+        "inference": {
+          "rule": "inverse",
+          "evidence_chain": [
+            {
+              "triple": [
+                "Culver City",
+                "part_of",
+                "California"
+              ],
+              "source_ref": "doc_C_location_facts",
+              "confidence": 0.6
+            }
+          ],
+          "source_documents": [
+            "doc_C_location_facts"
+          ],
+          "explanation": "California contains Culver City follows by inverse from Culver City —[part_of]→ California (source: doc_C_location_facts).",
+          "confidence": 0.6
+        }
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "United States",
+      "target": "California",
+      "relationship_type": "contains",
+      "relationship_detail": "United States contains California follows by inverse from California —[part_of]→ United States (source: doc_C_location_facts).",
+      "metadata": {
+        "inferred": true,
+        "inference": {
+          "rule": "inverse",
+          "evidence_chain": [
+            {
+              "triple": [
+                "California",
+                "part_of",
+                "United States"
+              ],
+              "source_ref": "doc_C_location_facts",
+              "confidence": 0.6
+            }
+          ],
+          "source_documents": [
+            "doc_C_location_facts"
+          ],
+          "explanation": "United States contains California follows by inverse from California —[part_of]→ United States (source: doc_C_location_facts).",
+          "confidence": 0.6
+        }
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Culver City",
+      "target": "United States",
+      "relationship_type": "part_of",
+      "relationship_detail": "Culver City part_of United States follows by transitivity through California (Culver City part_of California, California part_of United States).",
+      "metadata": {
+        "inferred": true,
+        "inference": {
+          "rule": "transitive",
+          "evidence_chain": [
+            {
+              "triple": [
+                "Culver City",
+                "part_of",
+                "California"
+              ],
+              "source_ref": "doc_C_location_facts",
+              "confidence": 0.6
+            },
+            {
+              "triple": [
+                "California",
+                "part_of",
+                "United States"
+              ],
+              "source_ref": "doc_C_location_facts",
+              "confidence": 0.6
+            }
+          ],
+          "source_documents": [
+            "doc_C_location_facts"
+          ],
+          "explanation": "Culver City part_of United States follows by transitivity through California (Culver City part_of California, California part_of United States).",
+          "confidence": 0.5,
+          "extra": {
+            "intermediate": "California"
+          }
+        }
+      },
+      "confidence": 0.5
+    },
+    {
+      "source": "Apple",
+      "target": "Jimmy Iovine",
+      "relationship_type": "connected_via_beats",
+      "relationship_detail": "Apple and Jimmy Iovine are both connected to Beats. Evidence: Apple —[ACQUIRED]→ Beats (source: doc_A_apple_news); Jimmy Iovine —[FOUNDED]→ Beats (source: doc_B_iovine_bio).",
+      "metadata": {
+        "inferred": true,
+        "inference": {
+          "rule": "path_bridge",
+          "evidence_chain": [
+            {
+              "triple": [
+                "Apple",
+                "ACQUIRED",
+                "Beats"
+              ],
+              "source_ref": "doc_A_apple_news",
+              "confidence": 0.6
+            },
+            {
+              "triple": [
+                "Jimmy Iovine",
+                "FOUNDED",
+                "Beats"
+              ],
+              "source_ref": "doc_B_iovine_bio",
+              "confidence": 0.6
+            }
+          ],
+          "source_documents": [
+            "doc_A_apple_news",
+            "doc_B_iovine_bio"
+          ],
+          "explanation": "Apple and Jimmy Iovine are both connected to Beats. Evidence: Apple —[ACQUIRED]→ Beats (source: doc_A_apple_news); Jimmy Iovine —[FOUNDED]→ Beats (source: doc_B_iovine_bio).",
+          "confidence": 0.6,
+          "bridge_entity": "Beats"
+        }
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Apple",
+      "target": "Culver City",
+      "relationship_type": "connected_via_beats",
+      "relationship_detail": "Apple and Culver City are both connected to Beats. Evidence: Apple —[ACQUIRED]→ Beats (source: doc_A_apple_news); Beats —[HEADQUARTERED_IN]→ Culver City (source: doc_C_location_facts).",
+      "metadata": {
+        "inferred": true,
+        "inference": {
+          "rule": "path_bridge",
+          "evidence_chain": [
+            {
+              "triple": [
+                "Apple",
+                "ACQUIRED",
+                "Beats"
+              ],
+              "source_ref": "doc_A_apple_news",
+              "confidence": 0.6
+            },
+            {
+              "triple": [
+                "Beats",
+                "HEADQUARTERED_IN",
+                "Culver City"
+              ],
+              "source_ref": "doc_C_location_facts",
+              "confidence": 0.6
+            }
+          ],
+          "source_documents": [
+            "doc_A_apple_news",
+            "doc_C_location_facts"
+          ],
+          "explanation": "Apple and Culver City are both connected to Beats. Evidence: Apple —[ACQUIRED]→ Beats (source: doc_A_apple_news); Beats —[HEADQUARTERED_IN]→ Culver City (source: doc_C_location_facts).",
+          "confidence": 0.6,
+          "bridge_entity": "Beats"
+        }
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Culver City",
+      "target": "Jimmy Iovine",
+      "relationship_type": "connected_via_beats",
+      "relationship_detail": "Culver City and Jimmy Iovine are both connected to Beats. Evidence: Jimmy Iovine —[FOUNDED]→ Beats (source: doc_B_iovine_bio); Beats —[HEADQUARTERED_IN]→ Culver City (source: doc_C_location_facts).",
+      "metadata": {
+        "inferred": true,
+        "inference": {
+          "rule": "path_bridge",
+          "evidence_chain": [
+            {
+              "triple": [
+                "Jimmy Iovine",
+                "FOUNDED",
+                "Beats"
+              ],
+              "source_ref": "doc_B_iovine_bio",
+              "confidence": 0.6
+            },
+            {
+              "triple": [
+                "Beats",
+                "HEADQUARTERED_IN",
+                "Culver City"
+              ],
+              "source_ref": "doc_C_location_facts",
+              "confidence": 0.6
+            }
+          ],
+          "source_documents": [
+            "doc_B_iovine_bio",
+            "doc_C_location_facts"
+          ],
+          "explanation": "Culver City and Jimmy Iovine are both connected to Beats. Evidence: Jimmy Iovine —[FOUNDED]→ Beats (source: doc_B_iovine_bio); Beats —[HEADQUARTERED_IN]→ Culver City (source: doc_C_location_facts).",
+          "confidence": 0.6,
+          "bridge_entity": "Beats"
+        }
+      },
+      "confidence": 0.6
+    }
+  ],
+  "clusters": [],
+  "metadata": {
+    "created_at": "2026-06-06T20:57:19+00:00",
+    "version": 3,
+    "updated_at": "2026-06-06T20:57:19+00:00",
+    "history": [
+      {
+        "version": 1,
+        "operation": "merge",
+        "timestamp": "2026-06-06T20:57:19+00:00",
+        "added_nodes": 2,
+        "merged_nodes": 0,
+        "skipped_nodes": 0,
+        "added_edges": 1,
+        "skipped_edges": 0,
+        "rewritten_edges": 0,
+        "added_clusters": 0,
+        "skipped_clusters": 0,
+        "document_id": "doc_A_apple_news"
+      },
+      {
+        "version": 2,
+        "operation": "merge",
+        "timestamp": "2026-06-06T20:57:19+00:00",
+        "added_nodes": 1,
+        "merged_nodes": 1,
+        "skipped_nodes": 0,
+        "added_edges": 1,
+        "skipped_edges": 0,
+        "rewritten_edges": 0,
+        "added_clusters": 0,
+        "skipped_clusters": 0,
+        "document_id": "doc_B_iovine_bio"
+      },
+      {
+        "version": 3,
+        "operation": "merge",
+        "timestamp": "2026-06-06T20:57:19+00:00",
+        "added_nodes": 3,
+        "merged_nodes": 1,
+        "skipped_nodes": 0,
+        "added_edges": 3,
+        "skipped_edges": 0,
+        "rewritten_edges": 0,
+        "added_clusters": 0,
+        "skipped_clusters": 0,
+        "document_id": "doc_C_location_facts"
+      },
+      {
+        "version": 3,
+        "operation": "reasoning",
+        "timestamp": "2026-06-06T20:57:19+00:00",
+        "added_edges": 8,
+        "skipped_existing": 0,
+        "skipped_low_confidence": 0,
+        "skipped_self_loop": 0,
+        "skipped_missing_endpoint": 0,
+        "per_rule_counts": {
+          "inverse": 4,
+          "transitive": 1,
+          "path_bridge": 3
+        },
+        "document_id": "post_merge_reasoning"
+      }
+    ]
+  }
+}

@@ -5,6 +5,7 @@ import argparse
 import json
 import re
 import sys
+import os
 from pathlib import Path
 
 from .chunking import create_chunker
@@ -30,78 +31,138 @@ def main():
     parser = argparse.ArgumentParser(
         description="DRG - Declarative Relationship Generation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  drg extract input.txt -o output.json
-  drg extract input.txt -o output.json --schema custom_schema.json
-  echo "Apple released iPhone 16" | drg extract - -o output.json
-        """,
     )
+    
+    subparsers = parser.add_subparsers(dest="command")
 
-    parser.add_argument("input", type=str, help="Input text file or '-' for stdin")
-
-    parser.add_argument(
+    # --- Extract command ---
+    extract_parser = subparsers.add_parser("extract", help="Extract KG from text")
+    
+    extract_parser.add_argument("input", type=str, help="Input text file or '-' for stdin")
+    extract_parser.add_argument(
         "-o",
         "--output",
         type=str,
         default="-",
-        help="Output JSON file (default: stdout, or specify path like 'outputs/output.json')",
+        help="Output JSON file (default: stdout)",
     )
-
-    parser.add_argument(
+    extract_parser.add_argument(
         "--schema",
         type=str,
-        help="Custom schema JSON file (optional, uses default Company->Product if not provided)",
+        help="Custom schema JSON file",
     )
-
-    parser.add_argument(
+    extract_parser.add_argument(
         "--auto-schema",
         action="store_true",
-        help="Generate an EnhancedDRGSchema from the input text (recommended for richer, input-agnostic extraction). "
-        "If provided, --schema is ignored.",
+        help="Generate an EnhancedDRGSchema from the input text",
     )
-
-    parser.add_argument(
+    extract_parser.add_argument(
         "--output-format",
         type=str,
         default=None,
         choices=["legacy", "enhancedkg"],
-        help="Output format. 'legacy' matches CLI JSON (nodes/edges with edge key 'type'). "
-        "'enhancedkg' writes EnhancedKG JSON (nodes/edges/clusters) for the UI. "
-        "If omitted, inferred from output filename: '*_kg.json' -> enhancedkg else legacy.",
     )
-
-    parser.add_argument(
+    extract_parser.add_argument(
         "--no-hub-validation",
         action="store_true",
-        help="Disable hub-dominance validation gate (some documents are naturally hub-like).",
+        help="Disable hub-dominance validation gate",
     )
-
-    parser.add_argument(
+    extract_parser.add_argument(
+        "--update",
+        type=str,
+        default=None,
+        metavar="EXISTING_KG_JSON",
+    )
+    extract_parser.add_argument(
+        "--update-strategy",
+        type=str,
+        default="prefer_existing",
+        choices=["prefer_existing", "prefer_new", "union"],
+    )
+    extract_parser.add_argument(
+        "--update-document-id",
+        type=str,
+        default=None,
+    )
+    extract_parser.add_argument(
+        "--infer",
+        action="store_true",
+    )
+    extract_parser.add_argument(
+        "--extract-events",
+        action="store_true",
+    )
+    extract_parser.add_argument(
+        "--events-registry",
+        type=str,
+        default=None,
+    )
+    extract_parser.add_argument(
+        "--events-use-example",
+        action="store_true",
+    )
+    extract_parser.add_argument(
+        "--infer-min-confidence",
+        type=float,
+        default=0.5,
+    )
+    extract_parser.add_argument(
+        "--infer-disable-rule",
+        action="append",
+        default=[],
+    )
+    extract_parser.add_argument(
         "--model",
         type=str,
         default=None,
-        help="LLM model identifier. Examples: 'openai/gpt-4o-mini' (cloud, needs API key), 'ollama_chat/llama3' (local, no API key). Default: from DRG_MODEL env or 'openai/gpt-4o-mini'",
     )
-
-    parser.add_argument(
+    extract_parser.add_argument(
         "--api-key",
         type=str,
         default=None,
-        help="API key for LLM (required for cloud models, not needed for local models like Ollama)",
     )
-
-    parser.add_argument("--base-url", type=str, default=None, help="Custom API base URL (optional)")
-
-    parser.add_argument(
+    extract_parser.add_argument("--base-url", type=str, default=None)
+    extract_parser.add_argument(
         "--temperature",
         type=float,
         default=0.0,
-        help="Temperature for LLM generation (default: 0.0)",
     )
+
+    # --- Eval command ---
+    eval_parser = subparsers.add_parser("eval", help="Evaluation framework")
+    eval_subparsers = eval_parser.add_subparsers(dest="eval_command")
+
+    # eval run
+    eval_run_parser = eval_subparsers.add_parser("run", help="Run benchmark")
+    eval_run_parser.add_argument("dataset", type=str, help="Dataset JSON file or directory")
+    eval_run_parser.add_argument("-o", "--output", type=str, help="Output report file")
+    eval_run_parser.add_argument("--run-id", type=str, help="Run ID")
+    eval_run_parser.add_argument("--retrieval-k", type=int, default=10)
+    eval_run_parser.add_argument("--model", type=str, help="Model (overrides env)")
+    eval_run_parser.add_argument("--api-key", type=str, help="API Key (overrides env)")
+
+    # eval compare
+    eval_comp_parser = eval_subparsers.add_parser("compare", help="Compare reports")
+    eval_comp_parser.add_argument("baseline", type=str, help="Baseline JSON")
+    eval_comp_parser.add_argument("candidate", type=str, help="Candidate JSON")
+    eval_comp_parser.add_argument("-o", "--output", type=str, help="Output markdown")
+    eval_comp_parser.add_argument("--threshold", type=float, default=0.01)
+
+    # Legacy support: if no command, default to extract
+    if len(sys.argv) > 1 and sys.argv[1] not in ["extract", "eval", "-h", "--help"]:
+        sys.argv.insert(1, "extract")
 
     args = parser.parse_args()
 
+    if args.command == "extract":
+        _handle_extract(args)
+    elif args.command == "eval":
+        _handle_eval(args)
+    else:
+        parser.print_help()
+
+
+def _handle_extract(args):
     # Read input
     if args.input == "-":
         text = sys.stdin.read()
@@ -114,167 +175,184 @@ Examples:
 
     # Load/generate schema
     if args.auto_schema:
-        schema = None  # lazy generate after model/env is set
+        schema = None
     elif args.schema:
-        try:
-            schema = load_schema_from_json(args.schema)
-        except FileNotFoundError as e:
-            print(f"Error: {e}", file=sys.stderr)
-            sys.exit(1)
-        except ValueError as e:
-            print(f"Error: Invalid schema file: {e}", file=sys.stderr)
-            sys.exit(1)
-        except Exception as e:
-            print(f"Error: Failed to load schema: {e}", file=sys.stderr)
-            import traceback
-
-            traceback.print_exc()
-            sys.exit(1)
+        schema = load_schema_from_json(args.schema)
     else:
         schema = create_default_schema()
 
+<<<<<<< Updated upstream
     # Set environment variables for automatic LLM configuration (read by DSPy)
     import os
 
+=======
+    # Env config
+>>>>>>> Stashed changes
     if args.no_hub_validation:
         os.environ["DRG_VALIDATE_HUB_DOMINANCE"] = "0"
     if args.model:
         os.environ["DRG_MODEL"] = args.model
     if args.api_key:
-        # Set appropriate API key env var based on model
-        model = args.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
-        if "gemini" in model.lower():
-            # Different SDK/adapters use different env var names for Gemini.
-            # Keep both to be robust (LiteLLM commonly reads GOOGLE_API_KEY).
-            os.environ["GEMINI_API_KEY"] = args.api_key
-            os.environ["GOOGLE_API_KEY"] = args.api_key
-        elif "anthropic" in model.lower() or "claude" in model.lower():
-            os.environ["ANTHROPIC_API_KEY"] = args.api_key
-        elif "openrouter" in model.lower():
-            os.environ["OPENROUTER_API_KEY"] = args.api_key
-        else:
-            os.environ["OPENAI_API_KEY"] = args.api_key
+        os.environ["OPENAI_API_KEY"] = args.api_key
     if args.base_url:
         os.environ["DRG_BASE_URL"] = args.base_url
     if args.temperature != 0.0:
         os.environ["DRG_TEMPERATURE"] = str(args.temperature)
 
-    # Warn if using cloud model without API key
-    api_key = (
-        args.api_key
-        or os.getenv("GEMINI_API_KEY")
-        or os.getenv("OPENAI_API_KEY")
-        or os.getenv("ANTHROPIC_API_KEY")
-    )
-    model = args.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
-    if not api_key and not model.startswith("ollama"):
-        print("Warning: No API key found. Cloud models require an API key.", file=sys.stderr)
-        print(
-            "For local models, use: --model ollama_chat/llama3 --base-url http://localhost:11434",
-            file=sys.stderr,
-        )
-
-    # Determine output format
+    # Determine format
     inferred_format = None
     if args.output != "-" and args.output.lower().endswith("_kg.json"):
         inferred_format = "enhancedkg"
     output_format = args.output_format or inferred_format or "legacy"
 
-    # Extract
+    if args.update:
+        output_format = "enhancedkg"
+
+    # Extraction
     try:
-        # Generate schema (after env is set so LLM config can use the chosen model)
         if args.auto_schema:
-            # Auto-schema typically needs a larger output budget to avoid truncation.
-            # Keep this opt-in behind --auto-schema so default CLI stays cheap/safe.
             if not os.getenv("DRG_MAX_TOKENS"):
                 os.environ["DRG_MAX_TOKENS"] = "4096"
             schema = generate_schema_from_text(text)
 
-        # If schema is auto-generated (Enhanced) we use chunk-aware extraction for richer relations.
         if args.auto_schema:
             chunk_size = int(os.getenv("DRG_CHUNK_SIZE", "768"))
-            overlap_ratio = float(os.getenv("DRG_OVERLAP_RATIO", "0.15"))
-            strategy = os.getenv("DRG_CHUNKING_STRATEGY", "token_based")
-            chunker = create_chunker(
-                strategy=strategy, chunk_size=chunk_size, overlap_ratio=overlap_ratio
-            )
+            chunker = create_chunker(strategy="token_based", chunk_size=chunk_size)
             chunks = chunker.chunk(text, origin_dataset="cli", origin_file=args.input)
             entities_typed, triples = extract_from_chunks(
-                chunks=[
-                    {"text": c.text, "chunk_id": c.chunk_id, "metadata": c.metadata} for c in chunks
-                ],
+                chunks=[{"text": c.text, "chunk_id": c.chunk_id} for c in chunks],
                 schema=schema,
                 enable_cross_chunk_relationships=True,
                 enable_entity_resolution=True,
-                enable_coreference_resolution=True,
                 two_pass_extraction=True,
             )
         else:
             entities_typed, triples = extract_typed(text, schema)
 
-        # Remove duplicates
         triples = list(dict.fromkeys(triples))
 
         if output_format == "enhancedkg":
-            kg2 = build_enhanced_kg(
+            effective_doc_id = args.update_document_id or (
+                args.input if args.input != "-" else "<stdin>"
+            )
+            extracted_events = []
+            if args.extract_events:
+                from .events import EventTypeRegistry, example_event_registry, extract_events
+                registry = None
+                if args.events_registry:
+                    registry = EventTypeRegistry.from_json(args.events_registry)
+                elif args.events_use_example:
+                    registry = example_event_registry()
+                
+                if registry:
+                    extracted_events = extract_events(
+                        text=text,
+                        entities_typed=entities_typed,
+                        registry=registry,
+                        document_id=effective_doc_id,
+                    )
+
+            target_kg = build_enhanced_kg(
                 entities_typed=entities_typed,
                 triples=triples,
                 schema=schema,
                 source_text=text,
+                document_id=effective_doc_id,
+                events=extracted_events or None,
             )
-            output_json = kg2.to_json()
+
+            if args.update:
+                from .graph import EnhancedKG, GraphMerger, MergeStrategy, NodeMergePolicy
+                update_path = Path(args.update)
+                base_kg = EnhancedKG.load_json(str(update_path)) if update_path.exists() else EnhancedKG()
+                strategy = MergeStrategy(node_policy=NodeMergePolicy(args.update_strategy))
+                GraphMerger(strategy).merge(base_kg, target_kg, document_id=effective_doc_id)
+                target_kg = base_kg
+
+            if args.infer:
+                from .reasoning import MultiDocumentReasoner, ReasoningConfig
+                infer_cfg = ReasoningConfig(
+                    min_confidence=args.infer_min_confidence,
+                    disabled_rules=frozenset(args.infer_disable_rule or []),
+                )
+                MultiDocumentReasoner(config=infer_cfg).reason(target_kg, document_id=effective_doc_id)
+
+            output_json = target_kg.to_json()
         else:
             kg = KG.from_typed(entities_typed, triples)
             output_json = kg.to_json()
+
+        if args.output == "-":
+            print(output_json)
+        else:
+            args.output = args.update if args.update and args.output == "-" else args.output
+            output_path = Path(args.output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(output_json, encoding="utf-8")
+            print(f"Knowledge graph written to: {output_path}", file=sys.stderr)
+
     except Exception as e:
-        # Avoid leaking secrets (API keys can appear in URLs like ...?key=... in provider errors).
-        import traceback
-
-        raw_msg = f"{type(e).__name__}: {e}"
-        raw_tb = traceback.format_exc()
-
-        def _redact_secrets(s: str) -> str:
-            if not s:
-                return s
-            # Redact URL query keys: key=XXXX
-            s = re.sub(r"(?i)(key=)[^&\s]+", r"\1REDACTED", s)
-            # Redact common Google API key shape if present
-            s = re.sub(r"AIzaSy[0-9A-Za-z_-]{20,}", "REDACTED_GOOGLE_API_KEY", s)
-            # Redact OpenRouter key shape if present
-            s = re.sub(r"sk-or-v1-[0-9a-fA-F]{20,}", "REDACTED_OPENROUTER_KEY", s)
-            return s
-
-        print(f"Error during extraction: {_redact_secrets(raw_msg)}", file=sys.stderr)
-        # Print full traceback only when explicitly requested
-        import os
-
-        if os.getenv("DRG_DEBUG", "").lower() in {"1", "true", "yes"}:
-            print(_redact_secrets(raw_tb), file=sys.stderr)
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Write output
-    if args.output == "-":
-        print(output_json)
-    else:
-        output_path = Path(args.output)
-        # Create parent directory if it doesn't exist
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(output_json, encoding="utf-8")
-        print(f"Knowledge graph written to: {output_path}", file=sys.stderr)
 
-        # If schema was auto-generated, also persist it next to the output for UI/debugging.
-        if args.auto_schema:
-            try:
-                schema_stem = output_path.stem.replace("_kg", "")
-                schema_path = output_path.parent / f"{schema_stem}_schema.json"
-                schema_path.write_text(
-                    json.dumps(schema.to_dict(), indent=2, ensure_ascii=False),
-                    encoding="utf-8",
-                )
-                print(f"Schema written to: {schema_path}", file=sys.stderr)
-            except Exception:
-                # Best-effort: schema saving should not fail the main extraction path.
-                pass
+def _handle_eval(args):
+    from .evaluation import (
+        BenchmarkRunner,
+        PipelinePrediction,
+        load_benchmark_datasets,
+        save_json_report,
+        save_markdown_report,
+        render_markdown_report,
+        compare_reports,
+        render_regression_markdown,
+    )
+    
+    if args.api_key:
+        os.environ["OPENAI_API_KEY"] = args.api_key
+    if args.model:
+        os.environ["DRG_MODEL"] = args.model
+
+    if args.eval_command == "run":
+        datasets = load_benchmark_datasets(args.dataset)
+        runner = BenchmarkRunner(
+            run_id=args.run_id,
+            retrieval_k=args.retrieval_k,
+            metadata={"model": os.getenv("DRG_MODEL")},
+        )
+        
+        def extraction_runner(ds):
+            # Real extraction runner for evaluation
+            e, t = extract_typed(ds.text, create_default_schema())
+            return PipelinePrediction(entities=e, relations=t)
+
+        report = runner.evaluate(datasets, runner=extraction_runner)
+        
+        if args.output:
+            if args.output.endswith(".md"):
+                save_markdown_report(report, args.output)
+            else:
+                save_json_report(report, args.output)
+        else:
+            print(render_markdown_report(report))
+
+    elif args.eval_command == "compare":
+        with open(args.baseline) as f:
+            base = json.load(f)
+        with open(args.candidate) as f:
+            cand = json.load(f)
+        
+        from .evaluation._types import EvaluationReport
+        comparison = compare_reports(
+            EvaluationReport.from_dict(base),
+            EvaluationReport.from_dict(cand),
+            regression_threshold=args.threshold,
+        )
+        output = render_regression_markdown(comparison)
+        if args.output:
+            Path(args.output).write_text(output)
+        else:
+            print(output)
 
 
 if __name__ == "__main__":

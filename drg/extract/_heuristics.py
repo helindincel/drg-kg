@@ -154,9 +154,9 @@ def _extract_year_temporal(window: str) -> dict[str, str | None] | None:
     """Extract simple year-only temporal metadata from a window.
 
     Returns:
-        {"start": "YYYY-01-01", "end": "YYYY-12-31"} for explicit ranges,
-        {"start": "YYYY-01-01", "end": None} for single-year mentions,
-        or None if no year detected.
+        ``{"start": "YYYY", "end": "YYYY", "precision": "year"}`` for ranges,
+        ``{"start": "YYYY", "end": None, "precision": "year"}`` for single years,
+        or ``None`` if no year detected.
     """
     if not window:
         return None
@@ -173,9 +173,13 @@ def _extract_year_temporal(window: str) -> dict[str, str | None] | None:
     if m:
         y1 = int(m.group(1))
         y2 = int(m.group(2))
-        return {"start": f"{min(y1, y2)}-01-01", "end": f"{max(y1, y2)}-12-31"}
+        return {
+            "start": str(min(y1, y2)),
+            "end": str(max(y1, y2)),
+            "precision": "year",
+        }
 
-    return {"start": f"{years[0]}-01-01", "end": None}
+    return {"start": str(years[0]), "end": None, "precision": "year"}
 
 
 # ---------------------------------------------------------------------------

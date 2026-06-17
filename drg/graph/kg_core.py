@@ -25,8 +25,13 @@ class KGNode:
         id: Unique identifier for the node
         type: Entity type (e.g., "Person", "Location", "Event")
         properties: Optional dictionary of entity properties
-        metadata: Optional metadata (confidence, source_ref, etc.)
+        metadata: Optional metadata (source_ref, etc.)
         embedding: Optional embedding vector for semantic similarity
+        confidence: Optional extraction-time confidence score in [0.0, 1.0].
+            ``None`` means "no confidence has been computed for this node"
+            (the legacy default), preserving backward compatibility for
+            callers/tests that don't yet wire a confidence strategy.
+            See :mod:`drg.confidence` for the scoring framework.
     """
 
     id: str
@@ -34,11 +39,16 @@ class KGNode:
     properties: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
     embedding: list[float] | None = None
+    confidence: float | None = None
 
     def __post_init__(self):
         """Validate node data."""
         if not self.id:
             raise ValueError("Node id cannot be empty")
+        # Mirror the validation already enforced on KGEdge.confidence so
+        # node and edge confidence have identical semantics.
+        if self.confidence is not None and not (0.0 <= self.confidence <= 1.0):
+            raise ValueError("Confidence score must be between 0.0 and 1.0")
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
@@ -52,17 +62,47 @@ class KGNode:
             result["metadata"] = self.metadata
         if self.embedding:
             result["embedding"] = self.embedding
+        # Only emit confidence when explicitly set — keeps the legacy JSON
+        # surface stable for KGs built without a confidence strategy.
+        if self.confidence is not None:
+            result["confidence"] = self.confidence
+        temporal = self.get_temporal_scope()
+        if temporal is not None:
+            result["temporal"] = temporal.to_dict()
         return result
+
+    def get_temporal_scope(self):
+        """Return :class:`drg.temporal.TemporalScope` from node metadata."""
+        from ..temporal import TemporalScope
+
+        meta = self.metadata or {}
+        nested = meta.get("temporal")
+        if isinstance(nested, dict):
+            return TemporalScope.from_dict(nested)
+        return None
+
+    def apply_temporal_scope(self, scope) -> None:
+        """Store temporal validity on this node (in ``metadata['temporal']``)."""
+        if scope is None or scope.is_empty():
+            return
+        meta = dict(self.metadata)
+        meta["temporal"] = scope.to_dict()
+        self.metadata = meta
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "KGNode":
         """Create from dictionary representation."""
+        metadata = dict(data.get("metadata", {}))
+        temporal = data.get("temporal")
+        if isinstance(temporal, dict) and "temporal" not in metadata:
+            metadata["temporal"] = temporal
         return cls(
             id=data["id"],
             type=data.get("type"),
             properties=data.get("properties", {}),
-            metadata=data.get("metadata", {}),
+            metadata=metadata,
             embedding=data.get("embedding"),
+            confidence=data.get("confidence"),
         )
 
 
@@ -80,9 +120,12 @@ class KGEdge:
     relationship_type: str
     relationship_detail: str
     metadata: dict[str, Any] = field(default_factory=dict)
-    # Temporal information
-    start_time: str | None = None  # ISO format date/time when relationship started
-    end_time: str | None = None  # ISO format date/time when relationship ended
+    # Temporal information (``start_time``/``end_time`` are legacy names;
+    # ``valid_from``/``valid_to`` are semantic aliases — see properties below)
+    start_time: str | None = None
+    end_time: str | None = None
+    created_at: str | None = None  # extraction / ingestion timestamp (ISO instant)
+    updated_at: str | None = None  # last merge or update timestamp (ISO instant)
     # Confidence score (0.0-1.0)
     confidence: float | None = None  # Confidence score from extraction (0.0-1.0)
     # Negation flag
@@ -99,6 +142,49 @@ class KGEdge:
         if self.confidence is not None and not (0.0 <= self.confidence <= 1.0):
             raise ValueError("Confidence score must be between 0.0 and 1.0")
 
+    @property
+    def valid_from(self) -> str | None:
+        return self.start_time
+
+    @valid_from.setter
+    def valid_from(self, value: str | None) -> None:
+        self.start_time = value
+
+    @property
+    def valid_to(self) -> str | None:
+        return self.end_time
+
+    @valid_to.setter
+    def valid_to(self, value: str | None) -> None:
+        self.end_time = value
+
+    def get_temporal_scope(self):
+        """Return :class:`drg.temporal.TemporalScope` for this edge."""
+        from ..temporal import temporal_from_edge_fields
+
+        return temporal_from_edge_fields(
+            start_time=self.start_time,
+            end_time=self.end_time,
+            created_at=self.created_at,
+            updated_at=self.updated_at,
+            metadata=self.metadata,
+        )
+
+    def apply_temporal_scope(self, scope) -> None:
+        """Apply a :class:`drg.temporal.TemporalScope` onto this edge."""
+        if scope is None:
+            return
+        self.start_time = scope.valid_from
+        self.end_time = scope.valid_to
+        if scope.created_at is not None:
+            self.created_at = scope.created_at
+        if scope.updated_at is not None:
+            self.updated_at = scope.updated_at
+        if not scope.is_empty():
+            meta = dict(self.metadata)
+            meta["temporal"] = scope.to_dict()
+            self.metadata = meta
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         result = {
@@ -110,8 +196,14 @@ class KGEdge:
         }
         if self.start_time:
             result["start_time"] = self.start_time
+            result["valid_from"] = self.start_time
         if self.end_time:
             result["end_time"] = self.end_time
+            result["valid_to"] = self.end_time
+        if self.created_at:
+            result["created_at"] = self.created_at
+        if self.updated_at:
+            result["updated_at"] = self.updated_at
         if self.confidence is not None:
             result["confidence"] = self.confidence
         if self.is_negated:
@@ -127,8 +219,10 @@ class KGEdge:
             relationship_type=data["relationship_type"],
             relationship_detail=data["relationship_detail"],
             metadata=data.get("metadata", {}),
-            start_time=data.get("start_time"),
-            end_time=data.get("end_time"),
+            start_time=data.get("start_time") or data.get("valid_from"),
+            end_time=data.get("end_time") or data.get("valid_to"),
+            created_at=data.get("created_at"),
+            updated_at=data.get("updated_at"),
             confidence=data.get("confidence"),
             is_negated=data.get("is_negated", False),
         )
@@ -152,8 +246,14 @@ class KGEdge:
         if hasattr(rel, "metadata") and isinstance(rel.metadata, dict):
             temporal = rel.metadata.get("temporal")
             if isinstance(temporal, dict):
-                start_time = temporal.get("start")
-                end_time = temporal.get("end")
+                start_time = (
+                    temporal.get("valid_from")
+                    or temporal.get("start")
+                )
+                end_time = (
+                    temporal.get("valid_to")
+                    or temporal.get("end")
+                )
             # Also check direct fields (backward compatibility)
             if not start_time:
                 start_time = rel.metadata.get("start_time")
@@ -215,12 +315,20 @@ class EnhancedKG:
     - Relationships (edges) with enriched details
     - Clusters/Communities
     - Multiple export formats
+    - Optional graph-level metadata (version, history) for incremental updates
+
+    The ``metadata`` field is intentionally a free-form dict so callers that
+    don't opt into incremental ingestion (the legacy default) keep an empty
+    ``{}`` and the JSON output stays byte-compatible with previous versions.
+    The incremental update layer (``drg.graph.incremental``) populates
+    ``version`` / ``history`` keys when it touches the graph.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.nodes: dict[str, KGNode] = {}
         self.edges: list[KGEdge] = []
         self.clusters: dict[str, Cluster] = {}
+        self.metadata: dict[str, Any] = {}
 
     def add_node(self, node: KGNode) -> None:
         """Add a node to the graph."""
@@ -243,13 +351,43 @@ class EnhancedKG:
             raise ValueError(f"Cluster contains non-existent nodes: {missing_nodes}")
         self.clusters[cluster.id] = cluster
 
+    def _events_payload(self) -> list[dict[str, Any]]:
+        """Surface event nodes as a separate list (lazy import to avoid cycle).
+
+        Returns an empty list when no event-typed nodes exist, which keeps
+        the legacy serialization byte-compatible (callers gate on truthiness).
+        """
+        from ..events._graph_mapping import event_from_kg_node, is_event_node
+
+        out: list[dict[str, Any]] = []
+        for node in self.nodes.values():
+            if not is_event_node(node):
+                continue
+            event = event_from_kg_node(node)
+            if event is not None:
+                out.append(event.to_dict())
+        return out
+
     def to_json(self, indent: int = 2) -> str:
-        """Export to JSON format."""
-        data = {
+        """Export to JSON format.
+
+        ``metadata`` is included only when populated so the legacy three-key
+        shape ({"nodes", "edges", "clusters"}) is preserved for graphs built
+        without the incremental layer. The optional ``events`` key surfaces
+        event-typed nodes as their canonical event payload; it is only
+        emitted when the graph actually contains events, so legacy graphs
+        round-trip byte-for-byte.
+        """
+        data: dict[str, Any] = {
             "nodes": [node.to_dict() for node in self.nodes.values()],
             "edges": [edge.to_dict() for edge in self.edges],
             "clusters": [cluster.to_dict() for cluster in self.clusters.values()],
         }
+        events_payload = self._events_payload()
+        if events_payload:
+            data["events"] = events_payload
+        if self.metadata:
+            data["metadata"] = self.metadata
         return json.dumps(data, indent=indent, ensure_ascii=False)
 
     def to_json_ld(self, indent: int = 2) -> str:
@@ -268,6 +406,10 @@ class EnhancedKG:
                 "identifier": node.id,
                 **{f"kg:prop/{k}": v for k, v in node.properties.items()},
                 **{f"kg:meta/{k}": v for k, v in node.metadata.items()},
+                # Confidence is a first-class JSON-LD property (not a
+                # ``kg:meta/`` field) so consumers can index/filter on it
+                # without parsing the metadata bag.
+                **({"confidence": node.confidence} if node.confidence is not None else {}),
             }
             for node in self.nodes.values()
         ]
@@ -300,7 +442,41 @@ class EnhancedKG:
             for cluster in self.clusters.values()
         ]
 
-        data = {**context, "nodes": nodes, "edges": edges, "clusters": clusters}
+        data: dict[str, Any] = {
+            **context,
+            "nodes": nodes,
+            "edges": edges,
+            "clusters": clusters,
+        }
+        events_payload = self._events_payload()
+        if events_payload:
+            data["events"] = [
+                {
+                    "@id": f"kg:event/{ev['id']}",
+                    "@type": "Event",
+                    "identifier": ev["id"],
+                    "kg:event_type": ev["event_type"],
+                    **(
+                        {"startDate": ev["timestamp"].get("start")}
+                        if ev.get("timestamp") and ev["timestamp"].get("start")
+                        else {}
+                    ),
+                    **(
+                        {"endDate": ev["timestamp"].get("end")}
+                        if ev.get("timestamp") and ev["timestamp"].get("end")
+                        else {}
+                    ),
+                    **(
+                        {"location": {"@id": f"kg:node/{ev['location']}"}}
+                        if ev.get("location")
+                        else {}
+                    ),
+                    "kg:participants": ev.get("participants", {}),
+                    **{f"kg:prop/{k}": v for k, v in (ev.get("properties") or {}).items()},
+                    "kg:provenance": ev.get("provenance", {}),
+                }
+                for ev in events_payload
+            ]
         return json.dumps(data, indent=indent, ensure_ascii=False)
 
     def to_enriched_format(self, indent: int = 2) -> str:
@@ -332,11 +508,14 @@ class EnhancedKG:
 
         clusters = [cluster.to_dict() for cluster in self.clusters.values()]
 
-        data = {
+        data: dict[str, Any] = {
             "entities": nodes,
             "relationships": edges,
             "communities": clusters if clusters else None,
         }
+        events_payload = self._events_payload()
+        if events_payload:
+            data["events"] = events_payload
 
         return json.dumps(data, indent=indent, ensure_ascii=False)
 
@@ -372,6 +551,65 @@ class EnhancedKG:
             edge = KGEdge.from_enriched_relationship(rel)
             kg.add_edge(edge)
         return kg
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "EnhancedKG":
+        """Reconstruct an :class:`EnhancedKG` from its JSON-serialisable form.
+
+        Accepts both legacy graphs (no ``metadata`` key) and graphs produced
+        by the incremental update layer (``metadata.version`` / ``history``).
+        Cluster references are validated against the loaded node set; orphan
+        cluster members are silently dropped rather than raising so that
+        partially-corrupted graphs can still be loaded for inspection.
+        """
+        kg = cls()
+
+        for node_data in data.get("nodes", []) or []:
+            node = KGNode.from_dict(node_data)
+            kg.nodes[node.id] = node
+
+        for edge_data in data.get("edges", []) or []:
+            edge = KGEdge.from_dict(edge_data)
+            # Use list.append directly: round-tripping a stored graph should
+            # not re-validate referential integrity (the file itself is the
+            # source of truth) and self-loop edges produced by older
+            # versions should still load.
+            kg.edges.append(edge)
+
+        for cluster_data in data.get("clusters", []) or []:
+            cluster = Cluster.from_dict(cluster_data)
+            valid_members = {nid for nid in cluster.node_ids if nid in kg.nodes}
+            if valid_members:
+                cluster.node_ids = valid_members
+                kg.clusters[cluster.id] = cluster
+
+        meta = data.get("metadata")
+        if isinstance(meta, dict):
+            kg.metadata = dict(meta)
+
+        return kg
+
+    @classmethod
+    def load_json(cls, filepath: str) -> "EnhancedKG":
+        """Load an :class:`EnhancedKG` from a JSON file written by ``save_json``.
+
+        Counterpart to :meth:`save_json`. Used by the incremental ingestion
+        layer to re-hydrate a previously-persisted graph before merging new
+        document extractions into it.
+        """
+        path = Path(filepath)
+        text = path.read_text(encoding="utf-8")
+        data = json.loads(text)
+        return cls.from_dict(data)
+
+    def query(self):
+        """Return a :class:`drg.query.GraphQuery` facade over this graph.
+
+        Convenience only — graph generation behaviour is unchanged.
+        """
+        from ..query import GraphQuery
+
+        return GraphQuery(self)
 
     def add_entity_embeddings(
         self,

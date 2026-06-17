@@ -23,6 +23,16 @@ from .community_report import (
 # Hub mitigation (export-time graph shaping)
 from .hub_mitigation import apply_hub_relation_proxy_split
 
+# Incremental updates (opt-in; safe to import without DSPy)
+from .incremental import (
+    EdgeMergePolicy,
+    GraphMerger,
+    KGDiff,
+    MergeStrategy,
+    NodeMergePolicy,
+    merge_graphs,
+)
+
 # KG Core
 from .kg_core import (
     Cluster,
@@ -78,17 +88,23 @@ __all__ = [
     "CommunityReport",
     "CommunityReportGenerator",
     "DatasetAgnosticSchemaGenerator",
+    # Incremental updates
+    "EdgeMergePolicy",
     "EnhancedKG",
     "EnrichedRelationship",
     "EntityClassDefinition",
+    "GraphMerger",
+    "KGDiff",
     "KGEdge",
     # KG Core
     "KGNode",
     # Visualization
     "KGVisualizer",
+    "MergeStrategy",
     # Neo4j Exporter
     "Neo4jConfig",
     "Neo4jExporter",
+    "NodeMergePolicy",
     # Schema Generator
     "PropertyDefinition",
     "ProvenanceEdge",
@@ -103,4 +119,5 @@ __all__ = [
     "apply_hub_relation_proxy_split",
     "create_default_schema",
     "create_enriched_relationship",
+    "merge_graphs",
 ]

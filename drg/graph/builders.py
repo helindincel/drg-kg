@@ -13,8 +13,13 @@ import os
 import re
 from typing import Any
 
+from ..confidence import ConfidenceStrategy, DefaultConfidenceStrategy
 from ..schema import DRGSchema, EnhancedDRGSchema
 from .kg_core import EnhancedKG, KGEdge, KGNode
+
+# Forward import only used for type hints; real import is local to avoid cycles.
+if False:  # pragma: no cover - typing only
+    from ..events import Event
 
 
 def extract_evidence_snippet(
@@ -171,6 +176,12 @@ def build_enhanced_kg(
     triples: list[tuple[str, str, str]],
     schema: DRGSchema | EnhancedDRGSchema | None = None,
     source_text: str | None = None,
+    enriched_relations: list[dict[str, Any]] | None = None,
+    confidence_strategy: ConfidenceStrategy | None | str = "default",
+    entity_confidences: dict[str, float] | None = None,
+    relation_confidences: dict[tuple[str, str, str], float] | None = None,
+    document_id: str | None = None,
+    events: list[Any] | None = None,
 ) -> EnhancedKG:
     """Build EnhancedKG from typed entities and triples.
 
@@ -179,15 +190,99 @@ def build_enhanced_kg(
         triples: [(source, relation, target), ...]
         schema: Optional schema used to enrich edges with `relationship_description`
         source_text: Optional original text used to populate `relationship_detail` with evidence snippet
+        enriched_relations: Optional per-triple metadata as produced by
+            :func:`drg.extract.extract_typed` (when ``return_enriched=True``).
+            Used by the confidence strategy to honour upstream signals
+            (negation, temporal cues, future LLM self-rating).
+        confidence_strategy: How to compute confidence scores. One of:
+            - ``"default"`` (the default): use
+              :class:`drg.confidence.DefaultConfidenceStrategy` — heuristic
+              placeholder, schema-aware, side-effect-free.
+            - ``None``: do not compute or attach any confidence (legacy
+              behaviour; existing call sites that don't opt-in stay
+              unchanged).
+            - A :class:`drg.confidence.ConfidenceStrategy` instance to
+              plug in a custom scorer.
+        entity_confidences: Optional explicit ``entity_name -> score`` map.
+            When provided, these values override what the strategy would
+            compute for matching entities. Useful for piping pre-computed
+            scores from a custom upstream pipeline.
+        relation_confidences: Optional explicit ``(s, r, o) -> score`` map.
+            Same semantics as ``entity_confidences`` but for edges.
+        document_id: Optional identifier for the source document. When
+            provided, every edge built here is stamped with
+            ``metadata['source_ref'] = document_id`` (existing
+            ``source_ref`` values from ``enriched_relations`` win), and
+            nodes get ``metadata['source_documents']`` populated with
+            ``[document_id]``. This is what later lets
+            :mod:`drg.reasoning` distinguish edges that originated from
+            **different documents** when running multi-document
+            inference rules like
+            :class:`drg.reasoning.PathBridgeRule`. Default ``None``
+            preserves the legacy behaviour exactly.
 
     Returns:
-        EnhancedKG
+        EnhancedKG. Nodes/edges carry ``confidence`` attributes when a
+        strategy was applied (or explicit overrides were provided);
+        otherwise both attributes are ``None`` (legacy behaviour).
     """
     kg = EnhancedKG()
     entity_type_map = dict(entities_typed)
 
+    # Resolve the strategy. ``"default"`` is a sentinel rather than a real
+    # default-arg-instance because instantiating the strategy at module
+    # import time would be wasteful for callers that pass ``None``.
+    strategy: ConfidenceStrategy | None
+    if confidence_strategy == "default":
+        strategy = DefaultConfidenceStrategy()
+    elif isinstance(confidence_strategy, ConfidenceStrategy):
+        strategy = confidence_strategy
+    else:
+        strategy = None  # explicit None or unknown sentinel
+
+    # Compute confidence maps once per call. Strategies are pure, so this
+    # is cheap; we batch by passing all entities/relations together.
+    ent_score_map: dict[str, float] = dict(entity_confidences or {})
+    rel_score_map: dict[tuple[str, str, str], float] = dict(relation_confidences or {})
+
+    if strategy is not None:
+        ctx = {
+            "schema": schema,
+            "source_text": source_text,
+            "entity_types": entity_type_map,
+        }
+        ent_scores = strategy.score_entities(entities_typed, context=ctx)
+        for ename, sc in ent_scores.items():
+            # Explicit overrides win — they reflect caller intent, while
+            # the strategy is the fallback scorer.
+            ent_score_map.setdefault(ename, sc.value)
+
+        rel_scores = strategy.score_relations(
+            triples,
+            enriched_relations=enriched_relations,
+            context=ctx,
+        )
+        for triple, sc in rel_scores.items():
+            rel_score_map.setdefault(triple, sc.value)
+
+    # When a document_id is supplied, every node introduced from this build
+    # gets a `source_documents` provenance list. The reasoning layer reads
+    # this to understand which graph nodes were touched by which documents
+    # (used by hints / explanations); the merger later unions the lists.
+    node_metadata_base: dict[str, Any] = (
+        {"source_documents": [document_id]} if document_id else {}
+    )
+
     for name, etype in entities_typed:
-        kg.add_node(KGNode(id=name, type=etype, properties={}, metadata={}))
+        kg.add_node(
+            KGNode(
+                id=name,
+                type=etype,
+                properties={},
+                metadata=dict(node_metadata_base),
+                confidence=ent_score_map.get(name),
+            )
+        )
 
     try:
         evidence_max_chars = int(os.getenv("DRG_EVIDENCE_MAX_CHARS", "240"))
@@ -198,11 +293,37 @@ def build_enhanced_kg(
     except Exception:
         evidence_max_pair_distance = 2500
 
+    enriched_by_triple: dict[tuple[str, str, str], dict[str, Any]] = {}
+    if enriched_relations:
+        for item in enriched_relations:
+            rel = item.get("relation")
+            if isinstance(rel, (list, tuple)) and len(rel) >= 3:
+                enriched_by_triple[(str(rel[0]), str(rel[1]), str(rel[2]))] = item
+
     for s, r, o in triples:
         if s not in kg.nodes:
-            kg.add_node(KGNode(id=s, type=entity_type_map.get(s), properties={}, metadata={}))
+            # Synthetic node for a triple endpoint not present in entities_typed.
+            # Apply any pre-computed confidence so even synthetic nodes
+            # carry a score when available.
+            kg.add_node(
+                KGNode(
+                    id=s,
+                    type=entity_type_map.get(s),
+                    properties={},
+                    metadata=dict(node_metadata_base),
+                    confidence=ent_score_map.get(s),
+                )
+            )
         if o not in kg.nodes:
-            kg.add_node(KGNode(id=o, type=entity_type_map.get(o), properties={}, metadata={}))
+            kg.add_node(
+                KGNode(
+                    id=o,
+                    type=entity_type_map.get(o),
+                    properties={},
+                    metadata=dict(node_metadata_base),
+                    confidence=ent_score_map.get(o),
+                )
+            )
 
         src_type = entity_type_map.get(s)
         dst_type = entity_type_map.get(o)
@@ -213,6 +334,14 @@ def build_enhanced_kg(
             md["relationship_description"] = rel_desc
         if rel_det:
             md["schema_detail"] = rel_det
+
+        # Stamp the document of origin so multi-document inference
+        # (`drg.reasoning.PathBridgeRule`) can distinguish edges that
+        # originated from different documents after a merge. Edges that
+        # already carry a `source_ref` (e.g. from `enriched_relations`)
+        # keep their existing value.
+        if document_id and "source_ref" not in md:
+            md["source_ref"] = document_id
 
         evidence = None
         if source_text:
@@ -230,6 +359,26 @@ def build_enhanced_kg(
         if "relationship_description" not in md:
             md["relationship_description"] = f"Auto-extracted relation '{r}'."
 
+        enriched_item = enriched_by_triple.get((s, r, o))
+        start_time: str | None = None
+        end_time: str | None = None
+        is_negated = False
+        if enriched_item:
+            temporal = enriched_item.get("temporal")
+            if isinstance(temporal, dict):
+                start_time = temporal.get("valid_from") or temporal.get("start")
+                end_time = temporal.get("valid_to") or temporal.get("end")
+                if start_time or end_time:
+                    from ..temporal import TemporalScope
+
+                    scope = TemporalScope.from_legacy_temporal(temporal)
+                    if scope is not None:
+                        md["temporal"] = scope.to_dict()
+            is_negated = bool(enriched_item.get("is_negated", False))
+            existing_ref = enriched_item.get("source_ref")
+            if isinstance(existing_ref, str) and existing_ref:
+                md["source_ref"] = existing_ref
+
         kg.add_edge(
             KGEdge(
                 source=s,
@@ -237,7 +386,40 @@ def build_enhanced_kg(
                 relationship_type=r,
                 relationship_detail=evidence or f"{s} {r} {o}",
                 metadata=md,
+                start_time=start_time,
+                end_time=end_time,
+                confidence=rel_score_map.get((s, r, o)),
+                is_negated=is_negated,
             )
         )
+
+    if events:
+        # Lazy import — keeps the legacy builder dependency-light when no
+        # events are supplied (preserves the byte-for-byte output of pre-
+        # event-extraction graphs).
+        from ..events._graph_mapping import (
+            event_to_kg_node,
+            event_to_role_edges,
+        )
+
+        for event in events:
+            event_node = event_to_kg_node(event)
+            if event_node.id not in kg.nodes:
+                kg.add_node(event_node)
+            for role_edge in event_to_role_edges(event):
+                # Auto-create participant nodes that weren't in entities_typed
+                # (defensive — extractor should have resolved them, but a
+                # caller may pass raw events from elsewhere).
+                if role_edge.target not in kg.nodes:
+                    kg.add_node(
+                        KGNode(
+                            id=role_edge.target,
+                            type=entity_type_map.get(role_edge.target),
+                            properties={},
+                            metadata=dict(node_metadata_base),
+                            confidence=ent_score_map.get(role_edge.target),
+                        )
+                    )
+                kg.add_edge(role_edge)
 
     return kg

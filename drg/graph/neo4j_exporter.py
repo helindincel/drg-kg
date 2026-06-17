@@ -127,6 +127,12 @@ class Neo4jExporter:
                 "metadata": node.metadata,
             }
 
+            # First-class confidence property — surfaced for Cypher filters
+            # (e.g. ``MATCH (n:Entity) WHERE n.confidence > 0.8``) instead of
+            # being buried inside the metadata bag.
+            if node.confidence is not None:
+                properties["confidence"] = float(node.confidence)
+
             # Add embedding if available (store as list property)
             if node.embedding:
                 properties["embedding"] = node.embedding
@@ -166,15 +172,29 @@ class Neo4jExporter:
                 "metadata": edge.metadata,
             }
 
-            # Extract weight from metadata or use default
+            # Extract weight from metadata or use default. Prefer the
+            # first-class ``KGEdge.confidence`` attribute when present;
+            # fall back to the legacy metadata-based location for KGs
+            # built before the confidence framework existed.
             weight = edge.metadata.get("weight", 1.0)
-            if "confidence" in edge.metadata:
+            if edge.confidence is not None:
+                weight = edge.confidence
+            elif "confidence" in edge.metadata:
                 weight = edge.metadata["confidence"]
             properties["weight"] = float(weight)
+            # Persist confidence as a dedicated property too, so callers
+            # can filter on it independently of any weighting semantics.
+            if edge.confidence is not None:
+                properties["confidence"] = float(edge.confidence)
 
             # Create relationship
-            # Use relationship_type as the Neo4j relationship type
-            rel_type = edge.relationship_type.upper().replace(" ", "_")
+            # Use relationship_type as the Neo4j relationship type. Event role
+            # edges (``role:<name>``) and any other colon-bearing types are
+            # collapsed to underscores so Cypher does not interpret the colon
+            # as a label separator.
+            rel_type = (
+                edge.relationship_type.upper().replace(" ", "_").replace(":", "_")
+            )
             query = f"""
             MATCH (source:Entity {{id: $source_id}})
             MATCH (target:Entity {{id: $target_id}})

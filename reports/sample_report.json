@@ -1,0 +1,50 @@
+{
+  "run_id": "example_run_20240607",
+  "datasets": [
+    {
+      "dataset_name": "corporate_acquisition_benchmark",
+      "components": {
+        "entity_extraction": {
+          "name": "entity_extraction",
+          "metrics": {
+            "precision": 0.9,
+            "recall": 0.85,
+            "f1": 0.874
+          },
+          "counts": {
+            "expected": 7,
+            "predicted": 6
+          },
+          "failures": []
+        },
+        "relationship_extraction": {
+          "name": "relationship_extraction",
+          "metrics": {
+            "precision": 0.8,
+            "recall": 0.7,
+            "f1": 0.746
+          },
+          "counts": {
+            "expected": 3,
+            "predicted": 3
+          },
+          "failures": []
+        }
+      },
+      "overall": {
+        "extraction_f1": 0.81,
+        "graph_quality": 0.78,
+        "overall_score": 0.795
+      }
+    }
+  ],
+  "aggregate": {
+    "extraction_f1": 0.81,
+    "graph_quality": 0.78,
+    "overall_score": 0.795
+  },
+  "metadata": {
+    "model": "gpt-4o-mini",
+    "timestamp": "2024-06-07T14:00:00Z"
+  }
+}

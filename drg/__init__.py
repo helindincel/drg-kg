@@ -65,22 +65,51 @@ from .schema import (
 # These will be imported only when explicitly requested
 
 __all__ = [
-    # Legacy graph
     "KG",
+    "CompositionRule",
+    "ConfidenceScore",
+    "ConfidenceStrategy",
     "DRGSchema",
+    "DefaultConfidenceStrategy",
     "EnhancedDRGSchema",
-    # Core schema classes
     "Entity",
     "EntityGroup",
     "EntityType",
+    "Event",
+    "EventProvenance",
+    "EventRole",
+    "EventTimestamp",
+    "EventTypeDefinition",
+    "EventTypeRegistry",
+    "EvidenceLink",
+    "InferenceReport",
+    "InferenceRule",
+    "InferredEdge",
+    "InverseRule",
     "KGExtractor",
+    "MultiDocumentReasoner",
+    "PathBridgeRule",
     "PropertyGroup",
+    "ReasoningConfig",
     "Relation",
     "RelationGroup",
+    "SymmetricRule",
+    "TextSpan",
+    "TransitiveRule",
+    "default_event_registry",
+    "example_event_registry",
+    "extract_events",
     "extract_triples",
-    # Core extraction
     "extract_typed",
     "generate_schema_from_text",
+    "reason_over_graph",
+    # Query layer
+    "GraphQuery",
+    "QueryBackend",
+    "InMemoryBackend",
+    "QueryError",
+    "Explanation",
+    "EvidenceBundle",
 ]
 
 
@@ -98,6 +127,10 @@ def __getattr__(name: str):
     """
     # Lazy loading mapping: name -> module_path
     lazy_imports = {
+        # Confidence framework (lightweight, no heavy deps)
+        "ConfidenceScore": ".confidence",
+        "ConfidenceStrategy": ".confidence",
+        "DefaultConfidenceStrategy": ".confidence",
         # Extraction (may require optional heavy deps)
         "extract_typed": ".extract",
         "extract_triples": ".extract",
@@ -117,6 +150,13 @@ def __getattr__(name: str):
         "KGEdge": ".graph",
         "Cluster": ".graph",
         "EnhancedKG": ".graph",
+        # Incremental updates (opt-in; pure stdlib + entity_resolution)
+        "GraphMerger": ".graph",
+        "KGDiff": ".graph",
+        "MergeStrategy": ".graph",
+        "NodeMergePolicy": ".graph",
+        "EdgeMergePolicy": ".graph",
+        "merge_graphs": ".graph",
         "KGVisualizer": ".graph",
         "DEFAULT_NODE_COLORS": ".graph",
         "DEFAULT_EDGE_COLORS": ".graph",
@@ -166,6 +206,54 @@ def __getattr__(name: str):
         "MCPResponse": ".mcp_api",
         "MCPErrorCode": ".mcp_api",
         "create_mcp_api": ".mcp_api",
+        # Multi-document reasoning (pure stdlib + drg.graph + drg.utils;
+        # safe to expose at the top level once the user opts in)
+        "MultiDocumentReasoner": ".reasoning",
+        "ReasoningConfig": ".reasoning",
+        "InferenceRule": ".reasoning",
+        "InferredEdge": ".reasoning",
+        "EvidenceLink": ".reasoning",
+        "InferenceReport": ".reasoning",
+        "PathBridgeRule": ".reasoning",
+        "InverseRule": ".reasoning",
+        "SymmetricRule": ".reasoning",
+        "TransitiveRule": ".reasoning",
+        "CompositionRule": ".reasoning",
+        "reason_over_graph": ".reasoning",
+        # Event extraction (opt-in; lightweight types + DSPy-backed extractor)
+        "Event": ".events",
+        "EventRole": ".events",
+        "EventTypeDefinition": ".events",
+        "EventTypeRegistry": ".events",
+        "EventTimestamp": ".events",
+        "EventProvenance": ".events",
+        "TextSpan": ".events",
+        "default_event_registry": ".events",
+        "example_event_registry": ".events",
+        "extract_events": ".events",
+        "events_to_kg_nodes_and_edges": ".events",
+        "event_to_kg_node": ".events",
+        "event_to_role_edges": ".events",
+        "is_event_node": ".events",
+        "is_event_role_edge": ".events",
+        # Query & reasoning layer (pure stdlib + drg.graph; no LLM)
+        "GraphQuery": ".query",
+        "QueryBackend": ".query",
+        "InMemoryBackend": ".query",
+        "QueryError": ".query",
+        "Explanation": ".query",
+        "EvidenceBundle": ".query",
+        "EntityView": ".query",
+        "EdgeView": ".query",
+        "GraphPath": ".query",
+        "QueryAnswer": ".query",
+        "NeighborhoodView": ".query",
+        "RelatedEntityMatch": ".query",
+        "EventView": ".query",
+        "CommunityView": ".query",
+        "EvidenceItem": ".query",
+        "Provenance": ".query",
+        "EntityMatch": ".query",
     }
 
     if name in lazy_imports:

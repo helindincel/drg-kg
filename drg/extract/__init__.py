@@ -1141,8 +1141,8 @@ def create_kgedge_from_triple(
     if enriched_metadata and enriched_metadata.get("temporal"):
         temporal = enriched_metadata["temporal"]
         if isinstance(temporal, dict):
-            start_time = temporal.get("start")
-            end_time = temporal.get("end")
+            start_time = temporal.get("valid_from") or temporal.get("start")
+            end_time = temporal.get("valid_to") or temporal.get("end")
 
     confidence = enriched_metadata.get("confidence") if enriched_metadata else None
     is_negated = enriched_metadata.get("is_negated", False) if enriched_metadata else False

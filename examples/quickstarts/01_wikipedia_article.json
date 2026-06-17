@@ -1,0 +1,64 @@
+{
+  "nodes": [
+    {
+      "id": "Pierre Curie",
+      "type": "Person"
+    },
+    {
+      "id": "Henri Becquerel",
+      "type": "Person"
+    },
+    {
+      "id": "University of Paris",
+      "type": "Organization"
+    },
+    {
+      "id": "radioactivity",
+      "type": "Discovery"
+    },
+    {
+      "id": "polonium",
+      "type": "Discovery"
+    },
+    {
+      "id": "radium",
+      "type": "Discovery"
+    },
+    {
+      "id": "Nobel Prize in Physics",
+      "type": "Award"
+    }
+  ],
+  "edges": [
+    {
+      "source": "Pierre Curie",
+      "type": "worked_at",
+      "target": "University of Paris"
+    },
+    {
+      "source": "Pierre Curie",
+      "type": "discovered",
+      "target": "radioactivity"
+    },
+    {
+      "source": "Pierre Curie",
+      "type": "discovered",
+      "target": "polonium"
+    },
+    {
+      "source": "Pierre Curie",
+      "type": "discovered",
+      "target": "radium"
+    },
+    {
+      "source": "Pierre Curie",
+      "type": "received",
+      "target": "Nobel Prize in Physics"
+    },
+    {
+      "source": "Pierre Curie",
+      "type": "collaborated_with",
+      "target": "Henri Becquerel"
+    }
+  ]
+}

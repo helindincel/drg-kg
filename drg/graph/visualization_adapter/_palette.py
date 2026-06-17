@@ -62,14 +62,28 @@ PROVENANCE_COLORS: dict[str, str] = {
 
 
 def get_node_color(node_type: str | None) -> str:
-    """Return the color string for ``node_type``. Falls back to the default grey."""
+    """Return the color string for ``node_type``. Falls back to the default grey.
+
+    Event nodes use the prefix convention ``Event:<event_type>`` (see
+    :mod:`drg.events._graph_mapping`); they are routed to the shared
+    ``Event`` color so the palette stays small without losing the
+    visual distinction between events and ordinary entities.
+    """
     if node_type is None:
         return NODE_COLORS["default"]
+    if node_type.startswith("Event:"):
+        return NODE_COLORS["Event"]
     return NODE_COLORS.get(node_type, NODE_COLORS["default"])
 
 
 def get_edge_color(relationship_type: str) -> str:
-    """Return the color string for ``relationship_type``. Falls back to neutral grey."""
+    """Return the color string for ``relationship_type``. Falls back to neutral grey.
+
+    Role edges (``role:<name>``) all share the ``Event`` color so participant
+    links are visually grouped with their events.
+    """
+    if relationship_type.startswith("role:"):
+        return NODE_COLORS["Event"]
     return EDGE_COLORS.get(relationship_type, EDGE_COLORS["default"])
 
 

@@ -2,81 +2,53 @@
 
 [![CI](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml/badge.svg)](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/drg-kg.svg)](https://pypi.org/project/drg-kg/)
-[![Python versions](https://img.shields.io/pypi/pyversions/drg-kg.svg)](https://pypi.org/project/drg-kg/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![Typed: PEP 561](https://img.shields.io/badge/typed-PEP%20561-blue.svg)](https://peps.python.org/pep-0561/)
 
-DRG is a **DSPy-based, declarative** Python library for extracting **Knowledge
-Graphs (KG)** from text. You define the schema; DRG handles entity and relation
-extraction, and layers clustering, community reports, and visualization on top.
+DRG is a **high-performance, DSPy-based framework** for building deep, searchable, and explainable **Knowledge Graphs (KG)** from unstructured text. Unlike traditional RAG systems that rely on fuzzy vector lookups, DRG uses **declarative schema extraction** to build deterministic graph structures that support complex reasoning, temporal analysis, and multi-document synthesis.
 
-> **⚠️ Alpha:** APIs may change before `1.0`. Pre-`1.0` minor bumps can
-> include breaking changes; see [`CHANGELOG.md`](CHANGELOG.md). Version is
-> derived from git tags via `setuptools_scm`.
-
-> 🇹🇷 **Türkçe okuyucular için:** [`README.tr.md`](README.tr.md)
-
-> 🗺 **Status & roadmap:** [`STATUS.md`](STATUS.md) summarises what works,
-> what's missing, and the suggested order of attack.
+> 🇹🇷 **Türkçe okuyucular için:** [`README.tr.md`](README.tr.md) | 🗺 **Roadmap:** [`STATUS.md`](STATUS.md)
 
 ---
 
-## Detailed Project Overview
+## 🚀 Key Features
 
-For a deeper dive into **architecture and philosophy** (recommended for first-time
-readers), see:
+### 🧠 Intelligent Extraction
+- **Declarative Schema**: Define your domain model; DRG handles the extraction logic via **DSPy TypedPredictors**.
+- **Enhanced Schema**: Rich type definitions with descriptions, examples, and property groups.
+- **Auto-Schema Generation**: Bootstraps an initial schema from raw text—no manual modeling required.
+- **Chunk-Aware Processing**: Handles long documents with context-aware chunking and cross-chunk relation merging.
 
+<<<<<<< Updated upstream
 - [`docs/project_overview.md`](https://github.com/helindincel/drg-kg/blob/main/docs/project_overview.md)
+=======
+### 🕸 Graph Intelligence
+- **Incremental Ingestion**: Add new documents to an existing graph with automated entity resolution and relationship deduplication.
+- **Temporal KG**: Native support for `valid_from`/`valid_to` metadata, partial dates, and timeline building.
+- **Multi-Document Reasoning**: Rule-based inference engine that discovers cross-document bridges (e.g., A knows B, B knows C → A connected to C).
+- **Clustering & Communities**: Automated community detection (Louvain, Leiden) with LLM-powered group summarization.
+>>>>>>> Stashed changes
 
-That document clarifies in particular:
-
-- DRG's **DSPy-based, declarative** extraction approach
-- Why DRG is **not a RAG/serving framework** (the UI query path is a
-  deterministic KG lookup, not LLM generation)
-- The dataset-agnostic design and Enhanced schema approach
-- Pipeline flow, UI, and repo layout
-
-> 📌 **Note on documentation language:** Most files under `docs/` are currently
-> in Turkish. English translations are part of the roadmap. The Python API,
-> code comments, and error messages are in English.
-
----
-
-## Features
-
-- **Declarative Schema** — Define entity types and relations; DRG handles the rest
-- **DSPy Integration** — Structured extraction via `TypedPredictor`
-- **Enhanced Schema** — Rich definitions with `EntityType`, `RelationGroup`,
-  `EntityGroup`, `PropertyGroup`
-- **Automatic Schema Generation** — Derive a schema from raw text via
-  `generate_schema_from_text()`
-- **Chunk-Based Extraction** — Context-aware chunking for long documents
-- **Knowledge Graph Layer** — `EnhancedKG` (`KGNode`, `KGEdge`, `Cluster`)
-- **Clustering & Community Reports** — Louvain / Leiden / Spectral +
-  summarization
-- **API Server + UI** — FastAPI + Cytoscape.js interactive visualization
-- **Multi-LLM Support** — OpenAI, Gemini, Anthropic, Perplexity, OpenRouter,
-  Ollama
-- **Optional Neo4j Export** — Graph persistence
+### 🛠 Production Ready
+- **Query & Reasoning Layer**: Deterministic graph traversal with multi-hop path finding and provenance-backed answers.
+- **Evaluation Framework**: Integrated metrics (P/R/F1, NDCG, Hits@K) and regression testing for extraction quality.
+- **API & UI**: Built-in FastAPI server and interactive Cytoscape.js web interface.
+- **Multi-LLM**: Works with OpenAI, Gemini, Anthropic, Ollama, and more.
+- **MCP Integration**: Exposes KG capabilities via Model Context Protocol.
 
 ---
 
-## Installation
+## 📦 Installation
 
 ```bash
-# From PyPI (once published — currently alpha on TestPyPI)
+# Core package
 pip install drg-kg
 
-# With all optional features (api, embeddings, clustering, ...)
+# Development tools & all optional features
 pip install "drg-kg[all]"
-
-# From source (for development)
-git clone https://github.com/helindincel/drg-kg.git
-cd drg-kg
-pip install -e ".[dev]"
 ```
 
+<<<<<<< Updated upstream
 For detailed installation and troubleshooting, see
 [`docs/setup.md`](https://github.com/helindincel/drg-kg/blob/main/docs/setup.md).
 
@@ -114,67 +86,32 @@ Full variable list: [`docs/setup.md`](https://github.com/helindincel/drg-kg/blob
 ## Quickstart
 
 ### Basic usage (legacy schema)
+=======
+---
 
+## ⚡ Quickstart
+>>>>>>> Stashed changes
+
+### 1. Define and Extract (Enhanced Schema)
 ```python
-from drg import Entity, Relation, DRGSchema, extract_typed, KG
-
-schema = DRGSchema(
-    entities=[Entity("Company"), Entity("Product")],
-    relations=[Relation("produces", "Company", "Product")],
-)
-
-text = "Apple released the iPhone 16 in September 2025."
-entities, triples = extract_typed(text, schema)
-
-kg = KG.from_typed(entities, triples)
-print(kg.to_json())
-```
-
-### Enhanced schema (recommended)
-
-```python
-from drg import (
-    EntityType,
-    RelationGroup,
-    Relation,
-    EnhancedDRGSchema,
-    extract_typed,
-    KG,
-)
+from drg import EnhancedDRGSchema, EntityType, Relation, extract_typed, EnhancedKG
 
 schema = EnhancedDRGSchema(
     entity_types=[
-        EntityType(
-            name="Company",
-            description="Business organizations that produce products",
-            examples=["Apple", "Google", "Microsoft"],
-            properties={"industry": "tech"},
-        ),
-        EntityType(
-            name="Product",
-            description="Goods produced by companies",
-            examples=["iPhone", "Android", "Windows"],
-        ),
+        EntityType(name="Company", description="Firms and organizations"),
+        EntityType(name="Person", description="Individuals")
     ],
-    relation_groups=[
-        RelationGroup(
-            name="production",
-            description="How companies create products",
-            relations=[
-                Relation("produces", "Company", "Product"),
-                Relation("manufactures", "Company", "Product"),
-            ],
-        )
-    ],
-    auto_discovery=True,
+    relations=[Relation("founded_by", "Company", "Person")]
 )
 
-text = "Apple produces iPhones. Google develops Android."
+text = "TechCorp was founded by Jane Doe in 2015."
 entities, triples = extract_typed(text, schema)
-kg = KG.from_typed(entities, triples)
+
+kg = EnhancedKG.from_typed(entities, triples, schema=schema)
 print(kg.to_json())
 ```
 
+<<<<<<< Updated upstream
 ### Runnable showcase examples
 
 For end-to-end, copy-pasteable scripts on three different domains, see
@@ -187,87 +124,78 @@ For end-to-end, copy-pasteable scripts on three different domains, see
 | `03_biomedical.py` | Drug / disease / gene relationships |
 
 Each script is self-contained: define schema, run extraction, dump JSON KG.
+=======
+### 2. Auto-Schema Ingestion
+```bash
+# Automatically infer schema and extract KG
+drg extract sample.txt --auto-schema -o output_kg.json
+```
+>>>>>>> Stashed changes
 
 ---
 
-## Known Limitations (v0.1.0a1)
+## 🛠 Modules & CLI
 
-DRG is alpha software. These limitations were observed on the `1example`
-(Apple Inc. corporate profile) end-to-end run with `gemini-2.5-flash` and are
-tracked for the v0.1.0a2 milestone. They are mostly **extraction-quality**
-issues; the pipeline (chunking → schema-gen → extraction → hub-split →
-clustering → reports → API) runs end-to-end without errors.
+### CLI Subcommands
+| Command | Description |
+|:---|:---|
+| `drg extract` | Extract entities/relations from a file or stdin. |
+| `drg eval run` | Execute a benchmark against a gold-standard dataset. |
+| `drg eval compare` | Detect quality regressions between two runs. |
 
-1. **Entity recall is incomplete.** When the auto-generated schema lists
-   examples, the extractor does not always re-pull them from the text.
-   On `1example`, the schema's `Service` examples include `App Store`,
-   `Apple Music`, `Apple TV+`, but only `iCloud` and `Apple Arcade` were
-   extracted. Plural product families (e.g. the Mac line: `MacBook Air`,
-   `iMac`, `Mac Pro`, `Mac mini`) often produce only one representative.
-
-2. **Numeric and date facts are dropped.** Schema slots such as `revenue`,
-   `founding_date`, `employees`, `market_capitalization` are defined but
-   not populated by extraction. Triples like `Apple Inc. FOUNDED_IN
-   "April 1976"` or `Apple Inc. EMPLOYS 164000` are missed.
-
-3. **Type misclassification on abstract nouns.** Revenue streams /
-   concepts can be mis-typed as concrete entities — e.g. `"hardware
-   sales"` ends up as `Product`, `"services revenue"` as `Service`.
-   `"mobile app marketplace"` was emitted with `type: null`.
-
-4. **Inverse-relation duplication.** Auto-generated schemas occasionally
-   declare both directions of the same fact (e.g. `RUNS_ON: Product →
-   OperatingSystem` AND `POWERS_DEVICE: OperatingSystem → Product`),
-   producing redundant edges. Post-processing does not currently dedupe.
-
-5. **Local-context misreads.** The extractor can be fooled by ambiguous
-   sentence structure. Example: `"watchOS for Apple Watch, and tvOS for
-   Apple TV"` produced `Apple Watch RUNS_ON tvOS` (wrong — tvOS is for
-   Apple TV, not the Watch).
-
-6. **Singleton clusters are not filtered.** Louvain may emit a community
-   with a single node and zero internal edges; this is exported as-is.
-
-7. **Community reports are statistical, not narrative.** The current
-   `CommunityReportGenerator` produces template strings like
-   *"Cluster cluster_2 contains 4 entities primarily of type 'Service'…"*.
-   No LLM-generated semantic summary is attached.
-
-8. **Free-tier rate limits.** Default model is `gemini-2.5-flash`. The
-   `generate_schema_from_text` step alone can hit the per-minute input-
-   token cap on Google's free tier (especially for ≥10KB inputs); see
-   [docs](https://ai.google.dev/gemini-api/docs/rate-limits). Wait for
-   the per-minute reset, lower `DRG_MAX_TOKENS`, or use a billing-enabled
-   project. Local Ollama (`ollama_chat/...`) avoids the issue entirely.
-
-If you hit a different issue or have a concrete repro, please open a
-GitHub issue with the text input, schema, and resulting JSON.
+### Incremental Updates & Reasoning
+```bash
+# Add a new doc to existing graph
+drg extract new_article.txt --update global_kg.json --infer
+```
+*The `--update` flag merges data into the existing graph. The `--infer` flag runs the reasoning layer to discover new connections.*
 
 ---
 
-## CLI
+## 📊 Evaluation Framework
+
+Measure the quality of your KG pipeline with granular metrics:
+- **Extraction**: Entity and Relation P/R/F1.
+- **Retrieval**: NDCG, Recall@K, and Hits@K for RAG evaluation.
+- **Structural**: Graph density, coverage, and orphan node rates.
 
 ```bash
-# Extract from file
-drg extract input.txt -o output.json
-
-# From standard input
-echo "Apple released iPhone 16" | drg extract - -o output.json
-
-# With a custom model
-drg extract input.txt -o output.json --model "gemini/gemini-2.0-flash-exp"
-
-# Ollama (local)
-drg extract input.txt -o output.json \
-  --model "ollama_chat/llama3" \
-  --base-url "http://localhost:11434"
+drg eval run benchmarks/corporate.json -o reports/current.json
 ```
 
 ---
 
-## API Server & UI
+## ⏳ Temporal Support
 
+DRG treats time as a first-class citizen inside the graph.
+- **State Transition**: Track how an entity's properties change over time.
+- **Timeline Building**: Generate a chronological history for any node.
+- **Conflict Detection**: Identify temporal contradictions (e.g., a person being CEO of two competing firms simultaneously).
+
+---
+
+## 🏗 Project Structure
+
+```text
+drg/
+├── schema.py           # Enhanced Schema definitions
+├── extract/            # DSPy-based extraction logic
+├── graph/              # EnhancedKG and graph manipulation
+├── temporal/           # Temporal reasoning & timelines
+├── reasoning/          # Multi-document inference
+├── evaluation/         # Metrics and benchmarking
+├── query/              # Deterministic query engine
+├── api/                # FastAPI & Cytoscape UI
+└── cli.py              # Unified CLI entry point
+```
+
+---
+
+## 🤝 Contributing
+
+We use **uv** for dependency management and **pytest** for testing.
 ```bash
+<<<<<<< Updated upstream
 pip install -e ".[api]"
 python examples/api_server_example.py
 # UI:    http://localhost:8000
@@ -351,29 +279,17 @@ DRG/
 
 ```bash
 # Developer install
+=======
+>>>>>>> Stashed changes
 pip install -e ".[dev]"
-
-# Non-integration tests (no API key required)
-pytest -m "not integration"
-
-# With coverage
-pytest -m "not integration" --cov=drg --cov-report=term-missing
-
-# Lint + format
-ruff check drg tests examples
-ruff format drg tests examples
-
-# Type check
-mypy drg
-
-# Install pre-commit hooks
-pre-commit install
+pytest tests/
 ```
 
 ---
 
-## Supported Models
+## 📄 License
 
+<<<<<<< Updated upstream
 DRG supports the following providers via DSPy/LiteLLM. Model IDs use the
 `provider/model` format:
 
@@ -445,3 +361,6 @@ If you use DRG in academic or research work, please cite the repository:
 ## License
 
 MIT — see the `LICENSE` file for details.
+=======
+MIT © [Helin Dinçel](https://github.com/helindincel)
+>>>>>>> Stashed changes

@@ -1,0 +1,41 @@
+{
+  "name": "corporate_acquisition_benchmark",
+  "text": "TechCorp acquired SoftSolutions for $500 million in June 2024. The CEO of TechCorp, Jane Doe, stated that the acquisition would strengthen their position in the cloud market. SoftSolutions is known for its innovative SaaS platform. Previously, TechCorp had invested in SoftSolutions back in 2022.",
+  "gold_entities": [
+    {"name": "TechCorp", "type": "Company"},
+    {"name": "SoftSolutions", "type": "Company"},
+    {"name": "Jane Doe", "type": "Person"},
+    {"name": "$500 million", "type": "Money"},
+    {"name": "June 2024", "type": "DateTime"},
+    {"name": "2022", "type": "DateTime"},
+    {"name": "cloud market", "type": "MarketSegment"}
+  ],
+  "gold_relations": [
+    {"source": "TechCorp", "relationship_type": "ACQUIRED", "target": "SoftSolutions"},
+    {"source": "Jane Doe", "relationship_type": "CEO_OF", "target": "TechCorp"},
+    {"source": "TechCorp", "relationship_type": "INVESTED_IN", "target": "SoftSolutions"}
+  ],
+  "gold_events": [
+    {
+      "event_type": "Acquisition",
+      "participants": {
+        "acquirer": ["TechCorp"],
+        "acquired": ["SoftSolutions"]
+      },
+      "timestamp": "June 2024",
+      "location": null
+    }
+  ],
+  "query_cases": [
+    {
+      "query": "Who acquired SoftSolutions?",
+      "relevant_entities": ["TechCorp", "SoftSolutions"],
+      "expected_answer_entities": ["TechCorp"]
+    },
+    {
+      "query": "Who is the CEO of TechCorp?",
+      "relevant_entities": ["Jane Doe", "TechCorp"],
+      "expected_answer_entities": ["Jane Doe"]
+    }
+  ]
+}
