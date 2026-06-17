@@ -181,13 +181,7 @@ def _handle_extract(args):
     else:
         schema = create_default_schema()
 
-<<<<<<< Updated upstream
-    # Set environment variables for automatic LLM configuration (read by DSPy)
     import os
-
-=======
-    # Env config
->>>>>>> Stashed changes
     if args.no_hub_validation:
         os.environ["DRG_VALIDATE_HUB_DOMINANCE"] = "0"
     if args.model:
