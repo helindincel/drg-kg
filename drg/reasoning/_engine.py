@@ -195,9 +195,7 @@ class MultiDocumentReasoner:
                     )
 
                 report.added_edges.append(triple)
-                report.per_rule_counts[rule.name] = (
-                    report.per_rule_counts.get(rule.name, 0) + 1
-                )
+                report.per_rule_counts[rule.name] = report.per_rule_counts.get(rule.name, 0) + 1
                 added_count += 1
 
         if record_history and not dry_run and not report.is_empty():

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from drg.graph.kg_core import KGEdge, KGNode, EnhancedKG
+from drg.graph.kg_core import EnhancedKG, KGEdge, KGNode
 from drg.temporal import (
     build_timeline,
     changes_between,

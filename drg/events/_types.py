@@ -110,9 +110,7 @@ class EventTypeDefinition:
         seen: set[str] = set()
         for role in self.roles:
             if role.name in seen:
-                raise ValueError(
-                    f"Duplicate role '{role.name}' in event type '{self.name}'"
-                )
+                raise ValueError(f"Duplicate role '{role.name}' in event type '{self.name}'")
             seen.add(role.name)
 
     def get_role(self, name: str) -> EventRole | None:
@@ -254,9 +252,7 @@ class EventProvenance:
 
     def __post_init__(self) -> None:
         if not (0.0 <= self.confidence <= 1.0):
-            raise ValueError(
-                f"EventProvenance.confidence must be in [0, 1], got {self.confidence}"
-            )
+            raise ValueError(f"EventProvenance.confidence must be in [0, 1], got {self.confidence}")
         valid_methods = ("llm", "rule", "merged", "manual")
         if self.extraction_method not in valid_methods:
             raise ValueError(
@@ -373,9 +369,7 @@ class Event:
         return cls(
             id=data["id"],
             event_type=data["event_type"],
-            participants={
-                k: list(v) for k, v in (data.get("participants") or {}).items()
-            },
+            participants={k: list(v) for k, v in (data.get("participants") or {}).items()},
             timestamp=timestamp,
             location=data.get("location"),
             properties=dict(data.get("properties", {}) or {}),

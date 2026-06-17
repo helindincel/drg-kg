@@ -159,8 +159,8 @@ def find_paths(
             if neighbor in node_path:
                 continue
 
-            new_nodes = node_path + [neighbor]
-            new_edges = edge_path + [edge]
+            new_nodes = [*node_path, neighbor]
+            new_edges = [*edge_path, edge]
 
             if neighbor == target:
                 edge_views = tuple(edge_to_view(e) for e in new_edges)

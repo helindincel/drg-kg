@@ -192,9 +192,7 @@ class Neo4jExporter:
             # edges (``role:<name>``) and any other colon-bearing types are
             # collapsed to underscores so Cypher does not interpret the colon
             # as a label separator.
-            rel_type = (
-                edge.relationship_type.upper().replace(" ", "_").replace(":", "_")
-            )
+            rel_type = edge.relationship_type.upper().replace(" ", "_").replace(":", "_")
             query = f"""
             MATCH (source:Entity {{id: $source_id}})
             MATCH (target:Entity {{id: $target_id}})

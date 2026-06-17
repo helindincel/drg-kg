@@ -23,10 +23,10 @@ if TYPE_CHECKING:
 __all__ = [
     "relations_active_at",
     "role_holders_at",
-    "temporal_timeline",
     "temporal_changes_between",
-    "temporal_overlaps",
     "temporal_conflicts",
+    "temporal_overlaps",
+    "temporal_timeline",
 ]
 
 

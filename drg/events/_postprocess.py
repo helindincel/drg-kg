@@ -233,9 +233,7 @@ def find_evidence_span(
     for name in entity_names:
         if not name:
             continue
-        for match in re.finditer(
-            rf"(?<!\w){re.escape(name)}(?!\w)", text, flags=re.IGNORECASE
-        ):
+        for match in re.finditer(rf"(?<!\w){re.escape(name)}(?!\w)", text, flags=re.IGNORECASE):
             positions.append((match.start(), name))
     if not positions:
         return None
@@ -389,9 +387,7 @@ def build_event(
     canonical_index = {name.lower(): name for name in entity_type_map.keys()}
     canonical_location: str | None = None
     if location and isinstance(location, str) and location.strip():
-        canonical_location = canonical_index.get(
-            location.strip().lower(), location.strip()
-        )
+        canonical_location = canonical_index.get(location.strip().lower(), location.strip())
 
     cleaned_props: dict[str, Any] = {}
     if isinstance(properties, dict):

@@ -166,9 +166,7 @@ def _incident_events(
         )
         edge_views = tuple(edge_to_view(e) for e in incident)
         prov = (
-            merge_provenance(*(ev.provenance for ev in edge_views))
-            if edge_views
-            else Provenance()
+            merge_provenance(*(ev.provenance for ev in edge_views)) if edge_views else Provenance()
         )
         events.append(
             EventView(
@@ -286,7 +284,9 @@ def hybrid_search(
                     cand.graph_relevance,
                     _clamp((0.70 / (1.0 + hops)) + 0.30 * edge_score),
                 )
-                _add_reason(cand, "multi_hop_graph_expansion" if hops > 1 else "direct_graph_neighbor")
+                _add_reason(
+                    cand, "multi_hop_graph_expansion" if hops > 1 else "direct_graph_neighbor"
+                )
                 _add_structure(
                     cand,
                     f"{edge.source}-[{edge.relationship_type}]->{edge.target}",
@@ -339,11 +339,7 @@ def hybrid_search(
 
         evidence_count = len(evidence_items)
         source_count = len(
-            {
-                item.source_ref
-                for item in evidence_items
-                if item.source_ref is not None
-            }
+            {item.source_ref for item in evidence_items if item.source_ref is not None}
         )
         chunk_count = len(cand.chunks)
         cand.evidence_quality = max(
@@ -352,9 +348,7 @@ def hybrid_search(
         )
 
         score, components = _score_candidate(cand, weights=weights)
-        chunk_hits = tuple(
-            sorted(cand.chunks.values(), key=lambda h: (-h.score, h.chunk.chunk_id))
-        )
+        chunk_hits = tuple(sorted(cand.chunks.values(), key=lambda h: (-h.score, h.chunk.chunk_id)))
         explanation = HybridSearchExplanation(
             why=tuple(cand.why),
             graph_structures=tuple(cand.graph_structures),

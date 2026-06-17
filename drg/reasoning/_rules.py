@@ -291,9 +291,7 @@ class InverseRule(InferenceRule):
         if not edges:
             return []
 
-        existing = {
-            (e.source, e.relationship_type.lower(), e.target) for e in kg.edges
-        }
+        existing = {(e.source, e.relationship_type.lower(), e.target) for e in kg.edges}
         candidates: list[InferredEdge] = []
         for e in edges:
             inverse = INVERSE_RELATION_PAIRS.get(e.relationship_type.lower())
@@ -362,9 +360,7 @@ class SymmetricRule(InferenceRule):
         if not edges:
             return []
 
-        existing = {
-            (e.source, e.relationship_type.lower(), e.target) for e in kg.edges
-        }
+        existing = {(e.source, e.relationship_type.lower(), e.target) for e in kg.edges}
         candidates: list[InferredEdge] = []
         for e in edges:
             rel_lower = e.relationship_type.lower()

@@ -10,9 +10,9 @@ if TYPE_CHECKING:
     from ..graph.kg_core import KGEdge
 
 __all__ = [
-    "is_active_at",
-    "intervals_overlap",
     "compare_partial_dates",
+    "intervals_overlap",
+    "is_active_at",
     "scope_bounds",
 ]
 

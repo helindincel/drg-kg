@@ -81,7 +81,11 @@ __all__ = [
     "EventTimestamp",
     "EventTypeDefinition",
     "EventTypeRegistry",
+    "EvidenceBundle",
     "EvidenceLink",
+    "Explanation",
+    "GraphQuery",
+    "InMemoryBackend",
     "InferenceReport",
     "InferenceRule",
     "InferredEdge",
@@ -90,6 +94,8 @@ __all__ = [
     "MultiDocumentReasoner",
     "PathBridgeRule",
     "PropertyGroup",
+    "QueryBackend",
+    "QueryError",
     "ReasoningConfig",
     "Relation",
     "RelationGroup",
@@ -103,13 +109,6 @@ __all__ = [
     "extract_typed",
     "generate_schema_from_text",
     "reason_over_graph",
-    # Query layer
-    "GraphQuery",
-    "QueryBackend",
-    "InMemoryBackend",
-    "QueryError",
-    "Explanation",
-    "EvidenceBundle",
 ]
 
 

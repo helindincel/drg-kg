@@ -80,8 +80,7 @@ def _build_signature(registry: EventTypeRegistry) -> type:
                 extras.append(f"properties: [{props_str}]")
             extras_part = " | " + " | ".join(extras) if extras else ""
             parts.append(
-                f"- {type_def.name}: {type_def.description} "
-                f"| roles: [{roles_str}]{extras_part}"
+                f"- {type_def.name}: {type_def.description} | roles: [{roles_str}]{extras_part}"
             )
         type_descriptions = "\n".join(parts)
 
@@ -184,9 +183,7 @@ def extract_events(
         logger.debug("Empty event registry; nothing to extract")
         return []
 
-    effective_lm = (
-        lm if lm is not None else getattr(getattr(dspy, "settings", None), "lm", None)
-    )
+    effective_lm = lm if lm is not None else getattr(getattr(dspy, "settings", None), "lm", None)
 
     Signature = _build_signature(registry)
 
@@ -222,9 +219,7 @@ def extract_events(
                 else:
                     raw_events = _coerce_raw_events(raw_field if raw_field is not None else result)
             else:
-                result = predictor(
-                    text=text, entities=json.dumps(entities_typed)
-                )
+                result = predictor(text=text, entities=json.dumps(entities_typed))
                 raw_events = _coerce_raw_events(getattr(result, "events", "[]"))
         except Exception as exc:
             if is_strict():

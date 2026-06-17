@@ -54,10 +54,7 @@ def explain_path_bridge(
         "Jimmy Iovine —[FOUNDED]→ Beats (source: doc_B)."
     """
     rendered = "; ".join(_fmt_link(link) for link in evidence)
-    return (
-        f"{src} and {dst} are both connected to {bridge}. "
-        f"Evidence: {rendered}."
-    )
+    return f"{src} and {dst} are both connected to {bridge}. Evidence: {rendered}."
 
 
 def explain_inverse(
@@ -68,10 +65,7 @@ def explain_inverse(
     original: EvidenceLink,
 ) -> str:
     """Explanation for :class:`InverseRule`."""
-    return (
-        f"{source} {relation} {target} follows by inverse from "
-        f"{_fmt_link(original)}."
-    )
+    return f"{source} {relation} {target} follows by inverse from {_fmt_link(original)}."
 
 
 def explain_symmetric(

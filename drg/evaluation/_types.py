@@ -24,7 +24,7 @@ class GoldEntity:
         return out
 
     @classmethod
-    def from_any(cls, value: Any) -> "GoldEntity":
+    def from_any(cls, value: Any) -> GoldEntity:
         if isinstance(value, cls):
             return value
         if isinstance(value, dict):
@@ -53,7 +53,7 @@ class GoldRelation:
         }
 
     @classmethod
-    def from_any(cls, value: Any) -> "GoldRelation":
+    def from_any(cls, value: Any) -> GoldRelation:
         if isinstance(value, cls):
             return value
         if isinstance(value, dict):
@@ -105,7 +105,7 @@ class GoldEvent:
         return out
 
     @classmethod
-    def from_any(cls, value: Any) -> "GoldEvent":
+    def from_any(cls, value: Any) -> GoldEvent:
         if isinstance(value, cls):
             return value
         if not isinstance(value, dict):
@@ -150,7 +150,7 @@ class QueryCase:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "QueryCase":
+    def from_dict(cls, data: dict[str, Any]) -> QueryCase:
         return cls(
             query=str(data["query"]),
             relevant_entities=[str(x) for x in data.get("relevant_entities", [])],
@@ -158,9 +158,7 @@ class QueryCase:
                 GoldRelation.from_any(x) for x in data.get("relevant_relations", [])
             ],
             relevant_chunks=[str(x) for x in data.get("relevant_chunks", [])],
-            expected_answer_entities=[
-                str(x) for x in data.get("expected_answer_entities", [])
-            ],
+            expected_answer_entities=[str(x) for x in data.get("expected_answer_entities", [])],
         )
 
 
@@ -192,7 +190,7 @@ class BenchmarkDataset:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "BenchmarkDataset":
+    def from_dict(cls, data: dict[str, Any]) -> BenchmarkDataset:
         return cls(
             name=str(data["name"]),
             text=str(data.get("text", "")),
@@ -203,7 +201,9 @@ class BenchmarkDataset:
                 GoldRelation.from_any(x) for x in data.get("gold_inferred_relations", [])
             ],
             query_cases=[QueryCase.from_dict(x) for x in data.get("query_cases", [])],
-            gold_communities={str(k): str(v) for k, v in (data.get("gold_communities") or {}).items()},
+            gold_communities={
+                str(k): str(v) for k, v in (data.get("gold_communities") or {}).items()
+            },
             metadata=dict(data.get("metadata") or {}),
         )
 

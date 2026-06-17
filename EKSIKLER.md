@@ -1,6 +1,6 @@
 # DRG-KG — Eksikler & Sorun Analizi
 
-> **Oluşturulma:** 2026-06-16 · Versiyon: `0.1.0a1` · Kaynak: kod incelemesi + CI/STATUS.md analizi  
+> **Oluşturulma:** 2026-06-16 · Versiyon: `0.1.0a1` · Kaynak: kod incelemesi + CI/STATUS.md analizi
 > **Amaç:** Projenin mimari, kod kalitesi ve yayın sürecindeki açıklarını tek bir yerde toplamak.
 
 ---

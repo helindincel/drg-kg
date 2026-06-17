@@ -5,7 +5,6 @@ All tests are deterministic — no LLM, no DSPy import required.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -14,7 +13,6 @@ from drg.graph import EnhancedKG, GraphMerger, KGEdge, KGNode
 from drg.graph.builders import build_enhanced_kg
 from drg.query import GraphQuery, QueryError
 from drg.reasoning import MultiDocumentReasoner, ReasoningConfig
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

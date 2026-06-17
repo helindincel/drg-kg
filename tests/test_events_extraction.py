@@ -64,9 +64,7 @@ class TestExtractEvents:
         )
         assert out == []
 
-    def test_lm_required_raises_when_set(
-        self, acquisition_registry, monkeypatch
-    ):
+    def test_lm_required_raises_when_set(self, acquisition_registry, monkeypatch):
         monkeypatch.setenv("DRG_REQUIRE_LM", "1")
         from drg.errors import ExtractionError
 
@@ -77,9 +75,7 @@ class TestExtractEvents:
                 acquisition_registry,
             )
 
-    def test_extracts_event_from_typed_predictor_output(
-        self, acquisition_registry
-    ):
+    def test_extracts_event_from_typed_predictor_output(self, acquisition_registry):
         from drg.events._extraction import RawEvent, RawEventList
 
         events_obj = RawEventList(
@@ -96,9 +92,7 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.TypedPredictor = Mock(
-                return_value=Mock(return_value=events_obj)
-            )
+            mock_dspy.TypedPredictor = Mock(return_value=Mock(return_value=events_obj))
             mock_dspy.Predict = Mock()
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")
@@ -140,9 +134,7 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.TypedPredictor = Mock(
-                return_value=Mock(return_value=events_obj)
-            )
+            mock_dspy.TypedPredictor = Mock(return_value=Mock(return_value=events_obj))
             mock_dspy.Predict = Mock()
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")
@@ -170,9 +162,7 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.TypedPredictor = Mock(
-                return_value=Mock(return_value=events_obj)
-            )
+            mock_dspy.TypedPredictor = Mock(return_value=Mock(return_value=events_obj))
             mock_dspy.Predict = Mock()
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")
@@ -205,9 +195,7 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.TypedPredictor = Mock(
-                return_value=Mock(return_value=events_obj)
-            )
+            mock_dspy.TypedPredictor = Mock(return_value=Mock(return_value=events_obj))
             mock_dspy.Predict = Mock()
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")

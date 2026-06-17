@@ -246,14 +246,8 @@ class KGEdge:
         if hasattr(rel, "metadata") and isinstance(rel.metadata, dict):
             temporal = rel.metadata.get("temporal")
             if isinstance(temporal, dict):
-                start_time = (
-                    temporal.get("valid_from")
-                    or temporal.get("start")
-                )
-                end_time = (
-                    temporal.get("valid_to")
-                    or temporal.get("end")
-                )
+                start_time = temporal.get("valid_from") or temporal.get("start")
+                end_time = temporal.get("valid_to") or temporal.get("end")
             # Also check direct fields (backward compatibility)
             if not start_time:
                 start_time = rel.metadata.get("start_time")

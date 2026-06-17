@@ -244,11 +244,7 @@ class GraphQuery:
         if self._backend.get_node(entity_id) is None:
             raise QueryError(f"Entity not found: {entity_id!r}")
 
-        allowed = (
-            {t.strip().lower() for t in event_types}
-            if event_types
-            else None
-        )
+        allowed = {t.strip().lower() for t in event_types} if event_types else None
 
         events: list[EventView] = []
         for edge in self._backend.edges_incident(
@@ -275,15 +271,9 @@ class GraphQuery:
             edge_views = tuple(edge_to_view(e) for e in incident)
             prov = Provenance(
                 source_documents=sorted(
-                    {
-                        doc
-                        for ev in edge_views
-                        for doc in ev.provenance.source_documents
-                    }
+                    {doc for ev in edge_views for doc in ev.provenance.source_documents}
                 ),
-                evidence=tuple(
-                    item for ev in edge_views for item in ev.provenance.evidence
-                ),
+                evidence=tuple(item for ev in edge_views for item in ev.provenance.evidence),
             )
             events.append(
                 EventView(

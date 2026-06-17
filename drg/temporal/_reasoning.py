@@ -13,16 +13,16 @@ if False:  # pragma: no cover - typing only
 
 
 __all__ = [
+    "ChangesReport",
     "OverlapConflict",
     "TemporalConflict",
-    "TimelineEntry",
     "Timeline",
-    "ChangesReport",
-    "detect_overlaps",
-    "detect_conflicts",
-    "entity_state_transitions",
+    "TimelineEntry",
     "build_timeline",
     "changes_between",
+    "detect_conflicts",
+    "detect_overlaps",
+    "entity_state_transitions",
 ]
 
 
@@ -177,9 +177,7 @@ def detect_overlaps(edges: list[KGEdge]) -> list[OverlapConflict]:
                             target=tgt,
                             relationship_type=rel,
                             edge_indices=(idx_a, idx_b),
-                            message=(
-                                f"Overlapping '{rel}' edges between {src!r} and {tgt!r}"
-                            ),
+                            message=(f"Overlapping '{rel}' edges between {src!r} and {tgt!r}"),
                         )
                     )
     return conflicts
@@ -193,8 +191,8 @@ def detect_conflicts(
 ) -> list[TemporalConflict]:
     """Detect multiple simultaneous holders of a functional role.
 
-  Example: two different ``CEO_OF`` edges to the same company active at
-  overlapping times.
+    Example: two different ``CEO_OF`` edges to the same company active at
+    overlapping times.
     """
     rel_norm = (relationship_type or "").strip().lower()
     tgt_norm = (target or "").strip().lower() if target else None

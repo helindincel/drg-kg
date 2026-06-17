@@ -18,17 +18,17 @@ from ..graph.kg_core import KGEdge, KGNode
 from ._types import Event, EventProvenance, EventTimestamp
 
 __all__ = [
+    "EVENT_LOCATION_EDGE_TYPE",
     "EVENT_NODE_TYPE_PREFIX",
     "EVENT_ROLE_EDGE_PREFIX",
-    "EVENT_LOCATION_EDGE_TYPE",
+    "event_from_kg_node",
+    "event_node_type",
+    "event_role_from_edge",
     "event_to_kg_node",
     "event_to_role_edges",
     "events_to_kg_nodes_and_edges",
     "is_event_node",
-    "event_node_type",
     "is_event_role_edge",
-    "event_role_from_edge",
-    "event_from_kg_node",
 ]
 
 
@@ -70,7 +70,7 @@ def event_role_from_edge(edge: KGEdge) -> str | None:
     if not isinstance(edge.relationship_type, str):
         return None
     if edge.relationship_type.startswith(EVENT_ROLE_EDGE_PREFIX):
-        return edge.relationship_type[len(EVENT_ROLE_EDGE_PREFIX):]
+        return edge.relationship_type[len(EVENT_ROLE_EDGE_PREFIX) :]
     return None
 
 
@@ -119,9 +119,7 @@ def event_to_role_edges(event: Event) -> list[KGEdge]:
             if not entity_id or entity_id == event.id:
                 continue
             edge_type = f"{EVENT_ROLE_EDGE_PREFIX}{role_name}"
-            detail = (
-                f"{event.event_type} event '{event.id}' has {role_name}: {entity_id}"
-            )
+            detail = f"{event.event_type} event '{event.id}' has {role_name}: {entity_id}"
             md: dict[str, Any] = {
                 "is_event_role": True,
                 "event_id": event.id,
@@ -198,7 +196,7 @@ def event_from_kg_node(node: KGNode) -> Event | None:
     event_type = md.get("event_type")
     if not isinstance(event_type, str) or not event_type.strip():
         if isinstance(node.type, str) and node.type.startswith(EVENT_NODE_TYPE_PREFIX):
-            event_type = node.type[len(EVENT_NODE_TYPE_PREFIX):]
+            event_type = node.type[len(EVENT_NODE_TYPE_PREFIX) :]
         else:
             return None
 
@@ -212,9 +210,7 @@ def event_from_kg_node(node: KGNode) -> Event | None:
                 participants[str(k)] = [v]
 
     ts_raw = md.get("timestamp")
-    timestamp = (
-        EventTimestamp.from_dict(ts_raw) if isinstance(ts_raw, dict) else None
-    )
+    timestamp = EventTimestamp.from_dict(ts_raw) if isinstance(ts_raw, dict) else None
 
     prov_raw = md.get("provenance") or {}
     provenance = (

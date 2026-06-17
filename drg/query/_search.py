@@ -131,8 +131,7 @@ def find_entities(
             for nid in backend.all_node_ids()
             if backend.get_node(nid) is not None
             and (
-                not type_norm
-                or _normalize(backend.get_node(nid).type or "") == type_norm  # type: ignore[union-attr]
+                not type_norm or _normalize(backend.get_node(nid).type or "") == type_norm  # type: ignore[union-attr]
             )
         ]
         degree_pairs.sort(key=lambda x: (-x[0], x[1].lower()))
@@ -163,9 +162,9 @@ def search_graph(
 ) -> QueryAnswer:
     """Free-text graph search with provenance-enriched edges.
 
-    Reuses the deterministic matching logic from ``drg.graph.query_engine``
-    for seed selection, then enriches results with full :class:`EdgeView`
-  objects.
+      Reuses the deterministic matching logic from ``drg.graph.query_engine``
+      for seed selection, then enriches results with full :class:`EdgeView`
+    objects.
     """
     from ._types import Provenance
 
@@ -179,7 +178,9 @@ def search_graph(
         src = edge_dict["source"]
         tgt = edge_dict["target"]
         rel = edge_dict["relationship_type"]
-        candidates = backend.edges_matching(source=src, target=tgt, include_inferred=include_inferred)
+        candidates = backend.edges_matching(
+            source=src, target=tgt, include_inferred=include_inferred
+        )
         rel_norm = rel.strip().lower()
         picked = None
         for e in candidates:

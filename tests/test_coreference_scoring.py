@@ -149,9 +149,7 @@ class TestActionBasedScore:
         assert score == 0.0
 
     def test_is_case_insensitive(self):
-        score = action_based_score(
-            "iPhone", "He SPOKE ABOUT iPhone yesterday.", "Product"
-        )
+        score = action_based_score("iPhone", "He SPOKE ABOUT iPhone yesterday.", "Product")
         assert score == 0.5
 
     def test_requires_preposition_after_action(self):
@@ -205,7 +203,9 @@ class TestMatchesSvoPattern:
             "The findings were presented by Alice.",
             [("findings", "nsubjpass"), ("presented", "ROOT")],
         )
-        assert matches_svo_pattern("findings", prev, "They were discussed about thoroughly.") is True
+        assert (
+            matches_svo_pattern("findings", prev, "They were discussed about thoroughly.") is True
+        )
 
     def test_entity_not_in_subject_position_returns_false(self):
         prev = _FakeSentence(

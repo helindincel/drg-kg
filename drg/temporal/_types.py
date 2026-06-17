@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 __all__ = [
-    "TemporalPrecision",
     "PartialDate",
+    "TemporalPrecision",
     "TemporalScope",
     "temporal_from_edge_fields",
     "temporal_to_edge_fields",

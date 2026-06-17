@@ -77,9 +77,7 @@ def render_markdown_report(report: EvaluationReport) -> str:
                 lines.append(f"| {component.name} | {metric} | {value:.4f} |")
         lines.append("")
         failures = [
-            failure
-            for component in dataset.components.values()
-            for failure in component.failures
+            failure for component in dataset.components.values() for failure in component.failures
         ]
         if failures:
             lines.append("### Failure Cases")

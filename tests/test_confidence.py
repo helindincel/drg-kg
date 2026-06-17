@@ -20,6 +20,7 @@ strategy/builder layer directly.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import math
 
@@ -81,7 +82,7 @@ def test_confidence_score_to_dict_round_trips_signals_and_method():
 
 def test_confidence_score_is_frozen():
     sc = ConfidenceScore(value=0.5)
-    with pytest.raises(Exception):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         sc.value = 0.9  # frozen dataclass forbids reassignment
 
 

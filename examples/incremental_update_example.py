@@ -53,7 +53,7 @@ from pathlib import Path
 # Repo root'u path'e ekle (pip install -e olmadan da çalışsın).
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from drg.graph import (  # noqa: E402
+from drg.graph import (
     EnhancedKG,
     GraphMerger,
     KGEdge,

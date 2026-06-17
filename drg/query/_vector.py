@@ -84,7 +84,7 @@ class InMemoryVectorStore:
         chunks: list[VectorDocumentChunk | dict[str, Any]],
         *,
         embedding_provider: Any | None = None,
-    ) -> "InMemoryVectorStore":
+    ) -> InMemoryVectorStore:
         """Build a store from chunks, embedding missing vectors if possible."""
         normalized = [
             c if isinstance(c, VectorDocumentChunk) else document_chunk_from_mapping(c)

@@ -3,9 +3,9 @@
 
 import argparse
 import json
+import os
 import re
 import sys
-import os
 from pathlib import Path
 
 from .chunking import create_chunker
@@ -32,12 +32,12 @@ def main():
         description="DRG - Declarative Relationship Generation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    
+
     subparsers = parser.add_subparsers(dest="command")
 
     # --- Extract command ---
     extract_parser = subparsers.add_parser("extract", help="Extract KG from text")
-    
+
     extract_parser.add_argument("input", type=str, help="Input text file or '-' for stdin")
     extract_parser.add_argument(
         "-o",
@@ -148,9 +148,15 @@ def main():
     eval_comp_parser.add_argument("-o", "--output", type=str, help="Output markdown")
     eval_comp_parser.add_argument("--threshold", type=float, default=0.01)
 
-    # Legacy support: if no command, default to extract
-    if len(sys.argv) > 1 and sys.argv[1] not in ["extract", "eval", "-h", "--help"]:
+    # Legacy support: default bare `drg` / `drg <file>` to the extract subcommand.
+    if len(sys.argv) == 1:
         sys.argv.insert(1, "extract")
+    elif len(sys.argv) > 1 and sys.argv[1] not in ["extract", "eval", "-h", "--help"]:
+        sys.argv.insert(1, "extract")
+
+    if len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help"):
+        extract_parser.print_help()
+        sys.exit(0)
 
     args = parser.parse_args()
 
@@ -177,21 +183,53 @@ def _handle_extract(args):
     if args.auto_schema:
         schema = None
     elif args.schema:
-        schema = load_schema_from_json(args.schema)
+        try:
+            schema = load_schema_from_json(args.schema)
+        except FileNotFoundError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        except ValueError as e:
+            print(f"Error: Invalid schema file: {e}", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"Error: Failed to load schema: {e}", file=sys.stderr)
+            sys.exit(1)
     else:
         schema = create_default_schema()
 
-    import os
     if args.no_hub_validation:
         os.environ["DRG_VALIDATE_HUB_DOMINANCE"] = "0"
     if args.model:
         os.environ["DRG_MODEL"] = args.model
     if args.api_key:
-        os.environ["OPENAI_API_KEY"] = args.api_key
+        model = args.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
+        if "gemini" in model.lower():
+            os.environ["GEMINI_API_KEY"] = args.api_key
+            os.environ["GOOGLE_API_KEY"] = args.api_key
+        elif "anthropic" in model.lower() or "claude" in model.lower():
+            os.environ["ANTHROPIC_API_KEY"] = args.api_key
+        elif "openrouter" in model.lower():
+            os.environ["OPENROUTER_API_KEY"] = args.api_key
+        else:
+            os.environ["OPENAI_API_KEY"] = args.api_key
     if args.base_url:
         os.environ["DRG_BASE_URL"] = args.base_url
     if args.temperature != 0.0:
         os.environ["DRG_TEMPERATURE"] = str(args.temperature)
+
+    api_key = (
+        args.api_key
+        or os.getenv("GEMINI_API_KEY")
+        or os.getenv("OPENAI_API_KEY")
+        or os.getenv("ANTHROPIC_API_KEY")
+    )
+    model = args.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
+    if not api_key and not model.startswith("ollama"):
+        print("Warning: No API key found. Cloud models require an API key.", file=sys.stderr)
+        print(
+            "For local models, use: --model ollama_chat/llama3 --base-url http://localhost:11434",
+            file=sys.stderr,
+        )
 
     # Determine format
     inferred_format = None
@@ -232,12 +270,13 @@ def _handle_extract(args):
             extracted_events = []
             if args.extract_events:
                 from .events import EventTypeRegistry, example_event_registry, extract_events
+
                 registry = None
                 if args.events_registry:
                     registry = EventTypeRegistry.from_json(args.events_registry)
                 elif args.events_use_example:
                     registry = example_event_registry()
-                
+
                 if registry:
                     extracted_events = extract_events(
                         text=text,
@@ -257,19 +296,25 @@ def _handle_extract(args):
 
             if args.update:
                 from .graph import EnhancedKG, GraphMerger, MergeStrategy, NodeMergePolicy
+
                 update_path = Path(args.update)
-                base_kg = EnhancedKG.load_json(str(update_path)) if update_path.exists() else EnhancedKG()
+                base_kg = (
+                    EnhancedKG.load_json(str(update_path)) if update_path.exists() else EnhancedKG()
+                )
                 strategy = MergeStrategy(node_policy=NodeMergePolicy(args.update_strategy))
                 GraphMerger(strategy).merge(base_kg, target_kg, document_id=effective_doc_id)
                 target_kg = base_kg
 
             if args.infer:
                 from .reasoning import MultiDocumentReasoner, ReasoningConfig
+
                 infer_cfg = ReasoningConfig(
                     min_confidence=args.infer_min_confidence,
                     disabled_rules=frozenset(args.infer_disable_rule or []),
                 )
-                MultiDocumentReasoner(config=infer_cfg).reason(target_kg, document_id=effective_doc_id)
+                MultiDocumentReasoner(config=infer_cfg).reason(
+                    target_kg, document_id=effective_doc_id
+                )
 
             output_json = target_kg.to_json()
         else:
@@ -286,7 +331,21 @@ def _handle_extract(args):
             print(f"Knowledge graph written to: {output_path}", file=sys.stderr)
 
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        import traceback
+
+        def _redact_secrets(s: str) -> str:
+            if not s:
+                return s
+            s = re.sub(r"(?i)(key=)[^&\s]+", r"\1REDACTED", s)
+            s = re.sub(r"AIzaSy[0-9A-Za-z_-]{20,}", "REDACTED_GOOGLE_API_KEY", s)
+            s = re.sub(r"sk-or-v1-[0-9a-fA-F]{20,}", "REDACTED_OPENROUTER_KEY", s)
+            return s
+
+        raw_msg = f"{type(e).__name__}: {e}"
+        raw_tb = traceback.format_exc()
+        print(f"Error during extraction: {_redact_secrets(raw_msg)}", file=sys.stderr)
+        if os.getenv("DRG_DEBUG", "").lower() in {"1", "true", "yes"}:
+            print(_redact_secrets(raw_tb), file=sys.stderr)
         sys.exit(1)
 
 
@@ -294,14 +353,14 @@ def _handle_eval(args):
     from .evaluation import (
         BenchmarkRunner,
         PipelinePrediction,
+        compare_reports,
         load_benchmark_datasets,
+        render_markdown_report,
+        render_regression_markdown,
         save_json_report,
         save_markdown_report,
-        render_markdown_report,
-        compare_reports,
-        render_regression_markdown,
     )
-    
+
     if args.api_key:
         os.environ["OPENAI_API_KEY"] = args.api_key
     if args.model:
@@ -314,14 +373,14 @@ def _handle_eval(args):
             retrieval_k=args.retrieval_k,
             metadata={"model": os.getenv("DRG_MODEL")},
         )
-        
+
         def extraction_runner(ds):
             # Real extraction runner for evaluation
             e, t = extract_typed(ds.text, create_default_schema())
             return PipelinePrediction(entities=e, relations=t)
 
         report = runner.evaluate(datasets, runner=extraction_runner)
-        
+
         if args.output:
             if args.output.endswith(".md"):
                 save_markdown_report(report, args.output)
@@ -335,8 +394,9 @@ def _handle_eval(args):
             base = json.load(f)
         with open(args.candidate) as f:
             cand = json.load(f)
-        
+
         from .evaluation._types import EvaluationReport
+
         comparison = compare_reports(
             EvaluationReport.from_dict(base),
             EvaluationReport.from_dict(cand),

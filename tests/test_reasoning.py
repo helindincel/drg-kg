@@ -85,18 +85,12 @@ def _make_two_doc_kg() -> EnhancedKG:
     ka = EnhancedKG()
     ka.add_node(KGNode(id="Apple", type="Company"))
     ka.add_node(KGNode(id="Beats", type="Company"))
-    ka.add_edge(
-        _make_edge("Apple", "ACQUIRED", "Beats", source_ref="doc_A", confidence=0.95)
-    )
+    ka.add_edge(_make_edge("Apple", "ACQUIRED", "Beats", source_ref="doc_A", confidence=0.95))
 
     kb = EnhancedKG()
     kb.add_node(KGNode(id="Jimmy Iovine", type="Person"))
     kb.add_node(KGNode(id="Beats", type="Company"))
-    kb.add_edge(
-        _make_edge(
-            "Jimmy Iovine", "FOUNDED", "Beats", source_ref="doc_B", confidence=0.9
-        )
-    )
+    kb.add_edge(_make_edge("Jimmy Iovine", "FOUNDED", "Beats", source_ref="doc_B", confidence=0.9))
 
     GraphMerger().merge(base, ka, document_id="doc_A")
     GraphMerger().merge(base, kb, document_id="doc_B")
@@ -240,7 +234,9 @@ class TestPathBridgeRule:
             )
         ).reason(kg)
         # Same relation; conservative default refuses
-        assert not [e for e in _inferred_edges(kg) if e.metadata["inference"]["rule"] == "path_bridge"]
+        assert not [
+            e for e in _inferred_edges(kg) if e.metadata["inference"]["rule"] == "path_bridge"
+        ]
 
     def test_fires_on_identical_relations_when_distinct_check_disabled(self):
         kg = EnhancedKG()
@@ -256,8 +252,7 @@ class TestPathBridgeRule:
         )
         MultiDocumentReasoner(config=config).reason(kg)
         bridge = [
-            e for e in _inferred_edges(kg)
-            if e.metadata["inference"]["rule"] == "path_bridge"
+            e for e in _inferred_edges(kg) if e.metadata["inference"]["rule"] == "path_bridge"
         ]
         assert len(bridge) == 1
 
@@ -277,8 +272,7 @@ class TestPathBridgeRule:
             )
         ).reason(kg)
         bridge = next(
-            e for e in _inferred_edges(kg)
-            if e.metadata["inference"]["rule"] == "path_bridge"
+            e for e in _inferred_edges(kg) if e.metadata["inference"]["rule"] == "path_bridge"
         )
         assert bridge.source == "Alpha"
         assert bridge.target == "Zeta"
@@ -288,9 +282,7 @@ class TestPathBridgeRule:
         kg.add_node(KGNode(id="Hub"))
         for i in range(10):
             kg.add_node(KGNode(id=f"N{i}"))
-            kg.add_edge(
-                _make_edge(f"N{i}", f"r{i}", "Hub", source_ref=f"doc_{i}", confidence=0.9)
-            )
+            kg.add_edge(_make_edge(f"N{i}", f"r{i}", "Hub", source_ref=f"doc_{i}", confidence=0.9))
 
         # cap=3 selects only the first 3 incident edges; 3 incident
         # edges -> C(3, 2) = 3 candidate pairs.
@@ -501,9 +493,7 @@ class TestCompositionRule:
         ).reason(kg)
         inferred = _inferred_edges(kg)
         assert any(
-            e.source == "Apple"
-            and e.target == "Cupertino"
-            and e.relationship_type == "operates_in"
+            e.source == "Apple" and e.target == "Cupertino" and e.relationship_type == "operates_in"
             for e in inferred
         )
 
@@ -730,8 +720,9 @@ class TestBuildersIntegration:
         incoming.add_node(KGNode(id="A"))
         incoming.add_node(KGNode(id="B"))
         # Edge built without a source_ref:
-        incoming.add_edge(KGEdge(source="A", target="B", relationship_type="r",
-                                  relationship_detail="A r B"))
+        incoming.add_edge(
+            KGEdge(source="A", target="B", relationship_type="r", relationship_detail="A r B")
+        )
         GraphMerger().merge(base, incoming, document_id="doc_X")
         assert base.edges[0].metadata.get("source_ref") == "doc_X"
 
@@ -807,7 +798,9 @@ class TestHistoryAndExplain:
         assert "doc_A" in bridge
         assert "doc_B" in bridge
 
-        inv = explain_inverse(source="Apple", relation="acquired_by", target="Beats", original=link_a)
+        inv = explain_inverse(
+            source="Apple", relation="acquired_by", target="Beats", original=link_a
+        )
         assert "acquired_by" in inv
         sym = explain_symmetric(
             source="A",
@@ -880,6 +873,7 @@ class TestDataModelValidation:
 
     def test_rule_subclass_requires_name(self):
         with pytest.raises(TypeError, match="name"):
+
             class BadRule(InferenceRule):  # type: ignore[misc]
                 # no name -> __init_subclass__ raises
                 def apply(self, kg, config):  # pragma: no cover
@@ -925,16 +919,12 @@ def test_path_bridge_handles_both_outgoing_and_incoming_edges_at_bridge():
     kg.add_node(KGNode(id="Music Industry"))
     # Bridge=Beats appears as target in one edge and source in the other
     kg.add_edge(_make_edge("Apple", "ACQUIRED", "Beats", source_ref="d1", confidence=0.9))
-    kg.add_edge(
-        _make_edge("Beats", "PART_OF", "Music Industry", source_ref="d2", confidence=0.9)
-    )
+    kg.add_edge(_make_edge("Beats", "PART_OF", "Music Industry", source_ref="d2", confidence=0.9))
 
     config = ReasoningConfig(
         disabled_rules=frozenset({"inverse", "symmetric", "transitive", "composition"})
     )
     MultiDocumentReasoner(config=config).reason(kg)
-    bridge = [
-        e for e in _inferred_edges(kg) if e.metadata["inference"]["rule"] == "path_bridge"
-    ]
+    bridge = [e for e in _inferred_edges(kg) if e.metadata["inference"]["rule"] == "path_bridge"]
     assert len(bridge) == 1
     assert {bridge[0].source, bridge[0].target} == {"Apple", "Music Industry"}

@@ -19,7 +19,7 @@ from .kg_core import EnhancedKG, KGEdge, KGNode
 
 # Forward import only used for type hints; real import is local to avoid cycles.
 if False:  # pragma: no cover - typing only
-    from ..events import Event
+    pass
 
 
 def extract_evidence_snippet(
@@ -269,9 +269,7 @@ def build_enhanced_kg(
     # gets a `source_documents` provenance list. The reasoning layer reads
     # this to understand which graph nodes were touched by which documents
     # (used by hints / explanations); the merger later unions the lists.
-    node_metadata_base: dict[str, Any] = (
-        {"source_documents": [document_id]} if document_id else {}
-    )
+    node_metadata_base: dict[str, Any] = {"source_documents": [document_id]} if document_id else {}
 
     for name, etype in entities_typed:
         kg.add_node(

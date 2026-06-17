@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
 
 import pytest
 
@@ -170,9 +169,7 @@ class TestApiKeyRouting:
     def test_gemini_also_populates_google_api_key(self, monkeypatch, tmp_path):
         input_file = tmp_path / "in.txt"
         input_file.write_text("Apple makes iPhones.")
-        monkeypatch.setattr(
-            cli_mod, "extract_typed", lambda text, schema: ([], [])
-        )
+        monkeypatch.setattr(cli_mod, "extract_typed", lambda text, schema: ([], []))
         _run_main(
             monkeypatch,
             [
@@ -230,9 +227,7 @@ class TestExtractionSuccess:
         assert "nodes" in payload
         assert "Knowledge graph written to" in capsys.readouterr().err
 
-    def test_kg_suffix_in_output_path_triggers_enhanced_format(
-        self, monkeypatch, tmp_path
-    ):
+    def test_kg_suffix_in_output_path_triggers_enhanced_format(self, monkeypatch, tmp_path):
         input_file = tmp_path / "in.txt"
         input_file.write_text("Apple produces iPhones.")
         out_file = tmp_path / "result_kg.json"
@@ -252,9 +247,7 @@ class TestExtractionSuccess:
 
 
 class TestStdinInput:
-    def test_stdin_dash_argument_reads_from_stdin(
-        self, monkeypatch, capsys
-    ):
+    def test_stdin_dash_argument_reads_from_stdin(self, monkeypatch, capsys):
         import io
 
         monkeypatch.setattr(sys, "stdin", io.StringIO("Apple makes iPhones."))
@@ -270,9 +263,7 @@ class TestStdinInput:
 
 
 class TestExtractionFailurePath:
-    def test_extract_exception_redacts_google_key_in_error(
-        self, monkeypatch, tmp_path, capsys
-    ):
+    def test_extract_exception_redacts_google_key_in_error(self, monkeypatch, tmp_path, capsys):
         input_file = tmp_path / "in.txt"
         input_file.write_text("Apple makes iPhones.")
 
@@ -291,9 +282,7 @@ class TestExtractionFailurePath:
         # And the redaction marker MUST be present.
         assert "REDACTED" in err
 
-    def test_extract_exception_redacts_url_key_param(
-        self, monkeypatch, tmp_path, capsys
-    ):
+    def test_extract_exception_redacts_url_key_param(self, monkeypatch, tmp_path, capsys):
         input_file = tmp_path / "in.txt"
         input_file.write_text("Apple makes iPhones.")
 
@@ -324,14 +313,10 @@ class TestExtractionFailurePath:
 
 
 class TestWarningPath:
-    def test_warns_when_no_api_key_and_cloud_model_selected(
-        self, monkeypatch, tmp_path, capsys
-    ):
+    def test_warns_when_no_api_key_and_cloud_model_selected(self, monkeypatch, tmp_path, capsys):
         input_file = tmp_path / "in.txt"
         input_file.write_text("Apple makes iPhones.")
-        monkeypatch.setattr(
-            cli_mod, "extract_typed", lambda text, schema: ([], [])
-        )
+        monkeypatch.setattr(cli_mod, "extract_typed", lambda text, schema: ([], []))
         _run_main(
             monkeypatch,
             [
@@ -347,14 +332,10 @@ class TestWarningPath:
         assert "Warning" in err
         assert "API key" in err
 
-    def test_ollama_model_does_not_warn_about_api_key(
-        self, monkeypatch, tmp_path, capsys
-    ):
+    def test_ollama_model_does_not_warn_about_api_key(self, monkeypatch, tmp_path, capsys):
         input_file = tmp_path / "in.txt"
         input_file.write_text("Apple makes iPhones.")
-        monkeypatch.setattr(
-            cli_mod, "extract_typed", lambda text, schema: ([], [])
-        )
+        monkeypatch.setattr(cli_mod, "extract_typed", lambda text, schema: ([], []))
         _run_main(
             monkeypatch,
             [

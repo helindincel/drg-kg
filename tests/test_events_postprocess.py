@@ -6,8 +6,8 @@ import pytest
 
 from drg.events import (
     EventRole,
-    EventTypeDefinition,
     EventTimestamp,
+    EventTypeDefinition,
     build_event,
     find_evidence_span,
     has_all_required_roles,
@@ -207,11 +207,7 @@ class TestFindEvidenceSpan:
         assert "Apple" in span.text
 
     def test_two_entities_picks_close_window(self):
-        text = (
-            "Apple acquired Beats in 2014. "
-            + ("filler " * 200)
-            + " Apple again, Beats again."
-        )
+        text = "Apple acquired Beats in 2014. " + ("filler " * 200) + " Apple again, Beats again."
         span = find_evidence_span(text, ["Apple", "Beats"])
         assert span is not None
         assert "Apple" in span.text
@@ -240,12 +236,8 @@ class TestMakeEventId:
         assert a.startswith("event:Acquisition:")
 
     def test_different_inputs_yield_different_ids(self):
-        a = make_event_id(
-            "Acquisition", {"acquirer": ["Apple"]}, None, "x"
-        )
-        b = make_event_id(
-            "Acquisition", {"acquirer": ["Google"]}, None, "x"
-        )
+        a = make_event_id("Acquisition", {"acquirer": ["Apple"]}, None, "x")
+        b = make_event_id("Acquisition", {"acquirer": ["Google"]}, None, "x")
         assert a != b
 
     def test_role_order_does_not_matter(self):
@@ -403,16 +395,16 @@ class TestBuildEvent:
             description="d",
             roles=[EventRole(name="r", required=False)],
         )
-        kwargs = dict(
-            event_type="X",
-            raw_participants={"r": "Apple"},
-            raw_timestamp="2014",
-            location=None,
-            properties=None,
-            evidence_text="Apple did something",
-            type_def=td,
-            entity_type_map={"Apple": "Company"},
-        )
+        kwargs = {
+            "event_type": "X",
+            "raw_participants": {"r": "Apple"},
+            "raw_timestamp": "2014",
+            "location": None,
+            "properties": None,
+            "evidence_text": "Apple did something",
+            "type_def": td,
+            "entity_type_map": {"Apple": "Company"},
+        }
         a = build_event(**kwargs)  # type: ignore[arg-type]
         b = build_event(**kwargs)  # type: ignore[arg-type]
         assert a is not None and b is not None

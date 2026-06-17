@@ -412,9 +412,7 @@ def test_duplicate_edge_is_skipped_with_default_policy():
 def test_append_evidence_collects_source_refs_on_duplicate():
     base = _make_base()
     inc = _make_incoming()
-    diff = GraphMerger(MergeStrategy(edge_policy=EdgeMergePolicy.APPEND_EVIDENCE)).merge(
-        base, inc
-    )
+    diff = GraphMerger(MergeStrategy(edge_policy=EdgeMergePolicy.APPEND_EVIDENCE)).merge(base, inc)
     e0 = base.edges[0]
     refs = e0.metadata.get("evidence_refs", [])
     assert any(r.get("source_ref") == "doc_2" for r in refs)
@@ -427,7 +425,10 @@ def test_max_confidence_keeps_higher_score_and_remembers_alt():
     base.add_node(KGNode(id="b", type="T"))
     base.add_edge(
         KGEdge(
-            source="a", target="b", relationship_type="R", relationship_detail="x",
+            source="a",
+            target="b",
+            relationship_type="R",
+            relationship_detail="x",
             confidence=0.5,
         )
     )
@@ -436,7 +437,10 @@ def test_max_confidence_keeps_higher_score_and_remembers_alt():
     inc.add_node(KGNode(id="b", type="T"))
     inc.add_edge(
         KGEdge(
-            source="a", target="b", relationship_type="R", relationship_detail="x",
+            source="a",
+            target="b",
+            relationship_type="R",
+            relationship_detail="x",
             confidence=0.95,
         )
     )

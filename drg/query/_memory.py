@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections import defaultdict
 
 from ..graph.kg_core import EnhancedKG, KGEdge
-from ._backend import QueryBackend
 
 __all__ = ["InMemoryBackend"]
 

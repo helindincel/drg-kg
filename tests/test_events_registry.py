@@ -74,9 +74,7 @@ class TestEventTypeRegistry:
         assert out.get("A").roles[0].name == "r1"
 
     def test_save_and_load_json(self, tmp_path: Path):
-        reg = EventTypeRegistry(
-            types=[EventTypeDefinition(name="X", description="d")]
-        )
+        reg = EventTypeRegistry(types=[EventTypeDefinition(name="X", description="d")])
         path = tmp_path / "registry.json"
         reg.save_json(path)
         assert path.exists()

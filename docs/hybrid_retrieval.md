@@ -131,4 +131,3 @@ The simplest compatible architecture is an in-memory vector-store protocol:
 - It preserves all existing graph workflows.
 - It can be replaced by Chroma, Qdrant, Weaviate, or Neo4j Vector adapters
   later by implementing `VectorStore.search()`.
-

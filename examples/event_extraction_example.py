@@ -27,19 +27,19 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from drg.events import (  # noqa: E402
+from drg.events import (
+    Event,
     EventProvenance,
     EventTimestamp,
     EventTypeRegistry,
     TextSpan,
-    Event,
     example_event_registry,
     extract_events,
     make_event_id,
 )
-from drg.extract import extract_typed  # noqa: E402
-from drg.graph.builders import build_enhanced_kg  # noqa: E402
-from drg.schema import (  # noqa: E402
+from drg.extract import extract_typed
+from drg.graph.builders import build_enhanced_kg
+from drg.schema import (
     EnhancedDRGSchema,
     EntityType,
     Relation,

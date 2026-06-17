@@ -10,8 +10,8 @@ from ._types import GoldEntity, GoldEvent, GoldRelation
 
 __all__ = [
     "community_pair_quality",
-    "entity_resolution_pair_metrics",
     "entity_prf",
+    "entity_resolution_pair_metrics",
     "event_prf",
     "graph_metrics",
     "precision_recall_f1",
@@ -43,10 +43,7 @@ def entity_prf(
     typed: bool = True,
 ) -> dict[str, float]:
     exp = {e.key(typed=typed) for e in expected}
-    pred = {
-        (norm(name), norm(etype)) if typed else norm(name)
-        for name, etype in predicted
-    }
+    pred = {(norm(name), norm(etype)) if typed else norm(name) for name, etype in predicted}
     return precision_recall_f1(exp, pred)
 
 
@@ -89,14 +86,10 @@ def graph_metrics(
 
     return {
         "entity_coverage": (
-            len(gold_node_keys & pred_node_keys) / len(gold_node_keys)
-            if gold_node_keys
-            else 0.0
+            len(gold_node_keys & pred_node_keys) / len(gold_node_keys) if gold_node_keys else 0.0
         ),
         "relation_coverage": (
-            len(gold_edge_keys & pred_edge_keys) / len(gold_edge_keys)
-            if gold_edge_keys
-            else 0.0
+            len(gold_edge_keys & pred_edge_keys) / len(gold_edge_keys) if gold_edge_keys else 0.0
         ),
         "graph_density": density,
         "orphan_node_rate": len(orphan_nodes) / node_count if node_count else 0.0,
@@ -197,8 +190,7 @@ def _event_key(event: Any) -> tuple[Any, ...]:
     event_type = getattr(event, "event_type", "") or ""
     participants_raw = getattr(event, "participants", {}) or {}
     participants = {
-        str(role): [str(v) for v in values]
-        for role, values in participants_raw.items()
+        str(role): [str(v) for v in values] for role, values in participants_raw.items()
     }
     ts = getattr(event, "timestamp", None)
     timestamp = None

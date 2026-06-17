@@ -339,9 +339,7 @@ class GraphMerger:
         """
         diff = KGDiff()
         if not isinstance(base, EnhancedKG) or not isinstance(incoming, EnhancedKG):
-            raise TypeError(
-                "GraphMerger.merge() requires EnhancedKG instances on both sides"
-            )
+            raise TypeError("GraphMerger.merge() requires EnhancedKG instances on both sides")
 
         # Scope the active document_id for this merge call. Used by
         # `_merge_nodes` / `_merge_edges` to stamp `source_ref` and
@@ -456,8 +454,7 @@ class GraphMerger:
                 if self.strategy.require_type_match:
                     norm_name = key[0]
                     type_conflict = any(
-                        cand_name == norm_name
-                        for (cand_name, _ctype) in base_index.keys()
+                        cand_name == norm_name for (cand_name, _ctype) in base_index.keys()
                     )
                     if type_conflict:
                         diff.skipped_nodes.append((inc_id, "type_mismatch"))
@@ -477,9 +474,7 @@ class GraphMerger:
                     confidence=inc_node.confidence,
                 )
                 base.nodes[new_node.id] = new_node
-                base_index[_node_key(new_node.id, new_node.type, normalize=norm)] = (
-                    new_node.id
-                )
+                base_index[_node_key(new_node.id, new_node.type, normalize=norm)] = new_node.id
                 remap[inc_id] = new_node.id
                 diff.added_nodes.append(new_node.id)
                 continue
@@ -612,9 +607,7 @@ class GraphMerger:
             # canonical node — drop them; KGEdge.__post_init__ would
             # raise otherwise.
             if new_source == new_target:
-                diff.skipped_edges.append(
-                    (new_source, edge.relationship_type, new_target)
-                )
+                diff.skipped_edges.append((new_source, edge.relationship_type, new_target))
                 continue
 
             # Endpoints must exist in the base graph at this point.
@@ -637,9 +630,7 @@ class GraphMerger:
             if key in base_edge_index:
                 existing = base.edges[base_edge_index[key]]
                 self._fold_edge_data(existing, edge)
-                diff.skipped_edges.append(
-                    (new_source, edge.relationship_type, new_target)
-                )
+                diff.skipped_edges.append((new_source, edge.relationship_type, new_target))
                 continue
 
             # Carry the document_id forward as an edge-level source_ref so
@@ -648,10 +639,7 @@ class GraphMerger:
             # incoming edge's own `source_ref` always wins — the document_id
             # is only a fallback for edges that don't carry one yet.
             new_metadata = dict(edge.metadata)
-            if (
-                self._document_id
-                and "source_ref" not in new_metadata
-            ):
+            if self._document_id and "source_ref" not in new_metadata:
                 new_metadata["source_ref"] = self._document_id
 
             new_edge = KGEdge(
@@ -669,9 +657,7 @@ class GraphMerger:
             base_edge_index[key] = len(base.edges) - 1
             diff.added_edges.append((new_source, edge.relationship_type, new_target))
             if rewritten:
-                diff.rewritten_edges.append(
-                    (new_source, edge.relationship_type, new_target)
-                )
+                diff.rewritten_edges.append((new_source, edge.relationship_type, new_target))
 
     def _fold_edge_data(self, existing: KGEdge, incoming: KGEdge) -> None:
         """Apply the configured edge policy to a duplicate edge."""

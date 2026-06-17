@@ -125,7 +125,7 @@ def _patched_dspy(*, schema_str: str, raise_on_call: Exception | None = None):
     """
 
     def _make_predictor(*_args, **_kwargs):
-        def _call(*, text):  # noqa: ARG001
+        def _call(*, text):
             if raise_on_call is not None:
                 raise raise_on_call
             return _StubPrediction(schema_str)
@@ -154,21 +154,28 @@ class TestGenerateSchemaFromText:
         assert "works_at" in all_relations
 
     def test_dspy_failure_raises_schema_generation_error(self):
-        with _patched_dspy(
-            schema_str="",
-            raise_on_call=RuntimeError("LLM timeout"),
-        ), pytest.raises(SchemaGenerationError, match="Schema generation failed"):
+        with (
+            _patched_dspy(
+                schema_str="",
+                raise_on_call=RuntimeError("LLM timeout"),
+            ),
+            pytest.raises(SchemaGenerationError, match="Schema generation failed"),
+        ):
             generate_schema_from_text("Some text.")
 
     def test_invalid_json_raises_schema_generation_error(self):
-        with _patched_dspy(
-            schema_str="not really json {{{",
-        ), pytest.raises(SchemaGenerationError, match="Schema JSON parsing failed"):
+        with (
+            _patched_dspy(
+                schema_str="not really json {{{",
+            ),
+            pytest.raises(SchemaGenerationError, match="Schema JSON parsing failed"),
+        ):
             generate_schema_from_text("Some text.")
 
     def test_empty_schema_raises_schema_generation_error(self):
-        with _patched_dspy(schema_str="{}"), pytest.raises(
-            SchemaGenerationError, match="empty schema"
+        with (
+            _patched_dspy(schema_str="{}"),
+            pytest.raises(SchemaGenerationError, match="empty schema"),
         ):
             generate_schema_from_text("Some text.")
 
