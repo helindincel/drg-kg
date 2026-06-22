@@ -104,6 +104,34 @@ def test_cytoscape_emits_edges():
         assert "weight" in edge["data"]
 
 
+def test_cytoscape_edge_data_includes_optional_details():
+    kg = EnhancedKG()
+    kg.add_node(KGNode(id="Alice", type="Person"))
+    kg.add_node(KGNode(id="Acme", type="Company"))
+    kg.add_edge(
+        KGEdge(
+            source="Alice",
+            target="Acme",
+            relationship_type="works_at",
+            relationship_detail="Alice works at Acme",
+            start_time="2024-01-01",
+            end_time="2025-01-01",
+            created_at="2024-01-02T00:00:00+00:00",
+            updated_at="2024-02-02T00:00:00+00:00",
+            confidence=0.92,
+        )
+    )
+
+    edge = next(e for e in kg_to_cytoscape(kg) if "source" in e["data"])
+    assert edge["data"]["confidence"] == 0.92
+    assert edge["data"]["start_time"] == "2024-01-01"
+    assert edge["data"]["valid_from"] == "2024-01-01"
+    assert edge["data"]["end_time"] == "2025-01-01"
+    assert edge["data"]["valid_to"] == "2025-01-01"
+    assert edge["data"]["created_at"] == "2024-01-02T00:00:00+00:00"
+    assert edge["data"]["updated_at"] == "2024-02-02T00:00:00+00:00"
+
+
 def test_cytoscape_raises_on_none_kg():
     with pytest.raises(ValueError):
         kg_to_cytoscape(None)

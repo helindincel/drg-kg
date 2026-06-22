@@ -33,7 +33,7 @@ class ProvenanceNode:
 class ProvenanceEdge:
     """Edge in a provenance chain.
 
-    ``type`` is typically one of: ``"retrieved_from"``, ``"summarized_in"``,
+    ``type`` is typically one of: ``"matched_entity"``, ``"summarized_in"``,
     ``"generated_from"``.
     """
 

@@ -210,6 +210,12 @@ class KGDiff:
     skipped_clusters: list[str] = field(default_factory=list)
     """Cluster ids dropped because they already existed in the base graph."""
 
+    node_merge_decisions: list[dict[str, Any]] = field(default_factory=list)
+    """Audit trail for node match/merge decisions."""
+
+    edge_merge_decisions: list[dict[str, Any]] = field(default_factory=list)
+    """Audit trail for edge rewrite/dedup decisions."""
+
     # ------------------------------------------------------------------
     # Reporting helpers
     # ------------------------------------------------------------------
@@ -252,6 +258,8 @@ class KGDiff:
             "rewritten_edges": [list(t) for t in self.rewritten_edges],
             "added_clusters": list(self.added_clusters),
             "skipped_clusters": list(self.skipped_clusters),
+            "node_merge_decisions": list(self.node_merge_decisions),
+            "edge_merge_decisions": list(self.edge_merge_decisions),
         }
 
 
@@ -432,6 +440,14 @@ class GraphMerger:
                 remap[inc_id] = inc_id
                 self._fold_node_data(base.nodes[inc_id], inc_node)
                 diff.merged_nodes.append((inc_id, inc_id))
+                diff.node_merge_decisions.append(
+                    {
+                        "incoming_id": inc_id,
+                        "canonical_id": inc_id,
+                        "match_type": "exact_id",
+                        "policy": self.strategy.node_policy.value,
+                    }
+                )
                 continue
 
             # Tier 2: type-aware normalized match.
@@ -458,6 +474,14 @@ class GraphMerger:
                     )
                     if type_conflict:
                         diff.skipped_nodes.append((inc_id, "type_mismatch"))
+                        diff.node_merge_decisions.append(
+                            {
+                                "incoming_id": inc_id,
+                                "match_type": "type_mismatch",
+                                "normalized_key": list(key),
+                                "policy": "insert_new",
+                            }
+                        )
                 # Insert as a brand-new node, preserving the incoming id.
                 new_metadata = dict(inc_node.metadata)
                 # Backfill source_documents with the active document_id
@@ -477,12 +501,30 @@ class GraphMerger:
                 base_index[_node_key(new_node.id, new_node.type, normalize=norm)] = new_node.id
                 remap[inc_id] = new_node.id
                 diff.added_nodes.append(new_node.id)
+                diff.node_merge_decisions.append(
+                    {
+                        "incoming_id": inc_id,
+                        "canonical_id": new_node.id,
+                        "match_type": "new_node",
+                        "normalized_key": list(key),
+                        "policy": "insert_new",
+                    }
+                )
                 continue
 
             # Match found by canonical key.
             self._fold_node_data(base.nodes[existing_id], inc_node)
             remap[inc_id] = existing_id
             diff.merged_nodes.append((existing_id, inc_id))
+            diff.node_merge_decisions.append(
+                {
+                    "incoming_id": inc_id,
+                    "canonical_id": existing_id,
+                    "match_type": "normalized_name",
+                    "normalized_key": list(key),
+                    "policy": self.strategy.node_policy.value,
+                }
+            )
 
         return remap
 
@@ -608,6 +650,12 @@ class GraphMerger:
             # raise otherwise.
             if new_source == new_target:
                 diff.skipped_edges.append((new_source, edge.relationship_type, new_target))
+                diff.edge_merge_decisions.append(
+                    {
+                        "edge": [new_source, edge.relationship_type, new_target],
+                        "action": "skip_self_loop",
+                    }
+                )
                 continue
 
             # Endpoints must exist in the base graph at this point.
@@ -631,6 +679,14 @@ class GraphMerger:
                 existing = base.edges[base_edge_index[key]]
                 self._fold_edge_data(existing, edge)
                 diff.skipped_edges.append((new_source, edge.relationship_type, new_target))
+                diff.edge_merge_decisions.append(
+                    {
+                        "edge": [new_source, edge.relationship_type, new_target],
+                        "action": "deduplicate",
+                        "policy": self.strategy.edge_policy.value,
+                        "source_ref": edge.metadata.get("source_ref"),
+                    }
+                )
                 continue
 
             # Carry the document_id forward as an edge-level source_ref so
@@ -658,6 +714,13 @@ class GraphMerger:
             diff.added_edges.append((new_source, edge.relationship_type, new_target))
             if rewritten:
                 diff.rewritten_edges.append((new_source, edge.relationship_type, new_target))
+            diff.edge_merge_decisions.append(
+                {
+                    "edge": [new_source, edge.relationship_type, new_target],
+                    "action": "add_rewritten" if rewritten else "add",
+                    "source_ref": new_metadata.get("source_ref"),
+                }
+            )
 
     def _fold_edge_data(self, existing: KGEdge, incoming: KGEdge) -> None:
         """Apply the configured edge policy to a duplicate edge."""
@@ -674,6 +737,8 @@ class GraphMerger:
             ref_entry["source_ref"] = incoming.metadata["source_ref"]
         if incoming.metadata.get("evidence"):
             ref_entry["evidence"] = incoming.metadata["evidence"]
+        if isinstance(incoming.metadata.get("provenance"), dict):
+            ref_entry["provenance"] = dict(incoming.metadata["provenance"])
         if incoming.confidence is not None:
             ref_entry["confidence"] = incoming.confidence
         if ref_entry and ref_entry not in evidence_refs:
@@ -743,6 +808,14 @@ class GraphMerger:
             "operation": "merge",
             "timestamp": now,
             **diff.summary(),
+            "diff": diff.to_dict(),
+            "strategy": {
+                "node_policy": self.strategy.node_policy.value,
+                "edge_policy": self.strategy.edge_policy.value,
+                "require_type_match": self.strategy.require_type_match,
+                "use_normalized_match": self.strategy.use_normalized_match,
+                "case_insensitive_relation": self.strategy.case_insensitive_relation,
+            },
         }
         if document_id:
             entry["document_id"] = document_id

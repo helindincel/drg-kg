@@ -1,6 +1,6 @@
-"""Deterministic KG query engine (NO RAG, NO LLM).
+"""Deterministic KG query engine.
 
-This module powers the UI "Query" box without turning DRG into a retrieval framework.
+This module powers the UI "Query" box with graph lookup only.
 It performs lightweight, explainable graph lookup:
 - entity name matching (case-insensitive substring + token overlap)
 - neighborhood expansion (incident edges)

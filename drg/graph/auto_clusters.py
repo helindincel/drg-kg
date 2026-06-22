@@ -1,6 +1,6 @@
 """Deterministic, dependency-light cluster generation for the UI.
 
-This project treats clustering as an *analysis* step (GraphRAG/retrieval is out of scope).
+This project treats clustering as an analysis step over extracted knowledge graphs.
 However, the UI "Communities" view requires clusters to exist. Many extracted KGs do not
 include clusters by default, so we provide a deterministic fallback that:
 

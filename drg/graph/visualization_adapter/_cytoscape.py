@@ -27,6 +27,25 @@ def _edge_key(edge: KGEdge) -> tuple[str, str, str, str]:
     return (edge.source, edge.target, edge.relationship_type, edge.relationship_detail)
 
 
+def _edge_detail_fields(edge: KGEdge) -> dict[str, Any]:
+    """Optional edge fields consumed by the browser details panel."""
+
+    out: dict[str, Any] = {}
+    if edge.confidence is not None:
+        out["confidence"] = edge.confidence
+    if edge.start_time:
+        out["start_time"] = edge.start_time
+        out["valid_from"] = edge.start_time
+    if edge.end_time:
+        out["end_time"] = edge.end_time
+        out["valid_to"] = edge.end_time
+    if edge.created_at:
+        out["created_at"] = edge.created_at
+    if edge.updated_at:
+        out["updated_at"] = edge.updated_at
+    return out
+
+
 def kg_to_cytoscape(
     kg: EnhancedKG,
     *,
@@ -238,6 +257,7 @@ def kg_to_cytoscape(
                                 "proxy_kind": "hub_split_edge",
                                 "hub": hub,
                             },
+                            **_edge_detail_fields(edge),
                         },
                         "style": {
                             "width": max(3, min(10, float(weight) * 5)),
@@ -270,6 +290,7 @@ def kg_to_cytoscape(
                     ),
                     "weight": float(weight),
                     "metadata": edge.metadata,
+                    **_edge_detail_fields(edge),
                 },
                 "style": {
                     "width": max(3, min(10, weight * 5)),

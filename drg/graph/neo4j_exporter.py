@@ -9,6 +9,7 @@ Exports EnhancedKG data to Neo4j graph database:
 """
 
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -32,6 +33,90 @@ class Neo4jConfig:
     database: str = "neo4j"
 
 
+@dataclass(frozen=True)
+class Neo4jSyncPlan:
+    """Dry-run summary of what a Neo4j sync would write."""
+
+    node_count: int
+    edge_count: int
+    cluster_count: int
+    similarity_edge_candidates: int
+    labels: list[str]
+    relationship_types: list[str]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "node_count": self.node_count,
+            "edge_count": self.edge_count,
+            "cluster_count": self.cluster_count,
+            "similarity_edge_candidates": self.similarity_edge_candidates,
+            "labels": self.labels,
+            "relationship_types": self.relationship_types,
+        }
+
+
+def sanitize_neo4j_identifier(value: str | None, *, fallback: str = "UNKNOWN") -> str:
+    """Return a safe Neo4j label/relationship identifier."""
+
+    cleaned = re.sub(r"[^0-9A-Za-z_]", "_", (value or "").strip())
+    cleaned = re.sub(r"_+", "_", cleaned).strip("_")
+    if not cleaned:
+        cleaned = fallback
+    if cleaned[0].isdigit():
+        cleaned = f"_{cleaned}"
+    return cleaned.upper()
+
+
+def validate_neo4j_config(config: Neo4jConfig | None) -> list[str]:
+    """Return human-readable config problems without opening a socket."""
+
+    if config is None:
+        return ["Neo4j configuration not provided"]
+
+    errors: list[str] = []
+    if not config.uri.strip():
+        errors.append("Neo4j URI is required")
+    if not config.uri.startswith(("bolt://", "neo4j://", "neo4j+s://", "neo4j+ssc://")):
+        errors.append("Neo4j URI must start with bolt://, neo4j://, neo4j+s://, or neo4j+ssc://")
+    if not config.user.strip():
+        errors.append("Neo4j user is required")
+    if not config.password:
+        errors.append("Neo4j password is required")
+    if not config.database.strip():
+        errors.append("Neo4j database is required")
+    return errors
+
+
+def build_neo4j_sync_plan(kg: EnhancedKG) -> Neo4jSyncPlan:
+    """Build a write-free sync preview for UX and CI checks."""
+
+    labels = {"ENTITY"}
+    for node in kg.nodes.values():
+        if node.type:
+            labels.add(sanitize_neo4j_identifier(node.type, fallback="ENTITY_TYPE"))
+
+    relationship_types = {
+        sanitize_neo4j_identifier(edge.relationship_type, fallback="RELATES_TO")
+        for edge in kg.edges
+    }
+    if kg.clusters:
+        relationship_types.add("MEMBER_OF")
+
+    nodes_with_embeddings = [node for node in kg.nodes.values() if node.embedding is not None]
+    similarity_candidates = max(
+        0, len(nodes_with_embeddings) * (len(nodes_with_embeddings) - 1) // 2
+    )
+
+    return Neo4jSyncPlan(
+        node_count=len(kg.nodes),
+        edge_count=len(kg.edges),
+        cluster_count=len(kg.clusters),
+        similarity_edge_candidates=similarity_candidates,
+        labels=sorted(labels),
+        relationship_types=sorted(relationship_types),
+    )
+
+
 class Neo4jExporter:
     """
     Neo4j exporter for EnhancedKG.
@@ -48,6 +133,9 @@ class Neo4jExporter:
         """
         if GraphDatabase is None:
             raise ImportError("neo4j package is required. Install with: pip install neo4j")
+        config_errors = validate_neo4j_config(config)
+        if config_errors:
+            raise ValueError("; ".join(config_errors))
 
         self.config = config
         self.driver = GraphDatabase.driver(config.uri, auth=(config.user, config.password))
@@ -95,6 +183,14 @@ class Neo4jExporter:
             similarity_edges_synced = self._sync_similarity_edges(session, kg)
 
             stats = {
+                "status": "success",
+                "created_or_updated": {
+                    "nodes": nodes_synced,
+                    "edges": edges_synced,
+                    "clusters": clusters_synced,
+                    "similarity_edges": similarity_edges_synced,
+                },
+                # Backward-compatible flat keys for existing callers.
                 "nodes_synced": nodes_synced,
                 "edges_synced": edges_synced,
                 "clusters_synced": clusters_synced,
@@ -117,7 +213,7 @@ class Neo4jExporter:
             # Build labels: use entity type as label, add "Entity" as base label
             labels = ["Entity"]
             if node.type:
-                labels.append(node.type)
+                labels.append(sanitize_neo4j_identifier(node.type, fallback="ENTITY_TYPE"))
 
             # Build properties
             properties = {
@@ -144,8 +240,9 @@ class Neo4jExporter:
             SET n = $properties
             """
             if node.type:
+                entity_label = labels[-1]
                 query = f"""
-                MERGE (n:Entity:{node.type} {{id: $id}})
+                MERGE (n:Entity:{entity_label} {{id: $id}})
                 SET n = $properties
                 """
 
@@ -192,7 +289,7 @@ class Neo4jExporter:
             # edges (``role:<name>``) and any other colon-bearing types are
             # collapsed to underscores so Cypher does not interpret the colon
             # as a label separator.
-            rel_type = edge.relationship_type.upper().replace(" ", "_").replace(":", "_")
+            rel_type = sanitize_neo4j_identifier(edge.relationship_type, fallback="RELATES_TO")
             query = f"""
             MATCH (source:Entity {{id: $source_id}})
             MATCH (target:Entity {{id: $target_id}})

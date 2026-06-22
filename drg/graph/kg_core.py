@@ -338,6 +338,109 @@ class EnhancedKG:
             raise ValueError("Source and target nodes must exist before adding edge")
         self.edges.append(edge)
 
+    def canonicalize_entities(
+        self,
+        name_mapping: dict[str, str],
+        *,
+        decisions: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Merge alias nodes into canonical nodes and rewrite edge endpoints.
+
+        ``name_mapping`` should map every observed mention to its canonical id,
+        as returned by :class:`drg.entity_resolution.EntityResolver`. The method
+        records aliases in node metadata so query/search surfaces can still find
+        merged mentions.
+        """
+        if not name_mapping:
+            return {"merged_nodes": 0, "removed_edges": 0, "aliases": {}}
+
+        aliases_by_canonical: dict[str, set[str]] = {}
+        for original, canonical in name_mapping.items():
+            if original == canonical:
+                continue
+            aliases_by_canonical.setdefault(canonical, set()).add(original)
+
+        merged_nodes = 0
+        for canonical, aliases in aliases_by_canonical.items():
+            canonical_node = self.nodes.get(canonical)
+            if canonical_node is None:
+                continue
+
+            meta = dict(canonical_node.metadata)
+            existing_aliases = set(meta.get("aliases", []) or [])
+            existing_aliases.update(aliases)
+            meta["aliases"] = sorted(existing_aliases, key=str.lower)
+            er_meta = dict(meta.get("entity_resolution", {}) or {})
+            er_meta["canonical"] = canonical
+            er_meta["aliases"] = meta["aliases"]
+            if decisions:
+                er_meta["decisions"] = [
+                    d
+                    for d in decisions
+                    if d.get("canonical") == canonical or d.get("original") == canonical
+                ]
+            meta["entity_resolution"] = er_meta
+
+            for alias in sorted(aliases, key=str.lower):
+                alias_node = self.nodes.get(alias)
+                if alias_node is None:
+                    continue
+                for key, value in alias_node.properties.items():
+                    canonical_node.properties.setdefault(key, value)
+                alias_meta = dict(alias_node.metadata)
+                alias_meta.pop("aliases", None)
+                for key, value in alias_meta.items():
+                    meta.setdefault(key, value)
+                del self.nodes[alias]
+                merged_nodes += 1
+
+            canonical_node.metadata = meta
+
+        rewritten_edges: list[KGEdge] = []
+        seen_edges: set[tuple[Any, ...]] = set()
+        removed_edges = 0
+        for edge in self.edges:
+            edge.source = name_mapping.get(edge.source, edge.source)
+            edge.target = name_mapping.get(edge.target, edge.target)
+            if edge.source == edge.target:
+                removed_edges += 1
+                continue
+            key = (
+                edge.source,
+                edge.relationship_type,
+                edge.target,
+                edge.relationship_detail,
+                edge.start_time,
+                edge.end_time,
+                edge.created_at,
+                edge.updated_at,
+            )
+            if key in seen_edges:
+                removed_edges += 1
+                continue
+            seen_edges.add(key)
+            rewritten_edges.append(edge)
+        self.edges = rewritten_edges
+
+        for cluster in self.clusters.values():
+            rewritten = {name_mapping.get(node_id, node_id) for node_id in cluster.node_ids}
+            cluster.node_ids = {node_id for node_id in rewritten if node_id in self.nodes}
+
+        er_summary = dict(self.metadata.get("entity_resolution", {}) or {})
+        er_summary["aliases"] = {
+            canonical: sorted(aliases, key=str.lower)
+            for canonical, aliases in aliases_by_canonical.items()
+            if canonical in self.nodes
+        }
+        er_summary["merged_nodes"] = int(er_summary.get("merged_nodes", 0)) + merged_nodes
+        self.metadata["entity_resolution"] = er_summary
+
+        return {
+            "merged_nodes": merged_nodes,
+            "removed_edges": removed_edges,
+            "aliases": er_summary["aliases"],
+        }
+
     def add_cluster(self, cluster: Cluster) -> None:
         """Add a cluster to the graph."""
         missing_nodes = cluster.node_ids - set(self.nodes.keys())

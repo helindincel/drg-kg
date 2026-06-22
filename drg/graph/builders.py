@@ -16,6 +16,7 @@ from typing import Any
 from ..confidence import ConfidenceStrategy, DefaultConfidenceStrategy
 from ..schema import DRGSchema, EnhancedDRGSchema
 from .kg_core import EnhancedKG, KGEdge, KGNode
+from .provenance import attach_provenance, find_text_provenance
 
 # Forward import only used for type hints; real import is local to avoid cycles.
 if False:  # pragma: no cover - typing only
@@ -32,7 +33,7 @@ def extract_evidence_snippet(
 ) -> str | None:
     """Extract a short, deterministic evidence snippet containing source & target.
 
-    This is NOT retrieval/RAG. It is a string-indexed snippet cut from the same input text.
+    It is a string-indexed snippet cut from the same input text.
     Conservative behavior: if we can't find a reasonable co-occurrence, return None.
     """
     if not full_text or not source or not target:
@@ -265,6 +266,11 @@ def build_enhanced_kg(
         for triple, sc in rel_scores.items():
             rel_score_map.setdefault(triple, sc.value)
 
+    try:
+        from .._version import __version__ as extractor_version
+    except Exception:  # pragma: no cover - only hit in unusual source checkouts
+        extractor_version = None
+
     # When a document_id is supplied, every node introduced from this build
     # gets a `source_documents` provenance list. The reasoning layer reads
     # this to understand which graph nodes were touched by which documents
@@ -272,12 +278,21 @@ def build_enhanced_kg(
     node_metadata_base: dict[str, Any] = {"source_documents": [document_id]} if document_id else {}
 
     for name, etype in entities_typed:
+        node_metadata = attach_provenance(
+            node_metadata_base,
+            find_text_provenance(
+                source_text,
+                (name,),
+                document_id=document_id,
+                extractor_version=extractor_version,
+            ),
+        )
         kg.add_node(
             KGNode(
                 id=name,
                 type=etype,
                 properties={},
-                metadata=dict(node_metadata_base),
+                metadata=node_metadata,
                 confidence=ent_score_map.get(name),
             )
         )
@@ -303,22 +318,40 @@ def build_enhanced_kg(
             # Synthetic node for a triple endpoint not present in entities_typed.
             # Apply any pre-computed confidence so even synthetic nodes
             # carry a score when available.
+            node_metadata = attach_provenance(
+                node_metadata_base,
+                find_text_provenance(
+                    source_text,
+                    (s,),
+                    document_id=document_id,
+                    extractor_version=extractor_version,
+                ),
+            )
             kg.add_node(
                 KGNode(
                     id=s,
                     type=entity_type_map.get(s),
                     properties={},
-                    metadata=dict(node_metadata_base),
+                    metadata=node_metadata,
                     confidence=ent_score_map.get(s),
                 )
             )
         if o not in kg.nodes:
+            node_metadata = attach_provenance(
+                node_metadata_base,
+                find_text_provenance(
+                    source_text,
+                    (o,),
+                    document_id=document_id,
+                    extractor_version=extractor_version,
+                ),
+            )
             kg.add_node(
                 KGNode(
                     id=o,
                     type=entity_type_map.get(o),
                     properties={},
-                    metadata=dict(node_metadata_base),
+                    metadata=node_metadata,
                     confidence=ent_score_map.get(o),
                 )
             )
@@ -361,6 +394,12 @@ def build_enhanced_kg(
         start_time: str | None = None
         end_time: str | None = None
         is_negated = False
+        edge_provenance = find_text_provenance(
+            source_text,
+            (s, o),
+            document_id=document_id,
+            extractor_version=extractor_version,
+        )
         if enriched_item:
             temporal = enriched_item.get("temporal")
             if isinstance(temporal, dict):
@@ -371,11 +410,25 @@ def build_enhanced_kg(
 
                     scope = TemporalScope.from_legacy_temporal(temporal)
                     if scope is not None:
-                        md["temporal"] = scope.to_dict()
+                        temporal_meta = scope.to_dict()
+                        if edge_provenance.snippet and "raw_text" not in temporal_meta:
+                            temporal_meta["raw_text"] = edge_provenance.snippet
+                        md["temporal"] = temporal_meta
+                        precision = temporal.get("precision")
+                        if isinstance(precision, str) and precision:
+                            md["temporal"]["precision"] = precision
             is_negated = bool(enriched_item.get("is_negated", False))
             existing_ref = enriched_item.get("source_ref")
             if isinstance(existing_ref, str) and existing_ref:
                 md["source_ref"] = existing_ref
+                edge_provenance = find_text_provenance(
+                    source_text,
+                    (s, o),
+                    document_id=existing_ref,
+                    extractor_version=extractor_version,
+                )
+
+        md = attach_provenance(md, edge_provenance)
 
         kg.add_edge(
             KGEdge(
