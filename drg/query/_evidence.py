@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..graph.provenance import provenance_from_metadata
 from ._types import EdgeView, EvidenceBundle, EvidenceItem, Provenance
 
 if TYPE_CHECKING:
@@ -27,6 +28,9 @@ def _is_inferred(edge: KGEdge) -> bool:
 def _source_ref(edge: KGEdge) -> str | None:
     if not edge.metadata:
         return None
+    prov = provenance_from_metadata(edge.metadata)
+    if prov.document_id:
+        return prov.document_id
     ref = edge.metadata.get("source_ref")
     return ref if isinstance(ref, str) and ref else None
 
@@ -43,7 +47,7 @@ def evidence_from_edge(edge: KGEdge) -> EvidenceItem:
     return EvidenceItem(
         triple=(edge.source, edge.relationship_type, edge.target),
         source_ref=_source_ref(edge),
-        snippet=edge.relationship_detail or None,
+        snippet=provenance_from_metadata(edge.metadata).snippet or edge.relationship_detail or None,
         confidence=edge.confidence,
         is_inferred=inferred,
         inference=inference,

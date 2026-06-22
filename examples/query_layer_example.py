@@ -6,7 +6,7 @@ Builds the same Apple / Beats / Jimmy Iovine multi-document KG used in
 the :class:`drg.query.GraphQuery` API:
 
 - entity lookup & fuzzy search
-- relationship & evidence retrieval
+- relationship & evidence lookup
 - multi-hop neighborhoods
 - path finding & explanation
 - community exploration

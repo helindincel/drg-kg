@@ -211,6 +211,33 @@ def test_find_paths_not_found_raises_for_missing_entity(gq_simple: GraphQuery):
 
 
 # ---------------------------------------------------------------------------
+# Graph analytics
+# ---------------------------------------------------------------------------
+
+
+def test_degree_centrality_ranks_bridge_node(gq_simple: GraphQuery):
+    scores = gq_simple.centrality(limit=2)
+    assert scores[0].metric == "degree_centrality"
+    assert scores[0].entity.id in {"Alice", "Bob", "Paris"}
+    assert scores[0].score > 0
+    assert scores[0].rank == 1
+
+
+def test_pagerank_returns_ranked_scores(gq_simple: GraphQuery):
+    scores = gq_simple.pagerank(limit=3, iterations=5)
+    assert len(scores) == 3
+    assert scores[0].score >= scores[-1].score
+    assert all(score.metric == "pagerank" for score in scores)
+
+
+def test_influence_scores_blend_graph_signals(gq_simple: GraphQuery):
+    scores = gq_simple.influence_scores(limit=3)
+    assert len(scores) == 3
+    assert scores[0].metric == "influence_score"
+    assert scores[0].details["degree"] >= 1
+
+
+# ---------------------------------------------------------------------------
 # Explain & reasoning integration
 # ---------------------------------------------------------------------------
 
@@ -298,6 +325,27 @@ def test_events_for_finds_event_nodes():
     events = gq.events_for("Apple")
     assert len(events) == 1
     assert events[0].event.id == "WWDC 2024"
+
+
+def test_events_for_normalizes_prefixed_event_node_types():
+    kg = EnhancedKG()
+    kg.add_node(KGNode(id="Apple", type="Company"))
+    kg.add_node(KGNode(id="evt-1", type="Event:Acquisition"))
+    kg.add_edge(
+        KGEdge(
+            source="evt-1",
+            target="Apple",
+            relationship_type="role:buyer",
+            relationship_detail="Acquisition event has buyer Apple",
+        )
+    )
+
+    gq = GraphQuery(kg)
+
+    assert [ev.event.id for ev in gq.events_for("Apple")] == ["evt-1"]
+    assert [ev.event.id for ev in gq.events_for("Apple", event_types=("Acquisition",))] == [
+        "evt-1"
+    ]
 
 
 # ---------------------------------------------------------------------------

@@ -14,9 +14,12 @@ if TYPE_CHECKING:
 __all__ = [
     "community_neighbors",
     "community_of",
+    "is_event_type",
+    "normalize_event_type",
     "related_entities",
 ]
 
+_EVENT_NODE_TYPE_PREFIX = "event:"
 _EVENT_TYPES = frozenset({"event", "acquisition", "merger", "launch", "announcement"})
 
 
@@ -261,4 +264,16 @@ def _related_by_degree(
 def is_event_type(type_name: str | None) -> bool:
     if not type_name:
         return False
-    return type_name.strip().lower() in _EVENT_TYPES
+    raw_type = type_name.strip().lower()
+    if raw_type.startswith(_EVENT_NODE_TYPE_PREFIX):
+        return bool(normalize_event_type(type_name))
+    return normalize_event_type(type_name) in _EVENT_TYPES
+
+
+def normalize_event_type(type_name: str | None) -> str:
+    if not type_name:
+        return ""
+    type_norm = type_name.strip().lower()
+    if type_norm.startswith(_EVENT_NODE_TYPE_PREFIX):
+        return type_norm[len(_EVENT_NODE_TYPE_PREFIX) :].strip()
+    return type_norm

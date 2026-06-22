@@ -104,12 +104,6 @@ answer = gq.search("companies related to Apple")
 
 Runnable demo: `python examples/query_layer_example.py`
 
-Hybrid graph + vector retrieval is available through `gq.hybrid_search(...)`.
-See [`docs/hybrid_retrieval.md`](hybrid_retrieval.md) and
-`python examples/hybrid_retrieval_example.py`.
-
----
-
 ## 3. API catalog
 
 ### `GraphQuery`

@@ -5,11 +5,17 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ._analytics import degree_centrality, influence_scores, pagerank
 from ._backend import QueryBackend
-from ._communities import community_neighbors, community_of, is_event_type, related_entities
+from ._communities import (
+    community_neighbors,
+    community_of,
+    is_event_type,
+    normalize_event_type,
+    related_entities,
+)
 from ._evidence import edge_to_view, evidence_bundle_for_triple, node_to_view
 from ._explain import build_explanation
-from ._hybrid import hybrid_search
 from ._memory import InMemoryBackend
 from ._search import find_entities, search_graph
 from ._temporal import (
@@ -19,6 +25,7 @@ from ._temporal import (
     temporal_changes_between,
     temporal_conflicts,
     temporal_overlaps,
+    temporal_query_text,
     temporal_timeline,
 )
 from ._traversal import bfs_neighborhood, find_paths, shortest_path
@@ -30,9 +37,8 @@ from ._types import (
     EventView,
     EvidenceBundle,
     Explanation,
+    GraphMetricScore,
     GraphPath,
-    HybridRankingWeights,
-    HybridSearchResult,
     NeighborhoodView,
     Provenance,
     QueryAnswer,
@@ -42,7 +48,6 @@ from ._types import (
 
 if TYPE_CHECKING:
     from ..graph.kg_core import EnhancedKG
-    from ._vector import VectorStore
 
 __all__ = ["GraphQuery"]
 
@@ -63,16 +68,12 @@ class GraphQuery:
         kg: EnhancedKG,
         *,
         backend: QueryBackend | None = None,
-        vector_store: VectorStore | None = None,
-        embedding_provider=None,
     ) -> None:
         from ..graph.kg_core import EnhancedKG as _EnhancedKG
 
         if not isinstance(kg, _EnhancedKG):
             raise TypeError("GraphQuery requires an EnhancedKG instance")
         self._backend: QueryBackend = backend or InMemoryBackend(kg)
-        self._vector_store = vector_store
-        self._embedding_provider = embedding_provider
 
     @classmethod
     def from_json(cls, filepath: str | Path) -> GraphQuery:
@@ -206,6 +207,56 @@ class GraphQuery:
         return shortest_path(self._backend, source, target, **kwargs)
 
     # ------------------------------------------------------------------
+    # Graph analytics
+    # ------------------------------------------------------------------
+
+    def centrality(
+        self,
+        *,
+        metric: str = "degree",
+        limit: int = 10,
+        include_inferred: bool = True,
+    ) -> list[GraphMetricScore]:
+        """Rank entities by a centrality metric."""
+        if metric not in {"degree", "degree_centrality"}:
+            raise QueryError(f"Unsupported centrality metric: {metric!r}")
+        return degree_centrality(
+            self._backend,
+            limit=limit,
+            include_inferred=include_inferred,
+        )
+
+    def pagerank(
+        self,
+        *,
+        limit: int = 10,
+        iterations: int = 30,
+        damping: float = 0.85,
+        include_inferred: bool = True,
+    ) -> list[GraphMetricScore]:
+        """Rank entities by PageRank."""
+        return pagerank(
+            self._backend,
+            limit=limit,
+            iterations=iterations,
+            damping=damping,
+            include_inferred=include_inferred,
+        )
+
+    def influence_scores(
+        self,
+        *,
+        limit: int = 10,
+        include_inferred: bool = True,
+    ) -> list[GraphMetricScore]:
+        """Rank entities by blended PageRank + degree influence."""
+        return influence_scores(
+            self._backend,
+            limit=limit,
+            include_inferred=include_inferred,
+        )
+
+    # ------------------------------------------------------------------
     # Explanation & events
     # ------------------------------------------------------------------
 
@@ -244,7 +295,7 @@ class GraphQuery:
         if self._backend.get_node(entity_id) is None:
             raise QueryError(f"Entity not found: {entity_id!r}")
 
-        allowed = {t.strip().lower() for t in event_types} if event_types else None
+        allowed = {normalize_event_type(t) for t in event_types} if event_types else None
 
         events: list[EventView] = []
         for edge in self._backend.edges_incident(
@@ -256,7 +307,7 @@ class GraphQuery:
             node = self._backend.get_node(other)
             if node is None:
                 continue
-            type_lower = (node.type or "").strip().lower()
+            type_lower = normalize_event_type(node.type)
             if allowed is not None:
                 if type_lower not in allowed:
                     continue
@@ -344,40 +395,6 @@ class GraphQuery:
         """Alias for :meth:`search` (``graph.query(...)`` ergonomics)."""
         return self.search(text, **kwargs)
 
-    def hybrid_search(
-        self,
-        query: str,
-        *,
-        limit: int = 10,
-        vector_limit: int = 10,
-        graph_seed_limit: int = 8,
-        max_hops: int = 2,
-        include_inferred: bool = True,
-        weights: HybridRankingWeights | None = None,
-        vector_store: VectorStore | None = None,
-        embedding_provider=None,
-        query_embedding: list[float] | None = None,
-    ) -> list[HybridSearchResult]:
-        """Hybrid graph + vector retrieval with transparent ranking.
-
-        Vector retrieval is optional. If no vector store and query embedding
-        source are provided, the method falls back to graph-only retrieval while
-        returning the same explainable result shape.
-        """
-        return hybrid_search(
-            self._backend,
-            query,
-            vector_store=vector_store or self._vector_store,
-            embedding_provider=embedding_provider or self._embedding_provider,
-            query_embedding=query_embedding,
-            limit=limit,
-            vector_limit=vector_limit,
-            graph_seed_limit=graph_seed_limit,
-            max_hops=max_hops,
-            include_inferred=include_inferred,
-            weights=weights,
-        )
-
     # ------------------------------------------------------------------
     # Temporal queries
     # ------------------------------------------------------------------
@@ -418,6 +435,17 @@ class GraphQuery:
             target,
             relationship_type,
             as_of,
+            include_inferred=include_inferred,
+        )
+
+    def temporal_query(self, text: str, *, include_inferred: bool = True) -> list[EdgeView]:
+        """Parse a compact natural temporal query.
+
+        Example: ``gq.temporal_query("Apple CEO in 2008")``.
+        """
+        return temporal_query_text(
+            self._backend,
+            text,
             include_inferred=include_inferred,
         )
 

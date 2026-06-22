@@ -100,6 +100,21 @@ def _score_entity(
     return score, tuple(reasons)
 
 
+def _score_aliases(
+    aliases: Sequence[str],
+    query_norm: str,
+    query_tokens: Sequence[str],
+) -> tuple[float, tuple[str, ...]]:
+    best_score = 0.0
+    best_reasons: tuple[str, ...] = ()
+    for alias in aliases:
+        score, reasons = _score_entity(alias, query_norm, query_tokens)
+        if score > best_score:
+            best_score = score
+            best_reasons = tuple(f"alias_{reason}" for reason in reasons)
+    return best_score, best_reasons
+
+
 def find_entities(
     backend: QueryBackend,
     query: str,
@@ -120,6 +135,14 @@ def find_entities(
         if type_norm and _normalize(node.type or "") != type_norm:
             continue
         s, reasons = _score_entity(node_id, query_norm, query_tokens)
+        alias_score, alias_reasons = _score_aliases(
+            [str(a) for a in (node.metadata.get("aliases", []) or [])],
+            query_norm,
+            query_tokens,
+        )
+        if alias_score > s:
+            s = alias_score
+            reasons = alias_reasons
         if s > 0:
             scored.append((s, node_id, reasons))
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 from ..temporal import (
@@ -23,11 +24,14 @@ if TYPE_CHECKING:
 __all__ = [
     "relations_active_at",
     "role_holders_at",
+    "temporal_query_text",
     "temporal_changes_between",
     "temporal_conflicts",
     "temporal_overlaps",
     "temporal_timeline",
 ]
+
+_DATE_RE = r"(\d{4}(?:-\d{2})?(?:-\d{2})?)"
 
 
 def relations_active_at(
@@ -69,6 +73,59 @@ def role_holders_at(
         relationship_type=relationship_type,
         include_inferred=include_inferred,
     )
+
+
+def temporal_query_text(
+    backend: QueryBackend,
+    text: str,
+    *,
+    include_inferred: bool = True,
+) -> list[EdgeView]:
+    """Parse a small natural temporal query into active relationship lookup.
+
+    Supported examples:
+    - ``Apple CEO in 2008`` -> ``CEO_OF`` edges targeting ``Apple``
+    - ``who was CEO of Apple in 2008``
+    """
+    parsed = _parse_temporal_query(text)
+    if parsed is None:
+        return []
+    target, relationship_type, as_of = parsed
+    return role_holders_at(
+        backend,
+        target,
+        relationship_type,
+        as_of,
+        include_inferred=include_inferred,
+    )
+
+
+def _parse_temporal_query(text: str) -> tuple[str, str, str] | None:
+    q = " ".join((text or "").strip().split())
+    if not q:
+        return None
+
+    question = re.match(
+        rf"(?i)^(?:who\s+(?:was|is)\s+)?(.+?)\s+of\s+(.+?)\s+in\s+{_DATE_RE}$",
+        q,
+    )
+    if question:
+        role, target, as_of = question.group(1), question.group(2), question.group(3)
+        return target.strip(), _role_to_relation(role), as_of
+
+    compact = re.match(rf"(?i)^(.+?)\s+([A-Za-z][A-Za-z0-9_-]*)\s+in\s+{_DATE_RE}$", q)
+    if compact:
+        target, role, as_of = compact.group(1), compact.group(2), compact.group(3)
+        return target.strip(), _role_to_relation(role), as_of
+
+    return None
+
+
+def _role_to_relation(role: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9_]+", "_", role.strip()).strip("_").upper()
+    if cleaned.endswith("_OF"):
+        return cleaned
+    return f"{cleaned}_OF"
 
 
 def temporal_timeline(

@@ -27,17 +27,13 @@ __all__ = [
     "EvidenceBundle",
     "EvidenceItem",
     "Explanation",
+    "GraphMetricScore",
     "GraphPath",
-    "HybridRankingWeights",
-    "HybridSearchExplanation",
-    "HybridSearchResult",
     "NeighborhoodView",
     "Provenance",
     "QueryAnswer",
     "QueryError",
     "RelatedEntityMatch",
-    "VectorChunkHit",
-    "VectorDocumentChunk",
 ]
 
 
@@ -219,6 +215,26 @@ class GraphPath:
 
 
 @dataclass(frozen=True)
+class GraphMetricScore:
+    """Ranked graph analytics score for one entity."""
+
+    entity: EntityView
+    metric: str
+    score: float
+    rank: int
+    details: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "entity": self.entity.to_dict(),
+            "metric": self.metric,
+            "score": self.score,
+            "rank": self.rank,
+            "details": dict(self.details),
+        }
+
+
+@dataclass(frozen=True)
 class NeighborhoodView:
     """Entities and edges reachable within N hops from a seed."""
 
@@ -366,107 +382,3 @@ class QueryAnswer:
         }
 
 
-# ---------------------------------------------------------------------------
-# Vector and hybrid retrieval
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class VectorDocumentChunk:
-    """A source document chunk that can be indexed for semantic retrieval."""
-
-    chunk_id: str
-    text: str
-    document_id: str | None = None
-    metadata: dict[str, Any] = field(default_factory=dict)
-    embedding: list[float] | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        out: dict[str, Any] = {
-            "chunk_id": self.chunk_id,
-            "text": self.text,
-            "metadata": dict(self.metadata),
-        }
-        if self.document_id is not None:
-            out["document_id"] = self.document_id
-        if self.embedding is not None:
-            out["embedding"] = list(self.embedding)
-        return out
-
-
-@dataclass(frozen=True)
-class VectorChunkHit:
-    """A semantically retrieved document chunk."""
-
-    chunk: VectorDocumentChunk
-    score: float
-    reason: str = "vector_similarity"
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "chunk": self.chunk.to_dict(),
-            "score": self.score,
-            "reason": self.reason,
-        }
-
-
-@dataclass(frozen=True)
-class HybridRankingWeights:
-    """Weights used by hybrid retrieval ranking."""
-
-    graph_relevance: float = 0.35
-    vector_similarity: float = 0.25
-    confidence: float = 0.15
-    evidence_quality: float = 0.15
-    hop_closeness: float = 0.10
-
-    def to_dict(self) -> dict[str, float]:
-        return {
-            "graph_relevance": self.graph_relevance,
-            "vector_similarity": self.vector_similarity,
-            "confidence": self.confidence,
-            "evidence_quality": self.evidence_quality,
-            "hop_closeness": self.hop_closeness,
-        }
-
-
-@dataclass(frozen=True)
-class HybridSearchExplanation:
-    """Why a hybrid result was retrieved and ranked."""
-
-    why: tuple[str, ...] = ()
-    graph_structures: tuple[str, ...] = ()
-    document_chunks: tuple[str, ...] = ()
-    evidence: tuple[EvidenceItem, ...] = ()
-    ranking_components: dict[str, float] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "why": list(self.why),
-            "graph_structures": list(self.graph_structures),
-            "document_chunks": list(self.document_chunks),
-            "evidence": [e.to_dict() for e in self.evidence],
-            "ranking_components": dict(self.ranking_components),
-        }
-
-
-@dataclass(frozen=True)
-class HybridSearchResult:
-    """A merged graph/vector retrieval hit."""
-
-    entity: EntityView
-    score: float
-    graph_edges: tuple[EdgeView, ...] = ()
-    events: tuple[EventView, ...] = ()
-    document_chunks: tuple[VectorChunkHit, ...] = ()
-    explanation: HybridSearchExplanation = field(default_factory=HybridSearchExplanation)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "entity": self.entity.to_dict(),
-            "score": self.score,
-            "graph_edges": [e.to_dict() for e in self.graph_edges],
-            "events": [e.to_dict() for e in self.events],
-            "document_chunks": [h.to_dict() for h in self.document_chunks],
-            "explanation": self.explanation.to_dict(),
-        }
