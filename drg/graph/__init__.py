@@ -73,13 +73,6 @@ from .relationship_model import (
     RelationshipTypeClassifier,
     create_enriched_relationship,
 )
-from .schema_generator import (
-    DatasetAgnosticSchemaGenerator,
-    EntityClassDefinition,
-    PropertyDefinition,
-    create_default_schema,
-)
-
 # Graph validation
 from .validation import (
     ValidationIssue,
@@ -122,11 +115,9 @@ __all__ = [
     "Cluster",
     "CommunityReport",
     "CommunityReportGenerator",
-    "DatasetAgnosticSchemaGenerator",
     "EdgeMergePolicy",
     "EnhancedKG",
     "EnrichedRelationship",
-    "EntityClassDefinition",
     "GraphMerger",
     "GraphVersion",
     "KGDiff",
@@ -138,7 +129,6 @@ __all__ = [
     "Neo4jExporter",
     "Neo4jSyncPlan",
     "NodeMergePolicy",
-    "PropertyDefinition",
     "ProvenanceEdge",
     "ProvenanceGraph",
     "ProvenanceNode",
@@ -153,7 +143,6 @@ __all__ = [
     "apply_hub_relation_proxy_split",
     "attach_provenance",
     "build_neo4j_sync_plan",
-    "create_default_schema",
     "create_enriched_relationship",
     "create_snapshot",
     "diff_graph_data",

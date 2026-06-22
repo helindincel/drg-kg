@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
+from ..graph.query_engine import execute_query
 from ._evidence import edge_to_view, node_to_view
 from ._types import EntityMatch, QueryAnswer
-from .query_engine_compat import execute_query_compat
 
 if TYPE_CHECKING:
     from ._backend import QueryBackend
@@ -191,7 +191,7 @@ def search_graph(
     """
     from ._types import Provenance
 
-    result = execute_query_compat(backend.kg, query, k_entities=k_entities, k_edges=k_edges)
+    result = execute_query(backend.kg, query, k_entities=k_entities, k_edges=k_edges)
 
     edge_views = []
     matched_entities: set[str] = set(result.seed_entities)
