@@ -110,8 +110,18 @@ jobs:
     # Final-release tags only: vX.Y.Z without an alpha/beta/rc suffix.
     # Manual dispatch with target=pypi also fires it.
     if: |
-      (startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, 'a') && !contains(github.ref, 'b') && !contains(github.ref, 'rc')) ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
+      always() &&
+      needs.build.result == 'success' &&
+      (
+        (
+          startsWith(github.ref, 'refs/tags/v') &&
+          !contains(github.ref_name, 'a') &&
+          !contains(github.ref_name, 'b') &&
+          !contains(github.ref_name, 'rc') &&
+          needs.publish-testpypi.result == 'success'
+        ) ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
+      )
     environment:
       name: pypi
       url: https://pypi.org/project/drg-kg/

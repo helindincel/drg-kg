@@ -9,7 +9,7 @@ name = "drg-kg"
 dynamic = ["version"]
 description = "Declarative Relationship Generation (DRG) - schema-driven Knowledge Graph extraction"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
 license = "MIT"
 authors = [{name = "Helin Dinçel"}]
 keywords = ["knowledge-graph", "dspy", "nlp", "kg-extraction", "graph"]
@@ -25,7 +25,6 @@ classifiers = [
 ]
 dependencies = [
     # Core dependencies (always required)
-    "dspy>=2.5.0,<3.0.0",  # TypedPredictor requires 2.5+, stay within 2.x API
     "pydantic>=2.0.0,<3.0.0",  # Used by DSPy TypedPredictor and schema models; cap at <3 until migration
 ]
 
@@ -44,6 +43,14 @@ Security = "https://github.com/helindincel/drg-kg/security/advisories"
 #   pip install -e ".[all]"          # Everything
 #   pip install -e ".[dev]"          # Developer tooling (lint, type, test)
 # -------------------------------------------------------------------------
+
+# DSPy-backed extraction
+dspy = [
+    "dspy>=2.5.0,<3.0.0",  # TypedPredictor requires 2.5+, stay within 2.x API
+]
+extract = [
+    "dspy>=2.5.0,<3.0.0",
+]
 
 # Graph persistence with Neo4j
 neo4j = [
@@ -102,10 +109,15 @@ coreference = [
 # Official MCP (Model Context Protocol) server support
 mcp = [
     "mcp>=1.0.0",
+    # Keep the MCP SDK's Starlette dependency compatible with FastAPI's
+    # current <0.49 constraint when users install API and MCP together.
+    "starlette>=0.40.0,<0.49.0",
+    "sse-starlette>=1.6.1,<3.0.0",
 ]
 
 # Convenience meta-extra
 all = [
+    "dspy>=2.5.0,<3.0.0",
     "neo4j>=5.0.0",
     "fastapi>=0.100.0",
     "uvicorn[standard]>=0.23.0",
@@ -120,12 +132,16 @@ all = [
     "spacy>=3.7.0",
     "coreferee>=1.0.0",
     "mcp>=1.0.0",
+    "starlette>=0.40.0,<0.49.0",
+    "sse-starlette>=1.6.1,<3.0.0",
 ]
 
 # Developer tooling: linting, type checking, testing, pre-commit
 dev = [
+    "dspy>=2.5.0,<3.0.0",
     "pytest>=7.0.0",
     "pytest-cov>=4.1.0",
+    "httpx>=0.24.0",
     "ruff>=0.4.0",
     "mypy>=1.8.0",
     "pre-commit>=3.5.0",
@@ -177,6 +193,7 @@ exclude = ["inputs*", "outputs*", "docs*", "examples*", "tests*"]
 # annotations the source already carries. Without this file the type
 # information is silently dropped at install time.
 drg = ["py.typed"]
+"drg.api" = ["templates/*.html", "static/**/*"]
 
 # -----------------------------------------------------------------------------
 # Pytest
