@@ -3,9 +3,8 @@
 
 These tests deliberately import only from ``drg.graph.*`` and
 ``drg.entity_resolution`` so they can run even when the environment-level
-DSPy install is broken (the pre-existing
-``drg.extract``-via-DSPy circular import noted in ``STATUS.md`` should
-never block the incremental layer's regression suite).
+DSPy install is broken. Extraction import issues should never block the
+incremental layer's regression suite.
 
 Coverage targets
 ----------------

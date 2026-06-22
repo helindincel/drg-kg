@@ -8,8 +8,8 @@ concerns:
 3. Optional embedding-based scoring + caching.
 
 This module exposes a small :class:`SimilarityStrategy` ABC so the resolver
-can be wired with either pure-string similarity (no extra deps, fast) or a
-hybrid string+embedding strategy (more accurate for surface variations).
+can be wired with either pure-string similarity (no extra deps, fast) or an
+embedding-assisted string strategy (more accurate for surface variations).
 Adding a new backend — e.g. an LLM-based judge — is a matter of subclassing
 :class:`SimilarityStrategy`; the resolver doesn't need to change.
 """
@@ -26,7 +26,7 @@ from ._similarity import cosine_similarity, similarity_score
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "HybridSimilarity",
+    "EmbeddingSimilarity",
     "SimilarityStrategy",
     "StringSimilarity",
 ]
@@ -49,7 +49,7 @@ class StringSimilarity(SimilarityStrategy):
     """Pure string similarity (no embedding provider needed).
 
     Cheap, deterministic, and a safe default. Falls back here automatically
-    when ``HybridSimilarity``'s embedding call fails.
+    when ``EmbeddingSimilarity``'s embedding call fails.
     """
 
     def __init__(self, *, use_normalization: bool = True):
@@ -65,7 +65,7 @@ class StringSimilarity(SimilarityStrategy):
         return normalize_entity_name(name1), normalize_entity_name(name2)
 
 
-class HybridSimilarity(StringSimilarity):
+class EmbeddingSimilarity(StringSimilarity):
     """Combine string similarity with embedding cosine similarity.
 
     The two signals are blended via ``embedding_weight``:

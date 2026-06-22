@@ -75,8 +75,8 @@ class TestSampleTextForSchemaGeneration:
         assert "HEADMARKER" in result
         assert "TAILMARKER" in result
 
-    def test_target_coverage_env_override(self, monkeypatch):
-        monkeypatch.setenv("DRG_SCHEMA_TARGET_COVERAGE", "0.10")
+    def test_sample_fraction_env_override(self, monkeypatch):
+        monkeypatch.setenv("DRG_SCHEMA_SAMPLE_FRACTION", "0.10")
         monkeypatch.setenv("DRG_SCHEMA_MAX_SAMPLE_CHARS", "50000")
         text = "y" * 200_000
         result = _sample_text_for_schema_generation(text)
@@ -87,48 +87,65 @@ class TestSampleTextForSchemaGeneration:
 class _StubPrediction:
     """Stand-in for a DSPy ``Prediction`` returned by ``TypedPredictor``."""
 
-    def __init__(self, generated_schema: str):
-        self.generated_schema = generated_schema
+    def __init__(
+        self,
+        *,
+        entity_types=None,
+        relation_groups=None,
+        generated_schema: str | None = None,
+    ):
+        self.entity_types = entity_types
+        self.relation_groups = relation_groups
+        if generated_schema is not None:
+            self.generated_schema = generated_schema
 
 
-_VALID_SCHEMA_JSON = json.dumps(
-    {
-        "entity_types": [
-            {"name": "Person", "description": "People", "examples": ["Alice"]},
-            {"name": "Company", "description": "Orgs", "examples": ["ACME"]},
-        ],
-        "relation_groups": [
-            {
-                "name": "employment",
-                "description": "Employment relations",
-                "relations": [
-                    {
-                        "name": "works_at",
-                        "source": "Person",
-                        "target": "Company",
-                        "description": "Person works at Company",
-                    }
-                ],
-            }
-        ],
-    }
-)
+_VALID_SCHEMA_PAYLOAD = {
+    "entity_types": [
+        {"name": "Person", "description": "People", "examples": ["Alice"]},
+        {"name": "Company", "description": "Orgs", "examples": ["ACME"]},
+    ],
+    "relation_groups": [
+        {
+            "name": "employment",
+            "description": "Employment relations",
+            "relations": [
+                {
+                    "name": "works_at",
+                    "source": "Person",
+                    "target": "Company",
+                    "description": "Person works at Company",
+                }
+            ],
+        }
+    ],
+}
 
 
-def _patched_dspy(*, schema_str: str, raise_on_call: Exception | None = None):
+def _patched_dspy(
+    *,
+    payload: dict | None = None,
+    legacy_schema_str: str | None = None,
+    raise_on_call: Exception | None = None,
+):
     """Build a ``patch`` context for ``dspy`` inside ``_schema_gen``.
 
     The real module is replaced with a SimpleNamespace exposing only the
-    surface ``generate_schema_from_text`` actually touches: ``TypedPredictor``
-    (which we mock as a callable returning a ``_StubPrediction``) and
-    ``ChainOfThought`` (fallback when ``TypedPredictor`` is missing).
+    surface ``generate_schema_from_text`` touches. The happy path returns
+    typed fields; `legacy_schema_str` exercises the compatibility fallback.
     """
 
     def _make_predictor(*_args, **_kwargs):
         def _call(*, text):
             if raise_on_call is not None:
                 raise raise_on_call
-            return _StubPrediction(schema_str)
+            if legacy_schema_str is not None:
+                return _StubPrediction(generated_schema=legacy_schema_str)
+            payload_data = payload or {}
+            return _StubPrediction(
+                entity_types=payload_data.get("entity_types"),
+                relation_groups=payload_data.get("relation_groups"),
+            )
 
         return _call
 
@@ -144,19 +161,19 @@ def _patched_dspy(*, schema_str: str, raise_on_call: Exception | None = None):
 
 class TestGenerateSchemaFromText:
     def test_happy_path_returns_enhanced_schema(self):
-        with _patched_dspy(schema_str=_VALID_SCHEMA_JSON):
+        with _patched_dspy(payload=_VALID_SCHEMA_PAYLOAD):
             schema = generate_schema_from_text("Alice works at ACME.")
         assert isinstance(schema, EnhancedDRGSchema)
         assert any(et.name == "Person" for et in schema.entity_types)
         assert any(et.name == "Company" for et in schema.entity_types)
-        # Reverse-relation enrichment ran: "works_at" yields "employs".
         all_relations = {r.name for rg in schema.relation_groups for r in rg.relations}
         assert "works_at" in all_relations
+        assert "employs" not in all_relations
 
     def test_dspy_failure_raises_schema_generation_error(self):
         with (
             _patched_dspy(
-                schema_str="",
+                payload={},
                 raise_on_call=RuntimeError("LLM timeout"),
             ),
             pytest.raises(SchemaGenerationError, match="Schema generation failed"),
@@ -166,15 +183,15 @@ class TestGenerateSchemaFromText:
     def test_invalid_json_raises_schema_generation_error(self):
         with (
             _patched_dspy(
-                schema_str="not really json {{{",
+                legacy_schema_str="not really json {{{",
             ),
-            pytest.raises(SchemaGenerationError, match="Schema JSON parsing failed"),
+            pytest.raises(SchemaGenerationError, match="Legacy schema JSON parsing failed"),
         ):
             generate_schema_from_text("Some text.")
 
     def test_empty_schema_raises_schema_generation_error(self):
         with (
-            _patched_dspy(schema_str="{}"),
+            _patched_dspy(payload={}),
             pytest.raises(SchemaGenerationError, match="empty schema"),
         ):
             generate_schema_from_text("Some text.")
@@ -198,7 +215,7 @@ class TestGenerateSchemaFromText:
                 ],
             }
         )
-        with _patched_dspy(schema_str=legacy_payload):
+        with _patched_dspy(legacy_schema_str=legacy_payload):
             schema = generate_schema_from_text("Sample text.")
         assert isinstance(schema, EnhancedDRGSchema)
         # Legacy conversion lumps everything under a single "general" group.
@@ -211,10 +228,9 @@ class TestGenerateSchemaFromText:
                 "relations": [],
             }
         )
-        with _patched_dspy(schema_str=legacy_payload), pytest.raises(SchemaGenerationError):
+        with _patched_dspy(legacy_schema_str=legacy_payload), pytest.raises(SchemaGenerationError):
             generate_schema_from_text("Sample text.")
 
     def test_unrecognized_shape_raises(self):
-        payload = json.dumps({"foo": "bar"})
-        with _patched_dspy(schema_str=payload), pytest.raises(SchemaGenerationError):
+        with _patched_dspy(payload={"foo": "bar"}), pytest.raises(SchemaGenerationError):
             generate_schema_from_text("Sample text.")

@@ -14,11 +14,63 @@ only the seams changed:
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from ..utils.logging import get_logger
 from ._normalize import normalize_entity_name
 from ._strategy import SimilarityStrategy, StringSimilarity
 
 logger = get_logger(__name__)
+
+
+@dataclass(frozen=True)
+class MergeDecision:
+    """Traceable canonicalization decision for one entity mention."""
+
+    original: str
+    canonical: str
+    entity_type: str
+    aliases: tuple[str, ...] = ()
+    reason: str = "entity_resolution"
+    score: float | None = None
+
+    @property
+    def merged(self) -> bool:
+        return self.original != self.canonical
+
+    def to_dict(self) -> dict[str, object]:
+        out: dict[str, object] = {
+            "original": self.original,
+            "canonical": self.canonical,
+            "entity_type": self.entity_type,
+            "aliases": list(self.aliases),
+            "reason": self.reason,
+            "merged": self.merged,
+        }
+        if self.score is not None:
+            out["score"] = self.score
+        return out
+
+
+@dataclass(frozen=True)
+class EntityResolutionResult:
+    """Explainable entity resolution output."""
+
+    entities: tuple[tuple[str, str], ...]
+    name_mapping: dict[str, str]
+    alias_index: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    decisions: tuple[MergeDecision, ...] = ()
+
+    def aliases_for(self, canonical: str) -> tuple[str, ...]:
+        return self.alias_index.get(canonical, ())
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "entities": [list(e) for e in self.entities],
+            "name_mapping": dict(self.name_mapping),
+            "alias_index": {k: list(v) for k, v in self.alias_index.items()},
+            "decisions": [d.to_dict() for d in self.decisions],
+        }
 
 
 class EntityResolver:
@@ -117,8 +169,13 @@ class EntityResolver:
         sends every original mention to its canonical form (chosen as the
         longest variant in a group — usually the most complete name).
         """
+        result = self.resolve_detailed(entities)
+        return list(result.entities), result.name_mapping
+
+    def resolve_detailed(self, entities: list[tuple[str, str]]) -> EntityResolutionResult:
+        """Group duplicates and return canonical aliases plus merge decisions."""
         if not entities:
-            return [], {}
+            return EntityResolutionResult(entities=(), name_mapping={})
 
         entities_by_type: dict[str, list[tuple[str, str]]] = {}
         for name, etype in entities:
@@ -131,11 +188,36 @@ class EntityResolver:
             all_resolved.extend(resolved)
             name_mapping.update(mapping)
 
+        type_by_name = {name: etype for name, etype in entities}
+        alias_index: dict[str, tuple[str, ...]] = {}
+        aliases_by_canonical: dict[str, list[str]] = {}
+        for original, canonical in name_mapping.items():
+            if original != canonical:
+                aliases_by_canonical.setdefault(canonical, []).append(original)
+        for canonical, aliases in aliases_by_canonical.items():
+            alias_index[canonical] = tuple(sorted(set(aliases), key=str.lower))
+
+        decisions = tuple(
+            MergeDecision(
+                original=original,
+                canonical=canonical,
+                entity_type=type_by_name.get(original, ""),
+                aliases=alias_index.get(canonical, ()),
+                reason="canonical_alias" if original != canonical else "canonical_identity",
+            )
+            for original, canonical in sorted(name_mapping.items(), key=lambda item: item[0].lower())
+        )
+
         logger.info(
             f"Entity resolution: {len(entities)} entities -> {len(all_resolved)} unique entities "
             f"({len(entities) - len(all_resolved)} duplicates resolved)"
         )
-        return all_resolved, name_mapping
+        return EntityResolutionResult(
+            entities=tuple(all_resolved),
+            name_mapping=name_mapping,
+            alias_index=alias_index,
+            decisions=decisions,
+        )
 
     def resolve_relations(
         self,
@@ -294,4 +376,4 @@ class EntityResolver:
         return resolved, name_mapping
 
 
-__all__ = ["EntityResolver", "StringSimilarity"]
+__all__ = ["EntityResolutionResult", "EntityResolver", "MergeDecision", "StringSimilarity"]

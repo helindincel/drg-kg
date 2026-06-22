@@ -1,8 +1,7 @@
 """Deterministic cross-chunk context selection.
 
-NOTE: This is **not** retrieval/RAG. The helpers here only reuse text that has
-already been ingested as part of the input document, using string-indexed
-selection based on entity mentions. There is no embedding or external retrieval.
+The helpers here only reuse text that has already been ingested as part of the
+input document, using string-indexed selection based on entity mentions.
 """
 
 from __future__ import annotations

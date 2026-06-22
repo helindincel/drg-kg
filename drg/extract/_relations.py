@@ -1,8 +1,7 @@
 """Relation helpers: schema normalization, reverse-relation handling.
 
-These helpers are domain-agnostic and contain the canonical reverse-relation
-pattern table used across the extraction pipeline (also referenced by
-`extract_typed` and `_add_reverse_relations`).
+These helpers contain an optional reverse-relation pattern table. The table is
+kept for explicit compatibility paths, not as the default extraction contract.
 """
 
 from __future__ import annotations
@@ -14,10 +13,8 @@ from ..schema import DRGSchema, EnhancedDRGSchema, EntityType, Relation, Relatio
 logger = logging.getLogger(__name__)
 
 
-# Canonical bidirectional relation patterns. Used by:
-#   - `_add_reverse_relations` to enrich generated schemas
-#   - `extract_typed` (in __init__.py) when normalizing reverse-relation outputs
-# Keep these two consumers in sync via this single source of truth.
+# Canonical bidirectional relation patterns used only when callers explicitly
+# opt into reverse-relation normalization.
 REVERSE_RELATION_PATTERNS: dict[str, str] = {
     # Production / creation
     "produces": "produced_by",

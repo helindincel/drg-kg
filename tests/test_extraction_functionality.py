@@ -80,6 +80,7 @@ def test_entity_extraction_basic():
         schema=schema,
         enable_entity_resolution=False,
         enable_coreference_resolution=False,
+        enable_reverse_relation_fallback=True,
     )
 
     # Should extract multiple entities

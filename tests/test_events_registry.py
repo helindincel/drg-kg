@@ -111,6 +111,24 @@ class TestExampleEventRegistry:
         assert "acquirer" in role_names
         assert "acquired" in role_names
 
+    def test_business_demo_event_contract(self):
+        reg = example_event_registry()
+        assert {"Acquisition", "Funding", "Merger", "Employment"}.issubset(reg.names())
+
+        funding = reg.get("Funding")
+        assert funding is not None
+        assert funding.get_role("recipient") is not None
+        assert "amount" in funding.properties
+
+        merger = reg.get("Merger")
+        assert merger is not None
+        assert merger.get_role("parties") is not None
+
+        employment = reg.get("Employment")
+        assert employment is not None
+        assert "hired" in employment.description.lower()
+        assert "employment_action" in employment.properties
+
     def test_employment_roles_typed(self):
         reg = example_event_registry()
         td = reg.get("Employment")

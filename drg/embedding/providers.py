@@ -168,7 +168,7 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
     def embed(self, text: str) -> list[float]:
         """Embed single text."""
         result = self.genai_module.embed_content(
-            model=self.model_name, content=text, task_type="retrieval_document"
+            model=self.model_name, content=text, task_type="semantic_similarity"
         )
         return result["embedding"]
 
@@ -178,7 +178,7 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
         embeddings = []
         for text in texts:
             result = self.genai_module.embed_content(
-                model=self.model_name, content=text, task_type="retrieval_document"
+                model=self.model_name, content=text, task_type="semantic_similarity"
             )
             embeddings.append(result["embedding"])
         return embeddings

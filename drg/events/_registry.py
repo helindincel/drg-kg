@@ -306,7 +306,9 @@ def example_event_registry() -> EventTypeRegistry:
         ),
         EventTypeDefinition(
             name="Employment",
-            description="A person is hired by, or starts working at, an organization.",
+            description=(
+                "A person is hired by, recruited by, or starts working at an organization."
+            ),
             roles=[
                 EventRole(
                     name="employee",
@@ -323,7 +325,10 @@ def example_event_registry() -> EventTypeRegistry:
                     required=True,
                 ),
             ],
-            properties={"role_title": "job title"},
+            properties={
+                "role_title": "job title",
+                "employment_action": "hired, recruited, joined, appointed, or started",
+            },
         ),
         EventTypeDefinition(
             name="Investment",

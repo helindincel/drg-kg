@@ -9,15 +9,18 @@ from __future__ import annotations
 import pytest
 
 from drg.entity_resolution import (
+    EmbeddingSimilarity,
     EntityResolver,
-    HybridSimilarity,
     SimilarityStrategy,
     StringSimilarity,
     cosine_similarity,
     normalize_entity_name,
     resolve_entities_and_relations,
+    resolve_entities_detailed,
     similarity_score,
 )
+from drg.graph import EnhancedKG, KGEdge, KGNode
+from drg.query import GraphQuery
 
 # ---------------------------------------------------------------------------
 # normalize_entity_name
@@ -80,27 +83,27 @@ def test_string_similarity_does_not_use_embeddings():
     assert StringSimilarity().uses_embeddings is False
 
 
-def test_hybrid_falls_back_to_string_when_embedding_provider_missing():
-    """``HybridSimilarity(None)`` must behave like ``StringSimilarity``."""
-    hybrid = HybridSimilarity(embedding_provider=None)
-    assert hybrid.uses_embeddings is False
-    assert hybrid.score("Tesla", "Tesla") == pytest.approx(1.0)
+def test_embedding_similarity_falls_back_to_string_when_embedding_provider_missing():
+    """``EmbeddingSimilarity(None)`` must behave like ``StringSimilarity``."""
+    strategy = EmbeddingSimilarity(embedding_provider=None)
+    assert strategy.uses_embeddings is False
+    assert strategy.score("Tesla", "Tesla") == pytest.approx(1.0)
 
 
-def test_hybrid_degrades_when_embedding_call_raises():
-    """If ``embed`` raises, hybrid must downgrade to string similarity, not crash."""
+def test_embedding_similarity_degrades_when_embedding_call_raises():
+    """If ``embed`` raises, strategy must downgrade to string similarity, not crash."""
 
     class _BrokenProvider:
         def embed(self, _text):
             raise RuntimeError("embedding service down")
 
-    hybrid = HybridSimilarity(embedding_provider=_BrokenProvider())
-    score = hybrid.score("Dr. Elena Vasquez", "Elena Vasquez")
+    strategy = EmbeddingSimilarity(embedding_provider=_BrokenProvider())
+    score = strategy.score("Dr. Elena Vasquez", "Elena Vasquez")
     # String similarity still works; we just shouldn't crash.
     assert 0.0 <= score <= 1.0
 
 
-def test_hybrid_caches_embeddings_by_normalized_key():
+def test_embedding_similarity_caches_embeddings_by_normalized_key():
     """The embedding cache key is the normalized name — repeated lookups
     of cosmetic variants should hit the cache."""
 
@@ -111,10 +114,10 @@ def test_hybrid_caches_embeddings_by_normalized_key():
             calls["count"] += 1
             return [1.0, 0.0]
 
-    hybrid = HybridSimilarity(embedding_provider=_CountingProvider())
-    hybrid.score("Dr. Elena Vasquez", "Elena Vasquez")
+    strategy = EmbeddingSimilarity(embedding_provider=_CountingProvider())
+    strategy.score("Dr. Elena Vasquez", "Elena Vasquez")
     initial_calls = calls["count"]
-    hybrid.score("dr. elena vasquez", "elena vasquez")  # same after normalization
+    strategy.score("dr. elena vasquez", "elena vasquez")  # same after normalization
     assert calls["count"] == initial_calls
 
 
@@ -197,3 +200,59 @@ def test_resolve_entities_and_relations_merges_obvious_duplicates():
     for s, _, o in resolved_relations:
         assert s in names
         assert o in names
+
+
+def test_resolve_entities_detailed_reports_canonical_aliases():
+    result = resolve_entities_detailed(
+        [
+            ("Apple", "Company"),
+            ("Apple Inc.", "Company"),
+            ("Apple Computer", "Company"),
+            ("Microsoft", "Company"),
+        ],
+        use_embedding=False,
+    )
+
+    assert ("Apple Computer", "Company") in result.entities
+    assert result.name_mapping["Apple"] == "Apple Computer"
+    assert result.name_mapping["Apple Inc."] == "Apple Computer"
+    assert result.aliases_for("Apple Computer") == ("Apple", "Apple Inc.")
+    assert any(d.merged and d.original == "Apple Inc." for d in result.decisions)
+
+
+def test_enhanced_kg_canonicalize_entities_rewrites_edges_and_keeps_alias_search():
+    kg = EnhancedKG()
+    for node_id in ["Apple", "Apple Inc.", "Apple Computer", "Steve Jobs"]:
+        kg.add_node(KGNode(id=node_id, type="Company" if node_id.startswith("Apple") else "Person"))
+    kg.add_edge(
+        KGEdge(
+            source="Apple Inc.",
+            target="Steve Jobs",
+            relationship_type="FOUNDED_BY",
+            relationship_detail="Apple Inc. was founded by Steve Jobs",
+            metadata={"source_ref": "doc_apple"},
+        )
+    )
+
+    result = resolve_entities_detailed(
+        [
+            ("Apple", "Company"),
+            ("Apple Inc.", "Company"),
+            ("Apple Computer", "Company"),
+            ("Steve Jobs", "Person"),
+        ],
+        use_embedding=False,
+    )
+    summary = kg.canonicalize_entities(
+        result.name_mapping,
+        decisions=[d.to_dict() for d in result.decisions],
+    )
+
+    assert summary["merged_nodes"] == 2
+    assert "Apple Inc." not in kg.nodes
+    assert kg.edges[0].source == "Apple Computer"
+    assert kg.nodes["Apple Computer"].metadata["aliases"] == ["Apple", "Apple Inc."]
+
+    matches = GraphQuery(kg).find_entities("Apple Inc.")
+    assert matches[0].entity.id == "Apple Computer"
+    assert "alias_exact_match" in matches[0].match_reasons

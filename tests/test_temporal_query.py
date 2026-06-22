@@ -90,3 +90,59 @@ def test_edge_view_includes_valid_from():
     gq = GraphQuery(_apple_ceo_kg())
     edges = gq.relations(source="Tim Cook", relationship_type="CEO_OF")
     assert edges[0].valid_from == "2011"
+
+
+def test_temporal_query_parses_compact_role_question():
+    gq = GraphQuery(_apple_ceo_kg())
+    holders = gq.temporal_query("Apple CEO in 2008")
+    assert len(holders) == 1
+    assert holders[0].source == "Steve Jobs"
+
+
+def test_temporal_query_parses_who_was_role_question():
+    gq = GraphQuery(_apple_ceo_kg())
+    holders = gq.temporal_query("who was CEO of Apple in 2015")
+    assert len(holders) == 1
+    assert holders[0].source == "Tim Cook"
+
+
+def test_relations_active_at_supports_month_precision():
+    kg = _apple_ceo_kg()
+    kg.add_node(KGNode(id="WWDC 2011", type="Event"))
+    kg.add_edge(
+        KGEdge(
+            source="Steve Jobs",
+            target="WWDC 2011",
+            relationship_type="PRESENTED_AT",
+            relationship_detail="Steve Jobs presented at WWDC 2011",
+            start_time="2011-06",
+            end_time="2011-06",
+        )
+    )
+    gq = GraphQuery(kg)
+    active = gq.relations_active_at(
+        "2011-06-15",
+        source="Steve Jobs",
+        relationship_type="PRESENTED_AT",
+    )
+    assert len(active) == 1
+    assert active[0].target == "WWDC 2011"
+
+
+def test_temporal_conflicts_detect_overlapping_role_holders():
+    kg = _apple_ceo_kg()
+    kg.add_node(KGNode(id="Interim CEO", type="Person"))
+    kg.add_edge(
+        KGEdge(
+            source="Interim CEO",
+            target="Apple",
+            relationship_type="CEO_OF",
+            relationship_detail="Interim CEO overlapped with Tim Cook",
+            start_time="2012",
+            end_time="2013",
+        )
+    )
+    gq = GraphQuery(kg)
+    conflicts = gq.temporal_conflicts(relationship_type="CEO_OF", target="Apple")
+    assert conflicts
+    assert conflicts[0].conflict_type == "concurrent_role_holders"

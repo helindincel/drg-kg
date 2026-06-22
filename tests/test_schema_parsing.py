@@ -1,6 +1,7 @@
 import pytest
 
-from drg.schema import EnhancedDRGSchema
+from drg.errors import SchemaError
+from drg.schema import EnhancedDRGSchema, load_schema_from_json
 
 
 def test_enhanced_schema_from_dict_parses_minimal():
@@ -52,5 +53,21 @@ def test_enhanced_schema_from_dict_accepts_src_dst_aliases():
 
 
 def test_enhanced_schema_from_dict_rejects_empty():
-    with pytest.raises(ValueError):
+    with pytest.raises(SchemaError):
         EnhancedDRGSchema.from_dict({})
+
+
+def test_load_schema_rejects_non_object_json_root(tmp_path):
+    schema_path = tmp_path / "schema.json"
+    schema_path.write_text("[]")
+
+    with pytest.raises(SchemaError, match="root must be an object"):
+        load_schema_from_json(schema_path)
+
+
+def test_load_schema_rejects_malformed_legacy_entities(tmp_path):
+    schema_path = tmp_path / "schema.json"
+    schema_path.write_text('{"entities": ["Person"], "relations": []}')
+
+    with pytest.raises(SchemaError, match="entity at index 0"):
+        load_schema_from_json(schema_path)

@@ -209,8 +209,8 @@ class TestSchemaValidation:
 
     @patch("drg.extract._get_extractor")
     @patch("drg.extract.resolve_entities_and_relations")
-    def test_reverse_relation_converted_to_direct(self, mock_resolve, mock_get_extractor):
-        """Schema has only direct relation, but extractor returns reverse. Should be normalized safely."""
+    def test_reverse_relation_not_converted_by_default(self, mock_resolve, mock_get_extractor):
+        """Schema validation is literal unless reverse fallback is explicitly enabled."""
         mock_extractor = Mock()
         mock_result = Mock()
         mock_result.entities = [("Apple", "Company"), ("iPhone", "Product")]
@@ -227,6 +227,35 @@ class TestSchemaValidation:
         )
 
         entities, relations = extract_typed("dummy", schema, enable_entity_resolution=False)
+        assert ("Apple", "Company") in entities
+        assert ("iPhone", "Product") in entities
+        assert relations == []
+
+    @patch("drg.extract._get_extractor")
+    @patch("drg.extract.resolve_entities_and_relations")
+    def test_reverse_relation_converted_when_fallback_enabled(
+        self, mock_resolve, mock_get_extractor
+    ):
+        """Explicit opt-in preserves reverse normalization for callers that need it."""
+        mock_extractor = Mock()
+        mock_result = Mock()
+        mock_result.entities = [("Apple", "Company"), ("iPhone", "Product")]
+        mock_result.relations = [("iPhone", "produced_by", "Apple")]
+        mock_extractor.return_value = mock_result
+        mock_get_extractor.return_value = mock_extractor
+        mock_resolve.side_effect = lambda e, r, **kwargs: (e, r)
+
+        schema = DRGSchema(
+            entities=[Entity("Company"), Entity("Product")],
+            relations=[Relation("produces", "Company", "Product")],
+        )
+
+        entities, relations = extract_typed(
+            "dummy",
+            schema,
+            enable_entity_resolution=False,
+            enable_reverse_relation_fallback=True,
+        )
         assert ("Apple", "Company") in entities
         assert ("iPhone", "Product") in entities
         assert ("Apple", "produces", "iPhone") in relations

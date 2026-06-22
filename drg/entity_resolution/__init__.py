@@ -27,7 +27,7 @@ Architecture
         __init__.py        # Public API + EntityResolver factory
         _normalize.py      # normalize_entity_name + title/suffix patterns
         _similarity.py     # cosine_similarity + similarity_score
-        _strategy.py       # SimilarityStrategy ABC + String / Hybrid impls
+        _strategy.py       # SimilarityStrategy ABC + string/embedding impls
         _resolver.py       # EntityResolver (strategy DI'd in)
 
 Pipeline ordering
@@ -44,15 +44,18 @@ import logging
 from typing import Any
 
 from ._normalize import normalize_entity_name
+from ._resolver import EntityResolutionResult, MergeDecision
 from ._resolver import EntityResolver as _BaseResolver
 from ._similarity import cosine_similarity, similarity_score
-from ._strategy import HybridSimilarity, SimilarityStrategy, StringSimilarity
+from ._strategy import EmbeddingSimilarity, SimilarityStrategy, StringSimilarity
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
+    "EmbeddingSimilarity",
+    "EntityResolutionResult",
     "EntityResolver",
-    "HybridSimilarity",
+    "MergeDecision",
     # Strategies (re-exported for advanced users / tests)
     "SimilarityStrategy",
     "StringSimilarity",
@@ -60,6 +63,7 @@ __all__ = [
     # Low-level helpers (legacy public surface)
     "normalize_entity_name",
     "resolve_entities_and_relations",
+    "resolve_entities_detailed",
     "similarity_score",
 ]
 
@@ -129,7 +133,7 @@ def _build_similarity_strategy(
                 "falling back to string similarity"
             )
         else:
-            return HybridSimilarity(
+            return EmbeddingSimilarity(
                 embedding_provider=embedding_provider,
                 embedding_weight=embedding_weight,
                 use_normalization=use_normalization,
@@ -137,7 +141,7 @@ def _build_similarity_strategy(
 
     default_provider = _try_default_embedding_provider()
     if default_provider is not None:
-        return HybridSimilarity(
+        return EmbeddingSimilarity(
             embedding_provider=default_provider,
             embedding_weight=embedding_weight,
             use_normalization=use_normalization,
@@ -209,3 +213,20 @@ def resolve_entities_and_relations(
     resolved_entities, name_mapping = resolver.resolve(entities)
     resolved_relations = resolver.resolve_relations(relations, name_mapping)
     return resolved_entities, resolved_relations
+
+
+def resolve_entities_detailed(
+    entities: list[tuple[str, str]],
+    similarity_threshold: float = 0.65,
+    adaptive_threshold: bool = True,
+    embedding_provider: Any | None = None,
+    use_embedding: bool = True,
+) -> EntityResolutionResult:
+    """Resolve entities and return aliases plus traceable merge decisions."""
+    resolver = EntityResolver(
+        similarity_threshold=similarity_threshold,
+        adaptive_threshold=adaptive_threshold,
+        embedding_provider=embedding_provider,
+        use_embedding=use_embedding,
+    )
+    return resolver.resolve_detailed(entities)

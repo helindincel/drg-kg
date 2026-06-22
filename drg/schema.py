@@ -286,11 +286,11 @@ class EnhancedDRGSchema:
         - relation endpoints may be provided as source/target or src/dst
         """
         if not isinstance(schema_data, dict):
-            raise ValueError(f"Schema must be a dict, got {type(schema_data).__name__}")
+            raise SchemaError(f"Schema must be a dict, got {type(schema_data).__name__}")
 
         raw_entity_types = schema_data.get("entity_types", [])
         if not isinstance(raw_entity_types, list) or not raw_entity_types:
-            raise ValueError("EnhancedDRGSchema requires non-empty 'entity_types' list")
+            raise SchemaError("EnhancedDRGSchema requires non-empty 'entity_types' list")
 
         entity_types: list[EntityType] = []
         for et in raw_entity_types:
@@ -319,11 +319,11 @@ class EnhancedDRGSchema:
             )
 
         if not entity_types:
-            raise ValueError("EnhancedDRGSchema parsing produced empty entity_types")
+            raise SchemaError("EnhancedDRGSchema parsing produced empty entity_types")
 
         raw_relation_groups = schema_data.get("relation_groups", [])
         if not isinstance(raw_relation_groups, list) or not raw_relation_groups:
-            raise ValueError("EnhancedDRGSchema requires non-empty 'relation_groups' list")
+            raise SchemaError("EnhancedDRGSchema requires non-empty 'relation_groups' list")
 
         relation_groups: list[RelationGroup] = []
         for rg in raw_relation_groups:
@@ -382,7 +382,7 @@ class EnhancedDRGSchema:
             )
 
         if not relation_groups:
-            raise ValueError("EnhancedDRGSchema parsing produced empty relation_groups")
+            raise SchemaError("EnhancedDRGSchema parsing produced empty relation_groups")
 
         return cls(
             entity_types=entity_types,
@@ -454,23 +454,53 @@ def load_schema_from_json(schema_path: str | Path) -> DRGSchema | EnhancedDRGSch
         with open(path, encoding="utf-8") as f:
             schema_data = json.load(f)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in schema file: {e}") from e
+        raise SchemaError(f"Invalid JSON in schema file: {e}") from e
+
+    if not isinstance(schema_data, dict):
+        raise SchemaError(f"Schema JSON root must be an object, got {type(schema_data).__name__}")
 
     # Check whether this is an enhanced schema (entity_types key present)
     if "entity_types" in schema_data:
         return EnhancedDRGSchema.from_dict(schema_data)
     else:
         # Legacy format
-        entities = [Entity(e["name"]) for e in schema_data.get("entities", [])]
-        relations = [
-            Relation(
-                name=r["name"],
-                src=r.get("source", r.get("src", "")),
-                dst=r.get("target", r.get("dst", "")),
-                description=r.get("description", ""),
-                detail=r.get("detail", ""),
+        raw_entities = schema_data.get("entities", [])
+        raw_relations = schema_data.get("relations", [])
+        if not isinstance(raw_entities, list):
+            raise SchemaError("Legacy schema field 'entities' must be a list")
+        if not isinstance(raw_relations, list):
+            raise SchemaError("Legacy schema field 'relations' must be a list")
+
+        entities = []
+        for idx, entity in enumerate(raw_entities):
+            if not isinstance(entity, dict):
+                raise SchemaError(f"Legacy schema entity at index {idx} must be an object")
+            name = entity.get("name")
+            if not isinstance(name, str) or not name.strip():
+                raise SchemaError(f"Legacy schema entity at index {idx} requires non-empty 'name'")
+            entities.append(Entity(name.strip()))
+
+        relations = []
+        for idx, relation in enumerate(raw_relations):
+            if not isinstance(relation, dict):
+                raise SchemaError(f"Legacy schema relation at index {idx} must be an object")
+            name = relation.get("name")
+            src = relation.get("source", relation.get("src", ""))
+            dst = relation.get("target", relation.get("dst", ""))
+            if not name or not src or not dst:
+                raise SchemaError(
+                    f"Legacy schema relation at index {idx} requires name/source/target"
+                )
+            description = relation.get("description", "")
+            detail = relation.get("detail", "")
+            relations.append(
+                Relation(
+                    name=str(name).strip(),
+                    src=str(src).strip(),
+                    dst=str(dst).strip(),
+                    description=description if isinstance(description, str) else "",
+                    detail=detail if isinstance(detail, str) else "",
+                )
             )
-            for r in schema_data.get("relations", [])
-        ]
 
         return DRGSchema(entities=entities, relations=relations)
