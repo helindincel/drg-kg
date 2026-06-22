@@ -15,25 +15,22 @@
 - Run **clustering** and produce **community reports** over the KG,
 - Export results as JSON and visualise them through the UI.
 
-As a research-grade codebase, DRG generates the "raw material" for
-**GraphRAG / RAG experimentation**: the primary focus is **KG extraction
-plus graph analysis / output**, not retrieval-augmented generation itself.
+As a research-grade codebase, DRG focuses on **KG extraction plus graph
+analysis / output**. Generation and chat-serving layers are outside this
+repository's product scope.
 
 ---
 
 ## 2) What DRG Is *Not* (Explicit Non-Goals)
 
-This section matters: DRG is easy to mistake for a RAG project. It isn't.
+This section defines the repository boundary clearly.
 
-- **Not a RAG framework.**
+- **Not a question-answering framework.**
   - DRG's UI query endpoint performs **deterministic KG lookup**.
-  - There is no goal of "answer questions with an LLM" /
-    "retrieval-augmented generation serving".
+  - There is no goal of answering questions with an LLM.
 - **Not a serving / search platform.**
-  - A vector-store layer (Chroma / Qdrant / Faiss / …) is **not** a core
-    product component of this repo.
-  - It can be plugged in as an experimental / optional element if you
-    actually need it.
+  - A vector-store layer (Chroma / Qdrant / Faiss / ...) is **not** a product
+    component of this repo.
 - **Not provider-locked.**
   - LLM and embedding providers are abstracted behind interfaces;
     selection happens via environment variables.
@@ -156,7 +153,7 @@ The query box in the UI performs:
 - Optional relation filtering,
 - Neighbourhood expansion around a seed entity.
 
-This endpoint **does not produce answers via RAG / LLM**. That keeps the
+This endpoint **does not produce answers via an LLM**. That keeps the
 UI fast and deterministic.
 
 ### 7.2 Note on "Hub" Visualisation
@@ -204,7 +201,7 @@ DRG/
 │   ├── graph/                 # EnhancedKG, schema generation, community reports, vis adapters
 │   ├── clustering/            # Louvain / Leiden / Spectral + summarisation
 │   ├── coreference_resolution/# Pronoun resolution (NLP + heuristic strategies)
-│   ├── entity_resolution/     # Entity merging (string + hybrid)
+│   ├── entity_resolution/     # Entity merging (string + embedding)
 │   ├── optimizer/             # DSPy optimiser experiments
 │   ├── api/                   # FastAPI server + UI templates
 │   ├── schema.py              # EnhancedDRGSchema, EntityType, RelationGroup, …
@@ -244,7 +241,7 @@ Note: `docs/` is documentation-only; it must not contain code.
 
 ## 11) DRG vs. Other Projects (Short Summary)
 
-- **Not RAG / serving**: A "graph-producing pipeline", not an
+- **Not chat serving**: A "graph-producing pipeline", not an
   "answer-producing system".
 - **DSPy + declarative**: Extraction behaviour is defined by the schema;
   prompt churn is minimised.

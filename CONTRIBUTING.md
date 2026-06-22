@@ -62,7 +62,7 @@ Architecture detail lives in `docs/project_overview.md`.
 We use **Conventional Commits**:
 
 ```
-feat: add hybrid embedding similarity strategy
+feat: add embedding-assisted entity similarity strategy
 fix: prevent KGEdge construction when source equals target
 refactor: split relationship_model.py into package
 test: cover hub-proxy flatten with rebuilt triples

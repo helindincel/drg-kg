@@ -71,6 +71,7 @@ kg.add_edge(KGEdge(
 gq = GraphQuery(kg)
 print(gq.role_holders_at("Apple", "CEO_OF", "2008")[0].source)  # Steve Jobs
 print(gq.role_holders_at("Apple", "CEO_OF", "2015")[0].source)  # Tim Cook
+print(gq.temporal_query("Apple CEO in 2008")[0].source)         # Steve Jobs
 ```
 
 ## Temporal queries
@@ -80,6 +81,7 @@ print(gq.role_holders_at("Apple", "CEO_OF", "2015")[0].source)  # Tim Cook
 | Method | Question answered |
 |--------|-------------------|
 | `role_holders_at(target, rel, as_of)` | Who held role X at date Y? |
+| `temporal_query(text)` | Compact natural temporal lookup such as `Apple CEO in 2008` |
 | `relations_active_at(as_of, ...)` | What relationships were active? |
 | `temporal_timeline(...)` | Chronological view of facts |
 | `changes_between(from, to)` | What started or ended? |

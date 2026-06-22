@@ -9,7 +9,7 @@ Repo'nun **genel mimarisi ve felsefesi** için `docs/project_overview.md`'ye bak
 
 | Bileşen | Sürüm |
 |---------|-------|
-| Python  | >= 3.10 |
+| Python  | 3.10, 3.11 veya 3.12 |
 | pip     | son sürüm |
 
 Sadece **core** kullanım için `dspy` ve `pydantic` yeterlidir. İsteğe bağlı özellikler
@@ -114,6 +114,7 @@ formatını kullan (örn. `gemini/gemini-2.0-flash-exp`).
 
 ## 6. Sonraki Adımlar
 
+- **İlk kullanım akışı**: `docs/getting_started.md`
 - **Pipeline akışı**: `docs/pipeline_overview.md`
 - **Şema tasarımı**: `docs/schema_design.md`
 - **API server**: `docs/api_server.md`

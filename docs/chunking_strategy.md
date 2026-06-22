@@ -103,11 +103,11 @@ Chunk 2: "paragraph 2 ..." (overlap paragraph 2'den başlar)
 **Dezavantajlar:**
 - Storage cost artışı (15% overlap = ~15% daha fazla chunk)
 - Embedding cost artışı
-- Retrieval redundancy (aynı bilgi birden fazla chunk'ta)
+- Duplicate extraction evidence (aynı bilgi birden fazla chunk'ta)
 
 **Optimizasyon:**
 
-- **Deduplication**: Retrieval sırasında aynı chunk'ları filtrele
+- **Deduplication**: Extraction sonrası aynı evidence/chunk etkisini filtrele
 - **Smart Overlap**: Sadece entity-rich bölgelerde overlap kullan
 - **Compressed Storage**: Overlap bölgelerini ayrı store et
 
@@ -139,7 +139,7 @@ Chunk 2: "paragraph 2 ..." (overlap paragraph 2'den başlar)
 
 - 0-based index
 - Orijinal doküman içindeki sıralama
-- Retrieval sırasında context ordering için kullanılır
+- Cross-chunk context ordering için kullanılır
 
 ### 4.2 Opsiyonel Metadata
 

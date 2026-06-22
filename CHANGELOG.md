@@ -9,6 +9,15 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Changed (documentation cleanup)
+
+- `README.md` and `README.tr.md` were refreshed as the canonical root
+  entry points: current install commands, CLI surface, API/UI/MCP/evaluation
+  examples, project map, and doc links now live there directly.
+- Removed stale root-level planning notes (`BASLANGIC.md`, `EKSIKLER.md`,
+  `REMAINING.md`, `STATUS.md`) so the repository root keeps only stable
+  project documents.
+
 ### Added (CI hardening)
 
 - `.github/workflows/ci.yml` now uploads `coverage.xml` to
@@ -122,7 +131,7 @@ out under **Breaking** sections.
 
 - `docs/project_overview.md` — full English translation of the
   architecture / philosophy doc. Covers what DRG is, what it
-  explicitly is *not* (not a RAG framework, not a serving
+  explicitly is *not* (not a question-answering framework, not a serving
   platform, not provider-locked), why DSPy + declarative,
   dataset-agnostic design, EnhancedDRGSchema, pipeline,
   monolithic-modular architecture, UI/query behaviour
@@ -150,7 +159,7 @@ out under **Breaking** sections.
 - README badges: CI status, PyPI version, supported Python
   versions, license, Ruff code style, PEP 561 typed marker.
   Bilingual: both `README.md` and `README.tr.md` get the same
-  badge row + a pointer to `STATUS.md`.
+  badge row and project-status pointer.
 - Installation section in README now leads with `pip install
   drg-kg` (PyPI) and lists `pip install -e ".[dev]"` as the
   *source* path, reflecting the impending real-PyPI release.
@@ -166,10 +175,11 @@ out under **Breaking** sections.
   `workflow_dispatch` is available for TestPyPI dry-runs. Both
   uploads use the official `pypa/gh-action-pypi-publish` action and
   GitHub environments (`pypi`, `testpypi`) for review gates.
-- `STATUS.md` (repo root) — project status & gap analysis covering
-  what the library does, how, why it exists, and an honest list of
-  remaining gaps (coverage, docs, release, CI, examples, benchmarks,
-  governance) with a suggested order of attack.
+- Added a root-level project status and gap analysis note covering what the
+  library does, how, why it exists, and an honest list of remaining gaps
+  (coverage, docs, release, CI, examples, benchmarks, governance) with a
+  suggested order of attack. This note was later folded back into the canonical
+  README/docs flow.
 
 ### Changed (single-source version)
 

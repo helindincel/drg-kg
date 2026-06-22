@@ -11,7 +11,7 @@ Users need to know **how much to trust each piece of information** in order
 to:
 
 - Filter low-confidence assertions before using them downstream.
-- Rank retrieval / question-answering results.
+- Rank graph-query and audit results.
 - Audit the pipeline (e.g. spot systematically weak relations).
 - Calibrate the extractor over time.
 

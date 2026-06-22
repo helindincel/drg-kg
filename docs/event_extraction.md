@@ -182,6 +182,24 @@ drg extract input.txt -o out.kg.json \
 
 The CLI is opt-in: without `--extract-events` nothing changes.
 
+## Business Demo Coverage
+
+`example_event_registry()` is the recommended registry for demos before
+building a domain-specific catalogue. It includes the open-source launch
+scenarios most users will try first:
+
+| User-facing scenario | Event type | Required roles |
+| --- | --- | --- |
+| Acquisition | `Acquisition` | `acquirer`, `acquired` |
+| Funding round | `Funding` | `recipient` |
+| Merger | `Merger` | `parties` |
+| Hiring / employment | `Employment` | `employee`, `employer` |
+
+For hiring copy, keep the public wording as “hiring/employment” while using
+the stable event type name `Employment` in payloads. The type description also
+covers “hired”, “recruited”, “joined”, and “started working at” phrasings, so
+demo prompts do not need a separate `Hiring` type.
+
 ## Provenance contract
 
 Every event preserves:

@@ -97,6 +97,18 @@ drg extract docs/article_1.txt --auto-schema -o outputs/global_kg.json
 # Every subsequent run — appends to the same KG file.
 drg extract docs/article_2.txt --auto-schema --update outputs/global_kg.json
 drg extract docs/article_3.txt --auto-schema --update outputs/global_kg.json
+
+# Validate and compare persisted snapshots.
+drg validate outputs/global_kg.json
+drg diff outputs/global_kg.before.json outputs/global_kg.json --json
+
+# Persist the per-merge audit diff while updating.
+drg extract docs/article_4.txt --auto-schema --update outputs/global_kg.json \
+  --diff-output outputs/article_4_merge_diff.json
+
+# Inspect version snapshots created by incremental updates.
+drg versions list outputs/global_kg.json
+drg versions diff outputs/global_kg.json v1 v2 --json
 ```
 
 CLI flags:
@@ -106,12 +118,26 @@ CLI flags:
 | `--update PATH` | unset | Enable incremental ingestion. Loads PATH (or starts empty if missing), merges the freshly extracted graph into it, writes back. |
 | `--update-strategy {prefer_existing, prefer_new, union}` | `prefer_existing` | Node merge policy. See [§ 6](#6-merge-strategies). |
 | `--update-document-id` | input filename | Identifier recorded in the history entry. |
+| `--diff-output PATH` | unset | Write the merge-time `KGDiff` audit report as JSON. |
 
 When `--update` is set:
 
 - `--output-format` is forced to `enhancedkg` (legacy KG class has no
   metadata surface).
 - If `-o` is omitted, output is written back to the `--update` path.
+
+`drg diff OLD NEW` is a separate snapshot diff command. It compares two saved
+KG files after validation and is intended for CI/regression gates. Merge diffs
+come from `--diff-output`; snapshot diffs come from `drg diff`.
+
+Every `--update` run also creates a graph version snapshot in a manifest
+directory next to the updated KG file. See `docs/graph_versioning.md` for
+rollback and version-to-version diff commands.
+
+Merged nodes and edges preserve source metadata under both legacy keys
+(`source_ref`, `source_documents`, `evidence`) and the structured
+`metadata.provenance` block. See `docs/provenance_tracking.md` for the full
+contract.
 
 ## 5. The public API
 

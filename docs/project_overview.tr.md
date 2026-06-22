@@ -4,7 +4,7 @@
 
 ## 1) DRG Nedir?
 
-**DRG (Dynamic Retrieval Graph)**, metinlerden **bilgi grafiği (Knowledge Graph / KG)** üretmek için tasarlanmış, **dataset‑agnostic**, **DSPy tabanlı** ve **declarative** bir semantic pipeline’dır. Projenin ana hedefi:
+**DRG (Declarative Relationship Generation)**, metinlerden **bilgi grafiği (Knowledge Graph / KG)** üretmek için tasarlanmış, **dataset‑agnostic**, **DSPy tabanlı** ve **declarative** bir semantic pipeline’dır. Projenin ana hedefi:
 
 - Ham metin girdisini alıp
 - (Gerekirse) metinden otomatik **EnhancedDRGSchema** üretip
@@ -13,20 +13,19 @@
 - KG üzerinde **clustering** ve **community report** üretmek
 - Sonuçları JSON çıktıları olarak export etmek ve UI’da görselleştirmektir.
 
-DRG research‑grade bir codebase olarak, **GraphRAG / RAG experimentation** için “ham malzeme” üretir: yani asıl odak **KG extraction + graph analiz/çıktı**dır.
+DRG research‑grade bir codebase olarak **KG extraction + graph analiz/çıktı** odağında kalır. Generation ve chat-serving katmanları bu repo'nun ürün kapsamı dışındadır.
 
 ---
 
 ## 2) DRG Ne Değildir? (Net Non‑Goals)
 
-Bu bölüm özellikle önemli: DRG’yi “diğer RAG projeleri” ile karıştırmamak için.
+Bu bölüm repo sınırını netleştirmek için özellikle önemlidir.
 
-- **Bir RAG framework değildir.**
+- **Bir question-answering framework değildir.**
   - DRG’nin UI query endpoint’i **deterministic KG lookup** yapar.
-  - “LLM ile cevap üretme / retrieval‑augmented generation serving” gibi bir hedefi yoktur.
+  - LLM ile cevap üretme gibi bir hedefi yoktur.
 - **Bir serving/search platformu değildir.**
-  - Vektör store katmanı (Chroma/Qdrant/Faiss vb.) “serving” amaçlı bir ürün bileşeni olarak bu repo’nun odağında değildir.
-  - İhtiyaç olursa sadece deneysel/opsiyonel bileşen olarak entegre edilebilir.
+  - Vektör store katmanı (Chroma/Qdrant/Faiss vb.) bu repo'nun ürün bileşeni değildir.
 - **Model‑özel (provider‑locked) değildir.**
   - LLM ve embedding provider’ları abstract edilmiştir; environment üzerinden seçilir.
 
@@ -131,7 +130,7 @@ UI’daki query kutusu:
 - opsiyonel relation filter
 - seed entity etrafında neighborhood expansion
 
-yapar. Bu endpoint **RAG/LLM ile cevap üretmez**. Bu, UI’nın hızlı ve deterministik olmasını sağlar.
+yapar. Bu endpoint **LLM ile cevap üretmez**. Bu, UI’nın hızlı ve deterministik olmasını sağlar.
 
 ### 7.2 “Hub” Görselleştirme Notu
 
@@ -170,7 +169,6 @@ DRG/
 │   ├── ingestion/             # Ingestion & normalization
 │   ├── chunking/              # Chunking strategies + validators
 │   ├── embedding/             # Embedding provider abstraction
-│   ├── retrieval/             # Retrieval helpers (NOT a serving RAG framework)
 │   ├── graph/                 # KG core, schema generation, community reports, visualization adapters
 │   ├── clustering/            # Louvain/Leiden/Spectral + summarization
 │   ├── optimizer/             # DSPy optimizer experiments
@@ -212,7 +210,7 @@ Not: `docs/` klasörü sadece dokümantasyon içindir; kod taşımamalıdır.
 
 ## 11) DRG’nin Diğer Projelerden Farkı (Kısa Özet)
 
-- **RAG/serving değil**: “Cevap veren sistem” değil, “graph çıkaran pipeline”.
+- **Chat serving değil**: “Cevap veren sistem” değil, “graph çıkaran pipeline”.
 - **DSPy + declarative**: Extraction davranışı şema ile tanımlanır; prompt karmaşası minimize edilir.
 - **Dataset‑agnostic**: Aynı sistem farklı domain’lerde tekrar kullanılabilir.
 - **Enhanced schema + metadata**: EntityType/RelationGroup + description/detail alanları ile zengin temsil.
