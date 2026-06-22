@@ -8,10 +8,8 @@
 |---|---:|
 | extraction_f1 | 1.0000 |
 | graph_quality | 0.9333 |
-| hybrid_ndcg | 1.0000 |
-| overall_score | 0.9632 |
+| overall_score | 0.9778 |
 | reasoning_f1 | 1.0000 |
-| retrieval_ndcg | 0.8827 |
 
 ## Dataset: synthetic_openai_microsoft
 
@@ -20,10 +18,8 @@
 |---|---:|
 | extraction_f1 | 1.0000 |
 | graph_quality | 0.9333 |
-| hybrid_ndcg | 1.0000 |
-| overall_score | 0.9632 |
+| overall_score | 0.9778 |
 | reasoning_f1 | 1.0000 |
-| retrieval_ndcg | 0.8827 |
 
 ### Components
 | Component | Metric | Value |
@@ -61,11 +57,3 @@
 | community_quality | community_pair_f1 | 1.0000 |
 | community_quality | community_pair_precision | 1.0000 |
 | community_quality | community_pair_recall | 1.0000 |
-| retrieval | mrr | 1.0000 |
-| retrieval | ndcg | 0.8827 |
-| retrieval | precision_at_k | 0.6667 |
-| retrieval | recall_at_k | 0.8333 |
-| hybrid_retrieval | mrr | 1.0000 |
-| hybrid_retrieval | ndcg | 1.0000 |
-| hybrid_retrieval | precision_at_k | 0.8333 |
-| hybrid_retrieval | recall_at_k | 1.0000 |

@@ -13,8 +13,8 @@ from ._metrics import (
     event_prf,
     graph_metrics,
     relation_prf,
-    retrieval_metrics,
 )
+from ._performance import measure_call, summarize_performance
 from ._types import (
     BenchmarkDataset,
     ComponentEvaluation,
@@ -39,11 +39,11 @@ class BenchmarkRunner:
         self,
         *,
         run_id: str | None = None,
-        retrieval_k: int = 10,
+        measure_performance: bool = False,
         metadata: dict[str, Any] | None = None,
     ) -> None:
         self.run_id = run_id or _default_run_id()
-        self.retrieval_k = retrieval_k
+        self.measure_performance = measure_performance
         self.metadata = dict(metadata or {})
 
     def evaluate(
@@ -61,28 +61,43 @@ class BenchmarkRunner:
             raise ValueError("Provide predictions or runner")
 
         dataset_results: list[DatasetEvaluation] = []
+        performance_results: list[dict[str, Any]] = []
         for dataset in datasets:
+            performance: dict[str, Any] | None = None
             if runner is not None:
-                prediction = runner(dataset)
+                if self.measure_performance:
+                    prediction, performance = measure_call(lambda dataset=dataset: runner(dataset))
+                else:
+                    prediction = runner(dataset)
             else:
                 assert predictions is not None
                 prediction = predictions.get(dataset.name)
                 if prediction is None:
                     raise KeyError(f"No prediction supplied for dataset {dataset.name!r}")
-            dataset_results.append(self.evaluate_dataset(dataset, prediction))
+            if performance is not None:
+                _add_prediction_throughput(performance, dataset, prediction)
+                performance_results.append(performance)
+            dataset_results.append(
+                self.evaluate_dataset(dataset, prediction, performance=performance)
+            )
 
         aggregate = _aggregate(dataset_results)
+        metadata = dict(self.metadata)
+        if performance_results:
+            metadata["performance"] = summarize_performance(performance_results)
         return EvaluationReport(
             run_id=self.run_id,
             datasets=dataset_results,
             aggregate=aggregate,
-            metadata=dict(self.metadata),
+            metadata=metadata,
         )
 
     def evaluate_dataset(
         self,
         dataset: BenchmarkDataset,
         prediction: PipelinePrediction,
+        *,
+        performance: dict[str, Any] | None = None,
     ) -> DatasetEvaluation:
         components: dict[str, ComponentEvaluation] = {}
 
@@ -93,6 +108,7 @@ class BenchmarkRunner:
             expected=int(entity_metrics["expected"]),
             predicted=int(entity_metrics["predicted"]),
         )
+        _add_entity_diagnostics(components["entity_extraction"], dataset, prediction)
 
         relation_metrics = relation_prf(dataset.gold_relations, prediction.relations)
         components["relationship_extraction"] = _component(
@@ -101,6 +117,7 @@ class BenchmarkRunner:
             expected=int(relation_metrics["expected"]),
             predicted=int(relation_metrics["predicted"]),
         )
+        _add_relation_diagnostics(components["relationship_extraction"], dataset, prediction)
 
         event_metrics = event_prf(dataset.gold_events, prediction.events)
         components["event_extraction"] = _component(
@@ -109,6 +126,7 @@ class BenchmarkRunner:
             expected=int(event_metrics["expected"]),
             predicted=int(event_metrics["predicted"]),
         )
+        _add_event_diagnostics(components["event_extraction"], dataset, prediction)
 
         graph_eval = graph_metrics(
             gold_entities=dataset.gold_entities,
@@ -156,19 +174,11 @@ class BenchmarkRunner:
             }
         components["community_quality"] = _component("community_quality", comm_metrics)
 
-        retrieval_eval = self._evaluate_query_cases(
-            dataset,
-            prediction.query_results,
-            prediction.query_scores,
-        )
-        components["retrieval"] = _component("retrieval", retrieval_eval)
-
-        hybrid_eval = self._evaluate_query_cases(
-            dataset,
-            prediction.hybrid_results,
-            prediction.query_scores,
-        )
-        components["hybrid_retrieval"] = _component("hybrid_retrieval", hybrid_eval)
+        if performance:
+            components["runtime_performance"] = _component(
+                "runtime_performance",
+                {k: v for k, v in performance.items() if isinstance(v, int | float)},
+            )
 
         overall = {
             "extraction_f1": _mean(
@@ -186,62 +196,27 @@ class BenchmarkRunner:
                 ]
             ),
             "reasoning_f1": inference_metrics["f1"],
-            "retrieval_ndcg": retrieval_eval.get("ndcg", 0.0),
-            "hybrid_ndcg": hybrid_eval.get("ndcg", 0.0),
         }
         overall["overall_score"] = _mean(
             [
                 overall["extraction_f1"],
                 overall["graph_quality"],
                 overall["reasoning_f1"] if dataset.gold_inferred_relations else None,
-                overall["retrieval_ndcg"] if dataset.query_cases else None,
-                overall["hybrid_ndcg"] if dataset.query_cases else None,
             ]
         )
 
         _add_failures(components)
+        metadata = dict(dataset.metadata)
+        if prediction.metadata:
+            metadata["prediction"] = dict(prediction.metadata)
+        if performance:
+            metadata["performance"] = dict(performance)
         return DatasetEvaluation(
             dataset_name=dataset.name,
             components=components,
             overall=overall,
-            metadata=dict(dataset.metadata),
+            metadata=metadata,
         )
-
-    def _evaluate_query_cases(
-        self,
-        dataset: BenchmarkDataset,
-        results_by_query: dict[str, list[str]],
-        scores_by_query: dict[str, dict[str, float]],
-    ) -> dict[str, float]:
-        if not dataset.query_cases:
-            return {
-                "precision_at_k": 0.0,
-                "recall_at_k": 0.0,
-                "mrr": 0.0,
-                "ndcg": 0.0,
-                "hits_at_k": 0.0,
-            }
-        per_case: list[dict[str, float]] = []
-        for case in dataset.query_cases:
-            relevant = set(case.relevant_entities) | set(case.expected_answer_entities)
-            relevant |= {r.source for r in case.relevant_relations}
-            relevant |= {r.target for r in case.relevant_relations}
-            relevant |= set(case.relevant_chunks)
-            ranked = results_by_query.get(case.query, [])
-            scores = scores_by_query.get(case.query, {})
-            per_case.append(
-                retrieval_metrics(
-                    ranked,
-                    relevant,
-                    k=self.retrieval_k,
-                    scores=scores,
-                )
-            )
-        return {
-            key: _mean([m[key] for m in per_case])
-            for key in ("precision_at_k", "recall_at_k", "mrr", "ndcg", "hits_at_k")
-        }
-
 
 def compare_reports(
     baseline: EvaluationReport,
@@ -319,6 +294,130 @@ def _component(
     )
 
 
+def _add_prediction_throughput(
+    performance: dict[str, Any],
+    dataset: BenchmarkDataset,
+    prediction: PipelinePrediction,
+) -> None:
+    elapsed = float(performance.get("wall_time_seconds", 0.0))
+    if elapsed <= 0:
+        return
+    chunk_count = int(dataset.metadata.get("chunk_count") or 0)
+    if chunk_count:
+        performance["chunks_per_second"] = chunk_count / elapsed
+    performance["characters_per_second"] = len(dataset.text) / elapsed
+    performance["entities_per_second"] = len(prediction.entities) / elapsed
+    performance["relations_per_second"] = len(prediction.relations) / elapsed
+    performance["predicted_entities"] = float(len(prediction.entities))
+    performance["predicted_relations"] = float(len(prediction.relations))
+
+
+def _add_entity_diagnostics(
+    component: ComponentEvaluation,
+    dataset: BenchmarkDataset,
+    prediction: PipelinePrediction,
+) -> None:
+    expected = {(_norm(e.name), _norm(e.type)): e for e in dataset.gold_entities}
+    predicted = {(_norm(name), _norm(etype)): (name, etype) for name, etype in prediction.entities}
+    expected_names = {_norm(e.name): e for e in dataset.gold_entities}
+    predicted_names = {_norm(name): etype for name, etype in prediction.entities}
+
+    for key, entity in sorted(expected.items()):
+        if key not in predicted:
+            name_key = _norm(entity.name)
+            kind = "wrong_type" if name_key in predicted_names else "missing_entity"
+            component.failures.append(
+                {
+                    "type": kind,
+                    "expected": entity.to_dict(),
+                    "predicted_type": predicted_names.get(name_key),
+                    "severity": "error",
+                    "description": f"Entity {entity.name!r} was not matched with the expected type.",
+                }
+            )
+    for key, (name, etype) in sorted(predicted.items()):
+        if key not in expected and _norm(name) not in expected_names:
+            component.failures.append(
+                {
+                    "type": "hallucinated_entity",
+                    "predicted": {"name": name, "type": etype},
+                    "severity": "warning",
+                    "description": f"Predicted entity {name!r} is not in the gold set.",
+                }
+            )
+
+
+def _add_relation_diagnostics(
+    component: ComponentEvaluation,
+    dataset: BenchmarkDataset,
+    prediction: PipelinePrediction,
+) -> None:
+    expected = {r.key(): r for r in dataset.gold_relations}
+    predicted = {(_norm(s), _norm(r), _norm(t)): (s, r, t) for s, r, t in prediction.relations}
+    predicted_pairs = {(_norm(s), _norm(t)) for s, _r, t in prediction.relations}
+
+    for key, relation in sorted(expected.items()):
+        if key not in predicted:
+            pair = (_norm(relation.source), _norm(relation.target))
+            kind = "wrong_relation_type" if pair in predicted_pairs else "missing_relation"
+            component.failures.append(
+                {
+                    "type": kind,
+                    "expected": relation.to_dict(),
+                    "severity": "error",
+                    "description": (
+                        f"Relation {relation.source!r} -[{relation.relationship_type}]-> "
+                        f"{relation.target!r} was not matched."
+                    ),
+                }
+            )
+    for key, (source, rel_type, target) in sorted(predicted.items()):
+        if key not in expected:
+            component.failures.append(
+                {
+                    "type": "hallucinated_edge",
+                    "predicted": {
+                        "source": source,
+                        "relationship_type": rel_type,
+                        "target": target,
+                    },
+                    "severity": "warning",
+                    "description": (
+                        f"Predicted edge {source!r} -[{rel_type}]-> {target!r} "
+                        "is not in the gold set."
+                    ),
+                }
+            )
+
+
+def _add_event_diagnostics(
+    component: ComponentEvaluation,
+    dataset: BenchmarkDataset,
+    prediction: PipelinePrediction,
+) -> None:
+    expected_count = len(dataset.gold_events)
+    predicted_count = len(prediction.events)
+    if expected_count and not predicted_count:
+        component.failures.append(
+            {
+                "type": "missing_event",
+                "expected": expected_count,
+                "severity": "error",
+                "description": "Gold events exist, but the pipeline returned no events.",
+            }
+        )
+    elif predicted_count > expected_count:
+        component.failures.append(
+            {
+                "type": "extra_event",
+                "expected": expected_count,
+                "predicted": predicted_count,
+                "severity": "warning",
+                "description": "The pipeline returned more events than the gold annotations.",
+            }
+        )
+
+
 def _aggregate(results: list[DatasetEvaluation]) -> dict[str, float]:
     keys = sorted({k for result in results for k in result.overall})
     return {key: _mean([r.overall.get(key) for r in results]) for key in keys}
@@ -341,6 +440,10 @@ def _add_failures(components: dict[str, ComponentEvaluation]) -> None:
                         "description": f"{component.name}.{metric} is below 0.50",
                     }
                 )
+
+
+def _norm(value: Any) -> str:
+    return " ".join(str(value or "").strip().lower().split())
 
 
 def _classify_delta(

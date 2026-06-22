@@ -11,6 +11,7 @@ from ._types import BenchmarkDataset, EvaluationReport, RegressionComparison
 __all__ = [
     "load_benchmark_dataset",
     "load_benchmark_datasets",
+    "load_evaluation_report",
     "render_markdown_report",
     "render_regression_markdown",
     "save_json_report",
@@ -32,6 +33,13 @@ def load_benchmark_datasets(path: str | Path) -> list[BenchmarkDataset]:
     if isinstance(data, dict) and "datasets" in data:
         return [BenchmarkDataset.from_dict(item) for item in data["datasets"]]
     return [BenchmarkDataset.from_dict(data)]
+
+
+def load_evaluation_report(path: str | Path) -> EvaluationReport:
+    """Load a previously saved evaluation report JSON."""
+
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return EvaluationReport.from_dict(data)
 
 
 def save_json_report(report: EvaluationReport, path: str | Path) -> None:
@@ -58,6 +66,11 @@ def render_markdown_report(report: EvaluationReport) -> str:
         for key, value in sorted(report.metadata.items()):
             lines.append(f"- **{key}**: {_fmt_value(value)}")
         lines.append("")
+        performance = report.metadata.get("performance")
+        if isinstance(performance, dict):
+            lines.append("## Performance Summary")
+            lines.extend(_metric_table({str(k): float(v) for k, v in performance.items()}))
+            lines.append("")
 
     lines.append("## Aggregate Metrics")
     lines.extend(_metric_table(report.aggregate))
@@ -76,16 +89,28 @@ def render_markdown_report(report: EvaluationReport) -> str:
             for metric, value in sorted(component.metrics.items()):
                 lines.append(f"| {component.name} | {metric} | {value:.4f} |")
         lines.append("")
+        performance = dataset.metadata.get("performance")
+        if isinstance(performance, dict):
+            lines.append("### Runtime")
+            numeric_performance = {
+                str(k): float(v) for k, v in performance.items() if isinstance(v, int | float)
+            }
+            lines.extend(_metric_table(numeric_performance))
+            lines.append("")
         failures = [
             failure for component in dataset.components.values() for failure in component.failures
         ]
         if failures:
             lines.append("### Failure Cases")
             for failure in failures:
-                lines.append(
-                    f"- `{failure.get('metric')}` = {failure.get('value'):.4f}: "
-                    f"{failure.get('description')}"
-                )
+                if "metric" in failure:
+                    lines.append(
+                        f"- `{failure.get('metric')}` = {failure.get('value'):.4f}: "
+                        f"{failure.get('description')}"
+                    )
+                else:
+                    failure_type = failure.get("type", "diagnostic")
+                    lines.append(f"- `{failure_type}`: {failure.get('description')}")
             lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"

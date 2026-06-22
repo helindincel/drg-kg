@@ -9,9 +9,13 @@ from drg.evaluation import (
     compare_reports,
     graph_metrics,
     load_benchmark_dataset,
+    load_benchmark_suite,
+    load_evaluation_report,
+    load_official_benchmark_suite,
+    load_prediction_artifact,
     precision_recall_f1,
     render_markdown_report,
-    retrieval_metrics,
+    save_json_report,
 )
 
 
@@ -37,18 +41,6 @@ def _prediction() -> PipelinePrediction:
             }
         ],
         inferred_relations=[("Sam Altman", "CONNECTED_TO", "Microsoft")],
-        query_results={
-            "Who has worked with Sam Altman?": ["Sam Altman", "OpenAI", "Microsoft"],
-            "What acquisitions involve Microsoft?": ["Microsoft", "GitHub"],
-        },
-        hybrid_results={
-            "Who has worked with Sam Altman?": ["OpenAI", "Sam Altman"],
-            "What acquisitions involve Microsoft?": [
-                "Microsoft",
-                "GitHub",
-                "doc_github_chunk_000",
-            ],
-        },
         resolved_clusters={
             "Sam Altman": "ai",
             "OpenAI": "ai",
@@ -71,14 +63,6 @@ def test_precision_recall_f1_exact_sets():
     assert metrics["f1"] == 0.5
 
 
-def test_retrieval_metrics_precision_recall_mrr_ndcg():
-    metrics = retrieval_metrics(["a", "x", "b"], {"a", "b"}, k=3)
-    assert metrics["precision_at_k"] == 2 / 3
-    assert metrics["recall_at_k"] == 1.0
-    assert metrics["mrr"] == 1.0
-    assert 0.0 < metrics["ndcg"] <= 1.0
-
-
 def test_graph_metrics_coverage_density_orphans():
     metrics = graph_metrics(
         gold_entities=[
@@ -97,16 +81,78 @@ def test_graph_metrics_coverage_density_orphans():
 
 def test_benchmark_runner_full_report():
     dataset = load_benchmark_dataset("examples/benchmarks/synthetic_kg_benchmark.json")
-    report = BenchmarkRunner(run_id="test_run", retrieval_k=3).evaluate(
+    report = BenchmarkRunner(run_id="test_run").evaluate(
         [dataset],
         predictions={dataset.name: _prediction()},
     )
 
     assert report.aggregate["extraction_f1"] == 1.0
-    assert report.aggregate["hybrid_ndcg"] >= report.aggregate["retrieval_ndcg"]
+    removed_metric = "query" + "_ndcg"
+    assert removed_metric not in report.aggregate
     ds = report.datasets[0]
     assert ds.components["event_extraction"].metrics["f1"] == 1.0
     assert ds.components["query_reasoning"].metrics["inference_f1"] == 1.0
+
+
+def test_benchmark_runner_can_measure_runtime_performance():
+    dataset = load_benchmark_dataset("examples/benchmarks/synthetic_kg_benchmark.json")
+    report = BenchmarkRunner(run_id="perf", measure_performance=True).evaluate(
+        [dataset],
+        runner=lambda _dataset: _prediction(),
+    )
+
+    assert "performance" in report.metadata
+    assert report.metadata["performance"]["total_wall_time_seconds"] >= 0.0
+    runtime = report.datasets[0].components["runtime_performance"].metrics
+    assert runtime["wall_time_seconds"] >= 0.0
+    assert runtime["entities_per_second"] >= 0.0
+
+
+def test_official_benchmark_suite_loads_dataset_catalog():
+    suite = load_official_benchmark_suite()
+    assert suite.name == "drg_official_minimal_suite"
+    assert {dataset.name for dataset in suite.datasets} >= {
+        "synthetic_openai_microsoft",
+        "corporate_acquisition_benchmark",
+    }
+    assert "external-baseline" in suite.adapters
+
+
+def test_benchmark_suite_manifest_supports_runner_callable(tmp_path):
+    suite_path = tmp_path / "suite.json"
+    suite_path.write_text(
+        """
+{
+  "name": "inline_suite",
+  "datasets": [
+    {
+      "name": "tiny",
+      "text": "Apple acquired Beats.",
+      "gold_entities": [
+        {"name": "Apple", "type": "Company"},
+        {"name": "Beats", "type": "Company"}
+      ],
+      "gold_relations": [
+        {"source": "Apple", "relationship_type": "ACQUIRED", "target": "Beats"}
+      ]
+    }
+  ],
+  "adapters": ["drg"]
+}
+""",
+        encoding="utf-8",
+    )
+    suite = load_benchmark_suite(suite_path)
+
+    def runner(dataset):
+        assert dataset.name == "tiny"
+        return PipelinePrediction(
+            entities=[("Apple", "Company"), ("Beats", "Company")],
+            relations=[("Apple", "ACQUIRED", "Beats")],
+        )
+
+    report = BenchmarkRunner(run_id="suite_smoke").evaluate(suite.datasets, runner=runner)
+    assert report.aggregate["extraction_f1"] == 1.0
 
 
 def test_event_key_matching_supports_gold_event_dicts():
@@ -121,13 +167,13 @@ def test_event_key_matching_supports_gold_event_dicts():
 
 def test_compare_reports_flags_regression_and_improvement():
     dataset = load_benchmark_dataset("examples/benchmarks/synthetic_kg_benchmark.json")
-    good = BenchmarkRunner(run_id="good", retrieval_k=3).evaluate(
+    good = BenchmarkRunner(run_id="good").evaluate(
         [dataset],
         predictions={dataset.name: _prediction()},
     )
     weak_prediction = _prediction()
     weak_prediction.entities = weak_prediction.entities[:-2]
-    weak = BenchmarkRunner(run_id="weak", retrieval_k=3).evaluate(
+    weak = BenchmarkRunner(run_id="weak").evaluate(
         [dataset],
         predictions={dataset.name: weak_prediction},
     )
@@ -135,6 +181,47 @@ def test_compare_reports_flags_regression_and_improvement():
     comparison = compare_reports(good, weak, regression_threshold=0.01)
     assert comparison.regressions
     assert any(item["metric"] == "overall_score" for item in comparison.regressions)
+
+
+def test_evaluation_report_json_round_trip(tmp_path):
+    dataset = load_benchmark_dataset("examples/benchmarks/synthetic_kg_benchmark.json")
+    report = BenchmarkRunner(run_id="roundtrip").evaluate(
+        [dataset],
+        predictions={dataset.name: _prediction()},
+    )
+    report_path = tmp_path / "report.json"
+
+    save_json_report(report, report_path)
+    loaded = load_evaluation_report(report_path)
+
+    assert loaded.run_id == "roundtrip"
+    assert loaded.aggregate == report.aggregate
+    assert loaded.datasets[0].components["entity_extraction"].metrics["f1"] == 1.0
+
+
+def test_prediction_artifact_loader_supports_external_adapter_shape(tmp_path):
+    artifact = tmp_path / "predictions.json"
+    artifact.write_text(
+        """
+{
+  "adapter": "external-baseline",
+  "model": "baseline",
+  "predictions": {
+    "tiny": {
+      "entities": [{"name": "Apple", "type": "Company"}],
+      "relations": [["Apple", "ACQUIRED", "Beats"]]
+    }
+  }
+}
+""",
+        encoding="utf-8",
+    )
+
+    predictions, metadata = load_prediction_artifact(artifact)
+
+    assert metadata["adapter"] == "external-baseline"
+    assert predictions["tiny"].entities == [("Apple", "Company")]
+    assert predictions["tiny"].relations == [("Apple", "ACQUIRED", "Beats")]
 
 
 def test_render_markdown_report_contains_components():
@@ -146,4 +233,4 @@ def test_render_markdown_report_contains_components():
     markdown = render_markdown_report(report)
     assert "# Evaluation Report: markdown" in markdown
     assert "entity_extraction" in markdown
-    assert "hybrid_retrieval" in markdown
+    assert "graph_construction" in markdown

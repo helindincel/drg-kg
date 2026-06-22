@@ -2,46 +2,64 @@
   "name": "synthetic_openai_microsoft",
   "text": "Sam Altman worked with OpenAI. Microsoft invested in OpenAI. Microsoft acquired GitHub in 2018.",
   "gold_entities": [
-    {"name": "Sam Altman", "type": "Person"},
-    {"name": "OpenAI", "type": "Company"},
-    {"name": "Microsoft", "type": "Company"},
-    {"name": "GitHub", "type": "Company"},
-    {"name": "GitHub Acquisition", "type": "Event:Acquisition"}
+    {
+      "name": "Sam Altman",
+      "type": "Person"
+    },
+    {
+      "name": "OpenAI",
+      "type": "Company"
+    },
+    {
+      "name": "Microsoft",
+      "type": "Company"
+    },
+    {
+      "name": "GitHub",
+      "type": "Company"
+    },
+    {
+      "name": "GitHub Acquisition",
+      "type": "Event:Acquisition"
+    }
   ],
   "gold_relations": [
-    {"source": "Sam Altman", "relationship_type": "WORKED_WITH", "target": "OpenAI"},
-    {"source": "Microsoft", "relationship_type": "INVESTED_IN", "target": "OpenAI"},
-    {"source": "Microsoft", "relationship_type": "ACQUIRED", "target": "GitHub"}
+    {
+      "source": "Sam Altman",
+      "relationship_type": "WORKED_WITH",
+      "target": "OpenAI"
+    },
+    {
+      "source": "Microsoft",
+      "relationship_type": "INVESTED_IN",
+      "target": "OpenAI"
+    },
+    {
+      "source": "Microsoft",
+      "relationship_type": "ACQUIRED",
+      "target": "GitHub"
+    }
   ],
   "gold_events": [
     {
       "id": "event:Acquisition:github_2018",
       "event_type": "Acquisition",
       "participants": {
-        "acquirer": ["Microsoft"],
-        "acquired": ["GitHub"]
+        "acquirer": [
+          "Microsoft"
+        ],
+        "acquired": [
+          "GitHub"
+        ]
       },
       "timestamp": "2018"
     }
   ],
   "gold_inferred_relations": [
-    {"source": "Sam Altman", "relationship_type": "CONNECTED_TO", "target": "Microsoft"}
-  ],
-  "query_cases": [
     {
-      "query": "Who has worked with Sam Altman?",
-      "relevant_entities": ["Sam Altman", "OpenAI"],
-      "relevant_relations": [
-        {"source": "Sam Altman", "relationship_type": "WORKED_WITH", "target": "OpenAI"}
-      ]
-    },
-    {
-      "query": "What acquisitions involve Microsoft?",
-      "relevant_entities": ["Microsoft", "GitHub"],
-      "relevant_chunks": ["doc_github_chunk_000"],
-      "relevant_relations": [
-        {"source": "Microsoft", "relationship_type": "ACQUIRED", "target": "GitHub"}
-      ]
+      "source": "Sam Altman",
+      "relationship_type": "CONNECTED_TO",
+      "target": "Microsoft"
     }
   ],
   "gold_communities": {

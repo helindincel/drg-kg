@@ -4,21 +4,7 @@ from drg.evaluation import (
     GoldEntity,
     GoldRelation,
     PipelinePrediction,
-    retrieval_metrics,
 )
-
-
-def test_retrieval_metrics():
-    ranked = ["A", "B", "C", "D"]
-    relevant = {"B", "D", "E"}
-    metrics = retrieval_metrics(ranked, relevant, k=4)
-
-    # B is at index 1 (rank 2), D is at index 3 (rank 4)
-    # Correct: 2, Total relevant in top 4: 2
-    assert metrics["precision_at_k"] == 0.5  # 2/4
-    assert metrics["recall_at_k"] == 2 / 3
-    assert metrics["hits_at_k"] == 1.0
-    assert metrics["mrr"] == 0.5  # 1/2 (first hit at rank 2)
 
 
 def test_benchmark_runner_basic():

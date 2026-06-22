@@ -1,7 +1,7 @@
 # Evaluation Framework
 
 The evaluation framework measures DRG quality across extraction, graph
-construction, reasoning, retrieval, and hybrid retrieval.
+construction, reasoning, deterministic graph-query behavior, and performance.
 
 Status: opt-in, pure Python, independent from production extraction/query code.
 
@@ -12,8 +12,8 @@ Verified from source:
 - `tests/multi_dataset/evaluation.py` is a simplified test helper, not a
   reusable benchmark framework.
 - `drg.optimizer.metrics` computes entity/relation F1 for optimizer workflows,
-  but does not evaluate events, graph quality, reasoning, retrieval, hybrid
-  retrieval, benchmark datasets, reports, or regressions.
+  but does not evaluate events, graph quality, reasoning, graph-query metrics,
+  benchmark datasets, reports, or regressions.
 - Existing extraction/query modules expose enough outputs to evaluate, but the
   evaluation logic was not centralized.
 
@@ -34,6 +34,8 @@ The runner accepts either:
 
 - `PipelinePrediction` objects keyed by dataset name.
 - A callable `runner(dataset) -> PipelinePrediction`.
+- A suite manifest loaded with `load_benchmark_suite()` or
+  `load_official_benchmark_suite()`.
 
 That lets teams compare old vs new versions, model A vs model B, prompt A vs
 prompt B, or any custom pipeline without coupling evaluation to extraction
@@ -49,9 +51,8 @@ internals.
 | Entity resolution | pairwise precision, recall, F1 |
 | Graph construction | entity coverage, relation coverage, density, orphan-node rate |
 | Query & reasoning | inference precision, recall, F1 |
-| Retrieval | Precision@K, Recall@K, MRR, NDCG |
-| Hybrid retrieval | Precision@K, Recall@K, MRR, NDCG |
 | Community quality | pairwise community precision, recall, F1 |
+| Runtime performance | wall time, p50/p95 latency, Python heap peak, optional RSS, throughput |
 
 ## Benchmark Dataset Schema
 
@@ -73,18 +74,17 @@ internals.
   "gold_inferred_relations": [
     {"source": "A", "relationship_type": "CONNECTED_TO", "target": "B"}
   ],
-  "query_cases": [
-    {
-      "query": "What acquisitions involve Microsoft?",
-      "relevant_entities": ["Microsoft", "GitHub"],
-      "relevant_chunks": ["doc_github_chunk_000"]
-    }
-  ],
   "gold_communities": {"OpenAI": "ai", "Microsoft": "ai"}
 }
 ```
 
 See `examples/benchmarks/synthetic_kg_benchmark.json`.
+
+The minimal official suite manifest lives at
+`examples/benchmarks/official_suite.json`. It references deterministic DRG
+fixtures and lists adapter targets (`drg`, `external-baseline`, `kg-builder`)
+so external tools can be compared by writing a small adapter that returns
+`PipelinePrediction`.
 
 ## Usage
 
@@ -95,13 +95,49 @@ dataset = load_benchmark_dataset("examples/benchmarks/synthetic_kg_benchmark.jso
 prediction = PipelinePrediction(
     entities=[("OpenAI", "Company")],
     relations=[("Microsoft", "INVESTED_IN", "OpenAI")],
-    query_results={"Which companies are connected to OpenAI?": ["Microsoft", "OpenAI"]},
 )
 
 report = BenchmarkRunner(run_id="candidate").evaluate(
     [dataset],
     predictions={dataset.name: prediction},
 )
+```
+
+Suite usage:
+
+```python
+from drg.evaluation import BenchmarkRunner, load_official_benchmark_suite
+
+suite = load_official_benchmark_suite()
+report = BenchmarkRunner(run_id="candidate").evaluate(suite.datasets, runner=my_adapter)
+```
+
+CLI usage with JSON and Markdown artifacts:
+
+```bash
+drg eval run examples/benchmarks/synthetic_kg_benchmark.json \
+  --measure-performance \
+  -o reports/current.json \
+  --markdown-output reports/current.md
+```
+
+External adapter usage:
+
+```bash
+drg eval run examples/benchmarks/synthetic_kg_benchmark.json \
+  --predictions external_predictions.json \
+  --adapter external-baseline \
+  -o reports/external-baseline.json
+```
+
+See `docs/benchmarking.md` for the prediction artifact contract, large synthetic
+dataset generation, and scheduled benchmark workflow.
+
+CLI catalog:
+
+```bash
+drg eval list
+drg eval list --json
 ```
 
 Runnable demo:

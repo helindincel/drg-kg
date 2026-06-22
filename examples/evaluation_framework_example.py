@@ -50,18 +50,6 @@ def main() -> int:
         inferred_relations=[
             ("Sam Altman", "CONNECTED_TO", "Microsoft"),
         ],
-        query_results={
-            "Who has worked with Sam Altman?": ["Sam Altman", "OpenAI", "Microsoft"],
-            "What acquisitions involve Microsoft?": ["Microsoft", "GitHub"],
-        },
-        hybrid_results={
-            "Who has worked with Sam Altman?": ["OpenAI", "Sam Altman"],
-            "What acquisitions involve Microsoft?": [
-                "Microsoft",
-                "GitHub",
-                "doc_github_chunk_000",
-            ],
-        },
         resolved_clusters={
             "Sam Altman": "ai",
             "OpenAI": "ai",
@@ -79,7 +67,6 @@ def main() -> int:
 
     report = BenchmarkRunner(
         run_id="example_run",
-        retrieval_k=3,
         metadata={"pipeline": "manual_prediction"},
     ).evaluate([dataset], predictions={dataset.name: prediction})
 

@@ -1,8 +1,7 @@
-"""Metric implementations for extraction, graph, reasoning, and retrieval."""
+"""Metric implementations for extraction, graph, and reasoning."""
 
 from __future__ import annotations
 
-import math
 from itertools import combinations
 from typing import Any
 
@@ -16,7 +15,6 @@ __all__ = [
     "graph_metrics",
     "precision_recall_f1",
     "relation_prf",
-    "retrieval_metrics",
 ]
 
 
@@ -95,51 +93,6 @@ def graph_metrics(
         "orphan_node_rate": len(orphan_nodes) / node_count if node_count else 0.0,
         "node_count": float(node_count),
         "edge_count": float(edge_count),
-    }
-
-
-def retrieval_metrics(
-    ranked_ids: list[str],
-    relevant_ids: set[str],
-    *,
-    k: int = 10,
-    scores: dict[str, float] | None = None,
-) -> dict[str, float]:
-    """Precision@K, Recall@K, MRR, NDCG@K and Hits@K."""
-    if k < 1:
-        raise ValueError("k must be >= 1")
-    ranked = [norm(x) for x in ranked_ids[:k]]
-    relevant = {norm(x) for x in relevant_ids}
-    hits = [1 if item in relevant else 0 for item in ranked]
-    hit_count = sum(hits)
-    precision_at_k = hit_count / k
-    recall_at_k = hit_count / len(relevant) if relevant else 0.0
-    hits_at_k = float(hit_count > 0)
-
-    mrr = 0.0
-    for idx, is_hit in enumerate(hits, start=1):
-        if is_hit:
-            mrr = 1.0 / idx
-            break
-
-    dcg = 0.0
-    for idx, item in enumerate(ranked, start=1):
-        if item not in relevant:
-            continue
-        relevance = 1.0
-        if scores:
-            relevance = scores.get(item, scores.get(ranked_ids[idx - 1], 1.0))
-        dcg += relevance / math.log2(idx + 1)
-    ideal_rels = [1.0] * min(len(relevant), k)
-    idcg = sum(rel / math.log2(idx + 1) for idx, rel in enumerate(ideal_rels, start=1))
-    ndcg = dcg / idcg if idcg else 0.0
-
-    return {
-        "precision_at_k": precision_at_k,
-        "recall_at_k": recall_at_k,
-        "mrr": mrr,
-        "ndcg": ndcg,
-        "hits_at_k": hits_at_k,
     }
 
 

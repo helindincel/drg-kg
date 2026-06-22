@@ -1,0 +1,18 @@
+{
+  "name": "drg_official_minimal_suite",
+  "datasets": [
+    "synthetic_kg_benchmark.json",
+    "corporate_acquisition_benchmark.json"
+  ],
+  "adapters": [
+    "drg",
+    "external-baseline",
+    "kg-builder"
+  ],
+  "metadata": {
+    "purpose": "Small deterministic suite for extraction, entity resolution, temporal and graph-query regression checks.",
+    "comparison_model": "Use adapter-specific runners or external prediction artifacts that return PipelinePrediction-compatible payloads.",
+    "prediction_artifact_contract": "See docs/benchmarking.md#competitor-adapter-contract",
+    "reporting_goal": "Publish JSON and Markdown artifacts with extraction accuracy, latency, throughput, and memory metrics."
+  }
+}

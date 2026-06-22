@@ -1,0 +1,52 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      documents:
+        description: "Synthetic documents to generate"
+        required: false
+        default: "1000"
+  schedule:
+    - cron: "0 3 * * 1"
+
+jobs:
+  synthetic-scale-smoke:
+    name: Synthetic scale benchmark smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Generate deterministic scale artifacts
+        run: |
+          mkdir -p benchmark-artifacts
+          python examples/benchmarks/generate_scale_dataset.py \
+            --documents "${{ github.event.inputs.documents || '1000' }}" \
+            --output benchmark-artifacts/synthetic_scale.json \
+            --oracle-output benchmark-artifacts/oracle_predictions.json
+
+      - name: Evaluate oracle artifact
+        run: |
+          drg eval run benchmark-artifacts/synthetic_scale.json \
+            --predictions benchmark-artifacts/oracle_predictions.json \
+            --adapter oracle \
+            --run-id "synthetic-scale-${{ github.run_id }}" \
+            --output benchmark-artifacts/report.json \
+            --markdown-output benchmark-artifacts/report.md
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: synthetic-scale-benchmark
+          path: benchmark-artifacts/

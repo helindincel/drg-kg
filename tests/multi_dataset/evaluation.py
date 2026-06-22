@@ -7,8 +7,6 @@ from typing import Any
 from drg.chunking import Chunk, ChunkingStrategy
 from drg.embedding import EmbeddingProvider
 
-# RAG retriever removed - not part of this project
-
 logger = logging.getLogger(__name__)
 
 
@@ -18,7 +16,6 @@ class DatasetMetrics:
 
     dataset_name: str
     chunking_quality: dict[str, float]
-    retrieval_accuracy: dict[str, float]
     entity_extraction: dict[str, float]
     total_chunks: int
     total_entities: int
@@ -88,10 +85,6 @@ class MultiDatasetEvaluator:
         total_entities = len(ground_truth_entities) if ground_truth_entities else 0
         total_relations = 0  # Would be extracted from KG
 
-        # Retrieval accuracy - disabled (RAG retriever removed, not our focus)
-        retrieval_accuracy = {}
-        # RAG retrieval evaluation removed - we don't build RAG framework
-
         # Entity extraction effectiveness
         entity_extraction = {}
         if ground_truth_entities:
@@ -100,7 +93,6 @@ class MultiDatasetEvaluator:
         return DatasetMetrics(
             dataset_name=dataset_name,
             chunking_quality=chunking_quality,
-            retrieval_accuracy=retrieval_accuracy,
             entity_extraction=entity_extraction,
             total_chunks=len(chunks),
             total_entities=total_entities,
@@ -156,18 +148,6 @@ class MultiDatasetEvaluator:
             metrics["entity_boundary_violation_rate"] = 0.0
 
         return metrics
-
-    def _evaluate_retrieval_accuracy(
-        self,
-        test_queries: list[dict[str, Any]],
-        chunks: list[Chunk],
-    ) -> dict[str, float]:
-        """Evaluate retrieval accuracy - disabled (RAG retriever removed).
-
-        This method is kept for API compatibility but always returns empty dict.
-        We don't build RAG framework, so retrieval accuracy evaluation is not our focus.
-        """
-        return {}
 
     def _evaluate_entity_extraction(
         self,
@@ -259,7 +239,6 @@ class MultiDatasetEvaluator:
         for metrics in metrics_list:
             table[metrics.dataset_name] = {
                 "chunking_quality": metrics.chunking_quality,
-                "retrieval_accuracy": metrics.retrieval_accuracy,
                 "entity_extraction": metrics.entity_extraction,
                 "total_chunks": metrics.total_chunks,
                 "total_entities": metrics.total_entities,
@@ -289,16 +268,6 @@ class MultiDatasetEvaluator:
             avg_violation = sum(violation_rates) / len(violation_rates)
             observations.append(f"Average entity boundary violation rate: {avg_violation:.2%}")
 
-        # Compare retrieval accuracy
-        precision_scores = [
-            m.retrieval_accuracy.get("precision_at_k", 0.0)
-            for m in metrics_list
-            if m.retrieval_accuracy
-        ]
-        if precision_scores:
-            avg_precision = sum(precision_scores) / len(precision_scores)
-            observations.append(f"Average precision@K: {avg_precision:.2%}")
-
         return observations
 
     def _identify_failure_cases(
@@ -325,18 +294,6 @@ class MultiDatasetEvaluator:
                         "type": "high_entity_boundary_violation",
                         "value": violation_rate,
                         "description": f"Entity boundary violation rate is {violation_rate:.2%}",
-                    }
-                )
-
-            # Check for low retrieval precision
-            precision = metrics.retrieval_accuracy.get("precision_at_k", 1.0)
-            if precision < 0.5:  # < 50%
-                failures.append(
-                    {
-                        "dataset": metrics.dataset_name,
-                        "type": "low_retrieval_precision",
-                        "value": precision,
-                        "description": f"Retrieval precision is {precision:.2%}",
                     }
                 )
 

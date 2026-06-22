@@ -131,38 +131,6 @@ class GoldEvent:
 
 
 @dataclass(frozen=True)
-class QueryCase:
-    """Gold-standard query/retrieval expectation."""
-
-    query: str
-    relevant_entities: list[str] = field(default_factory=list)
-    relevant_relations: list[GoldRelation] = field(default_factory=list)
-    relevant_chunks: list[str] = field(default_factory=list)
-    expected_answer_entities: list[str] = field(default_factory=list)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "query": self.query,
-            "relevant_entities": list(self.relevant_entities),
-            "relevant_relations": [r.to_dict() for r in self.relevant_relations],
-            "relevant_chunks": list(self.relevant_chunks),
-            "expected_answer_entities": list(self.expected_answer_entities),
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> QueryCase:
-        return cls(
-            query=str(data["query"]),
-            relevant_entities=[str(x) for x in data.get("relevant_entities", [])],
-            relevant_relations=[
-                GoldRelation.from_any(x) for x in data.get("relevant_relations", [])
-            ],
-            relevant_chunks=[str(x) for x in data.get("relevant_chunks", [])],
-            expected_answer_entities=[str(x) for x in data.get("expected_answer_entities", [])],
-        )
-
-
-@dataclass(frozen=True)
 class BenchmarkDataset:
     """A single reproducible benchmark dataset."""
 
@@ -172,7 +140,6 @@ class BenchmarkDataset:
     gold_relations: list[GoldRelation] = field(default_factory=list)
     gold_events: list[GoldEvent] = field(default_factory=list)
     gold_inferred_relations: list[GoldRelation] = field(default_factory=list)
-    query_cases: list[QueryCase] = field(default_factory=list)
     gold_communities: dict[str, str] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -184,7 +151,6 @@ class BenchmarkDataset:
             "gold_relations": [r.to_dict() for r in self.gold_relations],
             "gold_events": [e.to_dict() for e in self.gold_events],
             "gold_inferred_relations": [r.to_dict() for r in self.gold_inferred_relations],
-            "query_cases": [q.to_dict() for q in self.query_cases],
             "gold_communities": dict(self.gold_communities),
             "metadata": dict(self.metadata),
         }
@@ -200,7 +166,6 @@ class BenchmarkDataset:
             gold_inferred_relations=[
                 GoldRelation.from_any(x) for x in data.get("gold_inferred_relations", [])
             ],
-            query_cases=[QueryCase.from_dict(x) for x in data.get("query_cases", [])],
             gold_communities={
                 str(k): str(v) for k, v in (data.get("gold_communities") or {}).items()
             },
@@ -210,19 +175,43 @@ class BenchmarkDataset:
 
 @dataclass
 class PipelinePrediction:
-    """Predictions emitted by any extraction/graph/retrieval pipeline."""
+    """Predictions emitted by an extraction and graph-query pipeline."""
 
     entities: list[tuple[str, str | None]] = field(default_factory=list)
     relations: list[tuple[str, str, str]] = field(default_factory=list)
     events: list[Any] = field(default_factory=list)
     kg: Any | None = None
-    query_results: dict[str, list[str]] = field(default_factory=dict)
-    query_scores: dict[str, dict[str, float]] = field(default_factory=dict)
-    hybrid_results: dict[str, list[str]] = field(default_factory=dict)
     inferred_relations: list[tuple[str, str, str]] = field(default_factory=list)
     resolved_clusters: dict[str, str] = field(default_factory=dict)
     communities: dict[str, str] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "entities": [list(item) for item in self.entities],
+            "relations": [list(item) for item in self.relations],
+            "events": list(self.events),
+            "inferred_relations": [list(item) for item in self.inferred_relations],
+            "resolved_clusters": dict(self.resolved_clusters),
+            "communities": dict(self.communities),
+            "metadata": dict(self.metadata),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> PipelinePrediction:
+        return cls(
+            entities=[_entity_tuple(item) for item in data.get("entities", [])],
+            relations=[_relation_tuple(item) for item in data.get("relations", [])],
+            events=list(data.get("events", [])),
+            inferred_relations=[
+                _relation_tuple(item) for item in data.get("inferred_relations", [])
+            ],
+            resolved_clusters={
+                str(k): str(v) for k, v in (data.get("resolved_clusters") or {}).items()
+            },
+            communities={str(k): str(v) for k, v in (data.get("communities") or {}).items()},
+            metadata=dict(data.get("metadata") or {}),
+        )
 
 
 @dataclass(frozen=True)
@@ -259,6 +248,15 @@ class ComponentEvaluation:
             "failures": list(self.failures),
         }
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ComponentEvaluation:
+        return cls(
+            name=str(data["name"]),
+            metrics={str(k): float(v) for k, v in (data.get("metrics") or {}).items()},
+            counts={str(k): int(v) for k, v in (data.get("counts") or {}).items()},
+            failures=[dict(item) for item in data.get("failures", [])],
+        )
+
 
 @dataclass
 class DatasetEvaluation:
@@ -277,6 +275,18 @@ class DatasetEvaluation:
             "metadata": dict(self.metadata),
         }
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> DatasetEvaluation:
+        return cls(
+            dataset_name=str(data["dataset_name"]),
+            components={
+                str(k): ComponentEvaluation.from_dict(v)
+                for k, v in (data.get("components") or {}).items()
+            },
+            overall={str(k): float(v) for k, v in (data.get("overall") or {}).items()},
+            metadata=dict(data.get("metadata") or {}),
+        )
+
 
 @dataclass
 class EvaluationReport:
@@ -294,6 +304,15 @@ class EvaluationReport:
             "aggregate": dict(self.aggregate),
             "metadata": dict(self.metadata),
         }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> EvaluationReport:
+        return cls(
+            run_id=str(data["run_id"]),
+            datasets=[DatasetEvaluation.from_dict(item) for item in data.get("datasets", [])],
+            aggregate={str(k): float(v) for k, v in (data.get("aggregate") or {}).items()},
+            metadata=dict(data.get("metadata") or {}),
+        )
 
 
 @dataclass
@@ -318,3 +337,23 @@ class RegressionComparison:
 
 def _norm(value: Any) -> str:
     return " ".join(str(value or "").strip().lower().split())
+
+
+def _entity_tuple(value: Any) -> tuple[str, str | None]:
+    if isinstance(value, dict):
+        return (str(value["name"]), str(value["type"]) if value.get("type") is not None else None)
+    if isinstance(value, (list, tuple)) and value:
+        return (str(value[0]), str(value[1]) if len(value) > 1 and value[1] is not None else None)
+    return (str(value), None)
+
+
+def _relation_tuple(value: Any) -> tuple[str, str, str]:
+    if isinstance(value, dict):
+        return (
+            str(value["source"]),
+            str(value.get("relationship_type") or value.get("relation")),
+            str(value["target"]),
+        )
+    if isinstance(value, (list, tuple)) and len(value) >= 3:
+        return (str(value[0]), str(value[1]), str(value[2]))
+    raise ValueError(f"Invalid relation prediction: {value!r}")
