@@ -68,13 +68,6 @@ from ._types import (
 
 logger = get_logger(__name__)
 
-# Lazy optional imports — also exposed for test patching at this namespace.
-try:
-    from ..optimizer import DRGOptimizer, OptimizerConfig
-except ImportError:
-    DRGOptimizer = None
-    OptimizerConfig = None
-
 try:
     from ..coreference_resolution import resolve_coreferences
 except ImportError:
@@ -789,6 +782,21 @@ def extract_from_chunks(
                     raise
                 logger.warning("Global entity reconciliation failed: %s", e, exc_info=True)
 
+        # Build entity-to-chunks index for cross-chunk snippet injection.
+        # Used in the per-chunk Pass 2 path when enable_cross_chunk_relationships=False.
+        entity_to_chunks_idx: dict[str, list[int]] = {}
+        if enable_cross_chunk_context_snippets:
+            for ci, chunk_ents in enumerate(chunk_entities_list):
+                for cname, _ in chunk_ents:
+                    entity_to_chunks_idx.setdefault(cname.lower(), []).append(ci)
+            if entity_to_chunks_idx:
+                logger.info(
+                    "Built entity-to-chunks index for snippet injection: "
+                    "%d entity entries across %d chunks.",
+                    len(entity_to_chunks_idx),
+                    len(chunk_texts),
+                )
+
         # PASS 2: extract relations at document scope with canonical entities.
         logger.info(f"Pass 2: Extracting document relations with {len(all_entities)} global entities...")
         all_triples = []
@@ -815,8 +823,39 @@ def extract_from_chunks(
                 )
                 chunk_log.info(f"Pass 2 - Processing chunk {i + 1}/{len(chunks)} for relations...")
 
+                # Inject cross-chunk context snippets when available.
+                augmented_text = chunk_text
+                if enable_cross_chunk_context_snippets and entity_to_chunks_idx:
+                    _anchor_ents = _select_anchor_entities(
+                        chunk_text,
+                        chunk_entities_list[i] if i < len(chunk_entities_list) else [],
+                        entity_to_chunks_idx,
+                        len(chunk_texts),
+                        min_anchor_len=min_anchor_entity_len,
+                        max_anchors=max_anchor_entities,
+                    )
+                    _snippets = _build_cross_chunk_context_snippets(
+                        chunk_texts,
+                        entity_to_chunks_idx,
+                        _anchor_ents,
+                        current_chunk_index=i,
+                        max_chunks=max_cross_chunk_context_chunks,
+                        snippet_chars=cross_chunk_snippet_chars,
+                        max_total_chars=max_cross_chunk_context_chars,
+                    )
+                    if _snippets:
+                        augmented_text = (
+                            chunk_text
+                            + "\n\n[Cross-document context]\n"
+                            + "\n".join(_snippets)
+                        )
+                        logger.debug(
+                            "Injected %d cross-chunk snippet(s) into chunk %d.",
+                            len(_snippets), i,
+                        )
+
                 throttle_llm_calls()
-                result = extractor(text=chunk_text)
+                result = extractor(text=augmented_text)
 
                 chunk_relations = result.relations if hasattr(result, "relations") else []
                 all_triples.extend(chunk_relations)
@@ -829,16 +868,58 @@ def extract_from_chunks(
     else:
         logger.info("Using single-pass extraction mode")
         context_entities: list[tuple[str, str]] = []
+        # Running entity-to-chunks index and chunk text list for snippet injection.
+        sp_chunk_texts: list[str] = []
+        sp_entity_to_chunks: dict[str, list[int]] = {}
 
         for i, chunk in enumerate(chunks):
             chunk_text = chunk.get("text", "") if isinstance(chunk, dict) else str(chunk)
             if not chunk_text.strip():
+                sp_chunk_texts.append("")
                 continue
+
+            # Inject cross-chunk context snippets from previously processed chunks.
+            augmented_text = chunk_text
+            if enable_cross_chunk_context_snippets and sp_entity_to_chunks:
+                _anchor_ents = _select_anchor_entities(
+                    chunk_text,
+                    context_entities,
+                    sp_entity_to_chunks,
+                    len(chunks),
+                    min_anchor_len=min_anchor_entity_len,
+                    max_anchors=max_anchor_entities,
+                )
+                _snippets = _build_cross_chunk_context_snippets(
+                    sp_chunk_texts,
+                    sp_entity_to_chunks,
+                    _anchor_ents,
+                    current_chunk_index=i,
+                    max_chunks=max_cross_chunk_context_chunks,
+                    snippet_chars=cross_chunk_snippet_chars,
+                    max_total_chars=max_cross_chunk_context_chars,
+                )
+                if _snippets:
+                    augmented_text = (
+                        chunk_text
+                        + "\n\n[Cross-document context]\n"
+                        + "\n".join(_snippets)
+                    )
+                    logger.debug(
+                        "Injected %d cross-chunk snippet(s) into single-pass chunk %d.",
+                        len(_snippets), i,
+                    )
 
             logger.info(f"Processing chunk {i + 1}/{len(chunks)}...")
 
             throttle_llm_calls()
-            result = extractor(text=chunk_text)
+            result = extractor(
+                text=augmented_text,
+                context_entities=(
+                    context_entities
+                    if enable_cross_chunk_relationships and context_entities
+                    else None
+                ),
+            )
 
             chunk_entities = result.entities if hasattr(result, "entities") else []
             chunk_relations = result.relations if hasattr(result, "relations") else []
@@ -847,6 +928,12 @@ def extract_from_chunks(
             chunk_enriched = getattr(result, "enriched_relations", None)
             if isinstance(chunk_enriched, list):
                 all_enriched.extend(chunk_enriched)
+
+            # Update running index for subsequent chunks.
+            sp_chunk_texts.append(chunk_text)
+            if enable_cross_chunk_context_snippets:
+                for cname, _ in chunk_entities:
+                    sp_entity_to_chunks.setdefault(cname.lower(), []).append(i)
 
             if enable_cross_chunk_relationships:
                 existing_names = {(name.lower(), etype) for name, etype in context_entities}
@@ -878,6 +965,24 @@ def extract_from_chunks(
     all_entities = _dedupe_preserve_order(all_entities)
     all_triples = _dedupe_preserve_order(all_triples)
     all_enriched = _remap_enriched_to_triples(all_enriched, all_triples)
+
+    # Schema validation: filter entities/triples to schema-declared types and
+    # relations (parity with extract_typed which applies _filter_against_schema).
+    try:
+        all_entities, all_triples = _filter_against_schema(
+            schema=schema,
+            entities_typed=all_entities,
+            triples=all_triples,
+        )
+        all_enriched = _remap_enriched_to_triples(all_enriched, all_triples)
+    except Exception as _schema_filter_exc:
+        if is_strict():
+            raise
+        logger.warning(
+            "Schema validation filter failed in extract_from_chunks: %s",
+            _schema_filter_exc,
+            exc_info=True,
+        )
 
     # Post-processing: coreference resolution.
     if enable_coreference_resolution:
@@ -1039,9 +1144,6 @@ def extract_typed(
     enable_coreference_resolution: bool = False,
     enable_implicit_relationships: bool = True,
     embedding_provider: Any = None,
-    use_optimizer: bool = False,
-    optimizer_config: Any | None = None,
-    training_examples: list[dict[str, Any]] | None = None,
     return_enriched: bool = False,
     min_confidence: float | None = None,
     enable_reverse_relation_fallback: bool = False,
@@ -1077,7 +1179,7 @@ def extract_typed(
     # globally configured) and the extractor is real, return empty extraction
     # instead of crashing on the DSPy call.
     effective_lm = lm if lm is not None else getattr(getattr(dspy, "settings", None), "lm", None)
-    if effective_lm is None and not use_optimizer and not isinstance(_get_extractor, _Mock):
+    if effective_lm is None and not isinstance(_get_extractor, _Mock):
         if os.getenv("DRG_REQUIRE_LM", "").lower() in {"1", "true", "yes"}:
             raise LLMConfigError(
                 "No DSPy LM is loaded. Configure LM via environment variables "
@@ -1090,37 +1192,6 @@ def extract_typed(
         return [], []
 
     extractor = _get_extractor(schema, lm=lm)
-
-    # Optimizer path. Note: optimizer failures are always raised — disable
-    # optimization via `use_optimizer=False` if you want to ignore them.
-    if use_optimizer and not training_examples:
-        raise ExtractionError("Optimizer requested but no training examples were provided")
-
-    if use_optimizer and training_examples:
-        if DRGOptimizer is None or OptimizerConfig is None:
-            raise ExtractionError("Optimizer module is not available")
-        else:
-            try:
-                if optimizer_config is None:
-                    optimizer_config = OptimizerConfig()
-                optimizer = DRGOptimizer(
-                    schema=schema,
-                    config=optimizer_config,
-                    training_examples=training_examples,
-                    lm=lm,
-                )
-                logger.info(
-                    f"Optimizing extractor with {len(training_examples)} training examples..."
-                )
-                extractor = optimizer.optimize()
-                logger.info("Optimization completed, using optimized extractor")
-            except Exception as e:
-                logger.error("Optimizer failed: %s", e, exc_info=True)
-                raise ExtractionError(
-                    f"Optimizer optimization failed: {e}. "
-                    "If you want to proceed without optimization, set use_optimizer=False. "
-                    "Otherwise, check your training examples format and optimizer configuration."
-                ) from e
 
     result = extractor(text=text)
 

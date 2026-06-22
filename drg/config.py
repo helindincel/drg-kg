@@ -102,9 +102,6 @@ class LMConfig:
                     UserWarning,
                     stacklevel=2,
                 )
-            # Set base URL for OpenRouter if not already configured
-            if not os.getenv("DRG_BASE_URL"):
-                base_url = "https://openrouter.ai/api/v1"
         elif "gemini" in model_lower:
             api_key = gemini_key
             if not api_key:
@@ -133,9 +130,6 @@ class LMConfig:
                     UserWarning,
                     stacklevel=2,
                 )
-            # Set base URL for Perplexity if not already configured
-            if not os.getenv("DRG_BASE_URL"):
-                base_url = "https://api.perplexity.ai"
         elif "ollama" in model_lower:
             # Ollama does not require an API key
             api_key = None

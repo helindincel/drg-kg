@@ -22,7 +22,11 @@ class ClusterSummary:
 
 
 class ClusterSummarizer:
-    """Summarizes clusters using LLM or template-based approach."""
+    """Summarizes clusters with deterministic template-based rules.
+
+    `use_llm` and `llm_model` are retained as no-op compatibility arguments
+    to avoid breaking existing call sites.
+    """
 
     def __init__(
         self,
@@ -32,29 +36,20 @@ class ClusterSummarizer:
         """Initialize cluster summarizer.
 
         Args:
-            use_llm: Whether to use LLM for summarization
-            llm_model: LLM model name (if use_llm=True)
+            use_llm: Deprecated compatibility flag. Ignored.
+            llm_model: Deprecated compatibility argument. Ignored.
         """
-        self.use_llm = use_llm
+        self.use_llm = False
         self.llm_model = llm_model
-
         if use_llm:
-            try:
-                import dspy
-
-                self.dspy = dspy
-                # Note: LLM configuration should be done via drg.config.configure_lm()
-                # or environment variables, not here in the summarizer
-            except ImportError:
-                logger.warning("DSPy not available, falling back to template-based summarization")
-                self.use_llm = False
+            logger.info("ClusterSummarizer ignores use_llm and uses template summarization")
 
     def summarize(
         self,
         cluster: Cluster,
         graph=None,  # Optional KG for context
     ) -> ClusterSummary:
-        """Summarize a cluster.
+        """Summarize a cluster using the deterministic template path.
 
         Args:
             cluster: Cluster to summarize
@@ -63,10 +58,7 @@ class ClusterSummarizer:
         Returns:
             ClusterSummary object
         """
-        if self.use_llm:
-            return self._llm_summarize(cluster, graph)
-        else:
-            return self._template_summarize(cluster, graph)
+        return self._template_summarize(cluster, graph)
 
     def _template_summarize(
         self,
@@ -123,25 +115,6 @@ class ClusterSummarizer:
                 **cluster.metadata,
             },
         )
-
-    def _llm_summarize(
-        self,
-        cluster: Cluster,
-        graph=None,
-    ) -> ClusterSummary:
-        """LLM-based summarization using DSPy.
-
-        Note: This is currently a placeholder implementation. LLM-based summarization
-        would require DSPy signature definition and proper LLM configuration.
-        For now, falls back to template-based summarization which provides good
-        results for most use cases.
-
-        Future enhancement: Implement DSPy-based summarization with proper signature
-        and few-shot examples for better cluster summaries.
-        """
-        # For now, fall back to template-based
-        logger.warning("LLM summarization not fully implemented, using template-based")
-        return self._template_summarize(cluster, graph)
 
     def _calculate_density(self, cluster: Cluster) -> float:
         """Calculate cluster density.

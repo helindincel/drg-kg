@@ -1,4 +1,4 @@
-"""Tests for the query & reasoning layer (``drg.query``).
+"""Tests for the query layer (``drg.query``).
 
 All tests are deterministic — no LLM, no DSPy import required.
 """
@@ -12,7 +12,6 @@ import pytest
 from drg.graph import EnhancedKG, GraphMerger, KGEdge, KGNode
 from drg.graph.builders import build_enhanced_kg
 from drg.query import GraphQuery, QueryError
-from drg.reasoning import MultiDocumentReasoner, ReasoningConfig
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -63,11 +62,6 @@ def _apple_beats_kg() -> EnhancedKG:
             node_ids={"Apple", "Beats", "Jimmy Iovine"},
             metadata={"label": "tech"},
         )
-    )
-
-    MultiDocumentReasoner(config=ReasoningConfig(min_confidence=0.5)).reason(
-        base,
-        record_history=False,
     )
     return base
 
