@@ -99,7 +99,7 @@ jobs:
         # CI green if Codecov is temporarily unavailable — the test
         # job has already provided pass/fail signal.
         if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           files: ./coverage.xml
           flags: unittests
