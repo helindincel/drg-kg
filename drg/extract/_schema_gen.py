@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import Any
 
 import dspy
 
@@ -18,8 +19,7 @@ from ..errors import SchemaGenerationError
 from ..schema import EnhancedDRGSchema, EntityType, Relation, RelationGroup
 from ..utils.llm_throttle import throttle_llm_calls
 from ._parsing import _parse_json_output
-from ._relations import _add_reverse_relations
-from ._types import SchemaOutput
+from ._types import SchemaEntityType, SchemaOutput, SchemaRelationGroup
 
 logger = logging.getLogger(__name__)
 
@@ -27,26 +27,14 @@ logger = logging.getLogger(__name__)
 class SchemaGeneration(dspy.Signature):
     """Generate EnhancedDRGSchema from the given text.
 
-    Output must be valid JSON matching EnhancedDRGSchema: entity_types and
-    relation_groups. Derive entity types, examples/properties, relation groups
-    and relations from the text (dataset-agnostic).
+    Derive entity types, examples/properties, relation groups and relations
+    from the text (dataset-agnostic). The output is intentionally split into
+    typed fields instead of one JSON blob.
     """
 
-    text: str = dspy.InputField(desc="Input text to analyze for schema generation")
-    generated_schema: str = dspy.OutputField(
-        desc=(
-            "Return ONLY valid JSON for EnhancedDRGSchema with keys: "
-            "'entity_types' (name, description, examples, properties) and "
-            "'relation_groups' (name, description, relations[] with name, source, target, "
-            "description, detail). "
-            "Use entity TYPE names (e.g., Person, Company) as source/target (not entity instances). "
-            "IMPORTANT formatting rules: output MUST be strict JSON (double quotes), no trailing commas, "
-            "no comments, no extra text. "
-            "Keep it compact to avoid truncation: max 10 entity_types; max 8 relation_groups; "
-            "max 10 relations per group. "
-            "For EntityType.properties, output a JSON object/dict (not a list)."
-        )
-    )
+    text: str = dspy.InputField(desc="Input text")
+    entity_types: list[SchemaEntityType] = dspy.OutputField(desc="Generated entity types")
+    relation_groups: list[SchemaRelationGroup] = dspy.OutputField(desc="Generated relation groups")
 
 
 def generate_schema_from_text(text: str) -> EnhancedDRGSchema:
@@ -86,20 +74,15 @@ def generate_schema_from_text(text: str) -> EnhancedDRGSchema:
     sample_text = _sample_text_for_schema_generation(text)
 
     try:
-        if hasattr(dspy, "TypedPredictor"):
-            schema_generator = dspy.TypedPredictor(SchemaGeneration, output_type=SchemaOutput)
-            throttle_llm_calls()
-            schema_result = schema_generator(text=sample_text)
-            if isinstance(schema_result, SchemaOutput):
-                schema_str = schema_result.generated_schema
-            else:
-                schema_str = getattr(schema_result, "generated_schema", "{}")
+        if not hasattr(dspy, "TypedPredictor"):
+            raise SchemaGenerationError("DSPy TypedPredictor is required for typed schema generation")
+        schema_generator = dspy.TypedPredictor(SchemaGeneration, output_type=SchemaOutput)
+        throttle_llm_calls()
+        schema_result = schema_generator(text=sample_text)
+        if isinstance(schema_result, SchemaOutput):
+            schema_data = schema_result.model_dump()
         else:
-            # Fallback to ChainOfThought if TypedPredictor not available.
-            schema_generator = dspy.ChainOfThought(SchemaGeneration)
-            throttle_llm_calls()
-            schema_result = schema_generator(text=sample_text)
-            schema_str = getattr(schema_result, "generated_schema", "{}")
+            schema_data = _schema_prediction_to_dict(schema_result)
         logger.info("Schema generation completed")
     except Exception as e:
         logger.error(f"Schema generation failed: {e}")
@@ -107,30 +90,12 @@ def generate_schema_from_text(text: str) -> EnhancedDRGSchema:
             f"Schema generation failed: {e}. Check your LLM configuration and API keys."
         ) from e
 
-    # Parse JSON schema.
-    try:
-        logger.debug(f"Raw schema output (first 500 chars): {schema_str[:500]}")
-        schema_data = _parse_json_output(schema_str, expected_format="object")
-        logger.debug(
-            "Parsed schema keys: "
-            f"{list(schema_data.keys()) if isinstance(schema_data, dict) else 'Not a dict'}"
-        )
-    except ValueError as e:
-        logger.error(f"Failed to parse schema JSON: {e}")
-        logger.error(f"Raw schema output (first 1000 chars): {schema_str[:1000]}")
-        raise SchemaGenerationError(
-            f"Schema JSON parsing failed: {e}. "
-            "This usually means the LLM output format is incorrect. "
-            "Check your LLM configuration or try a different model."
-        ) from e
-
     if not schema_data or (isinstance(schema_data, dict) and not schema_data):
         logger.error("Parsed schema JSON is empty")
         logger.error(f"Schema data type: {type(schema_data)}, value: {schema_data}")
-        logger.error(f"Raw schema output: {schema_str[:1000]}")
         raise SchemaGenerationError(
             "Schema generation returned empty schema. "
-            "The LLM may need a better prompt or different configuration."
+            "The LLM may need a different typed-output configuration."
         )
 
     # Parse / validate schema strictly.
@@ -190,19 +155,61 @@ def generate_schema_from_text(text: str) -> EnhancedDRGSchema:
                 f"Schema generation output is not a valid EnhancedDRGSchema JSON: {e}"
             ) from e
 
-    # Add reverse relations automatically for bidirectional extraction support.
-    schema = EnhancedDRGSchema(
-        entity_types=schema.entity_types,
-        relation_groups=_add_reverse_relations(schema.relation_groups, schema.entity_types),
-        auto_discovery=schema.auto_discovery,
-    )
-
     total_relations_count = sum(len(rg.relations) for rg in schema.relation_groups)
     logger.info(
         f"Enhanced schema created: {len(schema.entity_types)} entity types, "
         f"{len(schema.relation_groups)} relation groups, {total_relations_count} relations"
     )
     return schema
+
+
+def _schema_prediction_to_dict(schema_result: Any) -> dict[str, Any]:
+    """Normalize DSPy schema-generation outputs into EnhancedDRGSchema dict shape.
+
+    The primary path is typed fields (`entity_types`, `relation_groups`). A
+    narrow legacy fallback accepts the old `generated_schema` JSON string so old
+    saved examples and heavily mocked tests fail predictably rather than
+    breaking at attribute access.
+    """
+    if isinstance(schema_result, dict):
+        return dict(schema_result)
+
+    if isinstance(schema_result, SchemaOutput):
+        return schema_result.model_dump()
+
+    entity_types = getattr(schema_result, "entity_types", None)
+    relation_groups = getattr(schema_result, "relation_groups", None)
+    if entity_types is not None or relation_groups is not None:
+        return {
+            "entity_types": _coerce_model_list(entity_types),
+            "relation_groups": _coerce_model_list(relation_groups),
+        }
+
+    generated_schema = getattr(schema_result, "generated_schema", None)
+    if isinstance(generated_schema, str):
+        try:
+            return _parse_json_output(generated_schema, expected_format="object")
+        except ValueError as e:
+            raise SchemaGenerationError(
+                f"Legacy schema JSON parsing failed: {e}. "
+                "Prefer typed schema-generation outputs."
+            ) from e
+
+    return {}
+
+
+def _coerce_model_list(value: Any) -> list[dict[str, Any]]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in value:
+        if hasattr(item, "model_dump"):
+            out.append(item.model_dump())
+        elif isinstance(item, dict):
+            out.append(dict(item))
+    return out
 
 
 def _sample_text_for_schema_generation(text: str) -> str:
@@ -217,7 +224,7 @@ def _sample_text_for_schema_generation(text: str) -> str:
     if not text or not text.strip():
         return ""
 
-    target_coverage = float(os.getenv("DRG_SCHEMA_TARGET_COVERAGE", "0.60"))
+    sample_fraction = float(os.getenv("DRG_SCHEMA_SAMPLE_FRACTION", "0.60"))
     max_total_chars = int(os.getenv("DRG_SCHEMA_MAX_SAMPLE_CHARS", "100000"))
     max_parts = int(os.getenv("DRG_SCHEMA_MAX_PARTS", "20"))
     min_part_chars = int(os.getenv("DRG_SCHEMA_MIN_PART_CHARS", "2500"))
@@ -230,7 +237,7 @@ def _sample_text_for_schema_generation(text: str) -> str:
 
     desired = min(
         max_total_chars,
-        max(min_part_chars * 4, int(doc_len * max(0.0, min(1.0, target_coverage)))),
+        max(min_part_chars * 4, int(doc_len * max(0.0, min(1.0, sample_fraction)))),
     )
     per_part = max(min_part_chars, min(max_part_chars, desired // max(4, min(max_parts, 12))))
     num_parts = max(4, min(max_parts, max(4, round(desired / max(1, per_part)))))

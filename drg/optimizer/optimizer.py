@@ -1,5 +1,6 @@
 """DSPy optimizer integration for iterative learning."""
 
+import inspect
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -12,6 +13,32 @@ from ..extract import KGExtractor
 from ..schema import DRGSchema, EnhancedDRGSchema
 
 logger = logging.getLogger(__name__)
+
+
+def _supports_var_kwargs(callable_obj: Callable) -> bool:
+    try:
+        sig = inspect.signature(callable_obj)
+    except (TypeError, ValueError):
+        return True
+    return any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values())
+
+
+def _filter_supported_kwargs(callable_obj: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
+    try:
+        sig = inspect.signature(callable_obj)
+    except (TypeError, ValueError):
+        return kwargs
+    if _supports_var_kwargs(callable_obj):
+        return kwargs
+    return {k: v for k, v in kwargs.items() if k in sig.parameters}
+
+
+def _call_with_supported_kwargs(callable_obj: Callable, **kwargs: Any):
+    return callable_obj(**_filter_supported_kwargs(callable_obj, kwargs))
+
+
+def _instantiate_with_supported_kwargs(factory: Callable, **kwargs: Any):
+    return _call_with_supported_kwargs(factory, **kwargs)
 
 
 class OptimizerType(str, Enum):
@@ -55,6 +82,7 @@ class DRGOptimizer:
         schema: DRGSchema | EnhancedDRGSchema,
         config: OptimizerConfig | None = None,
         training_examples: list[dict[str, Any]] | None = None,
+        lm: Any | None = None,
     ):
         """Initialize DRG optimizer.
 
@@ -65,9 +93,10 @@ class DRGOptimizer:
         """
         self.schema = schema
         self.config = config or OptimizerConfig()
+        self.lm = lm
 
         # Create base extractor
-        self.base_extractor = KGExtractor(schema)
+        self.base_extractor = KGExtractor(schema, lm=lm)
 
         # Optimized extractor (will be set after optimization)
         self.optimized_extractor: KGExtractor | None = None
@@ -79,6 +108,7 @@ class DRGOptimizer:
 
         # Evaluation history
         self.evaluation_history: list[EvaluationResult] = []
+        self.last_compile_config: dict[str, Any] | None = None
 
     def add_training_example(
         self,
@@ -116,26 +146,27 @@ class DRGOptimizer:
             Optimized KGExtractor
         """
         if not self.training_examples:
-            logger.warning("No training examples provided, returning base extractor")
-            return self.base_extractor
+            raise ValueError("DSPy optimization requires at least one training example")
 
         logger.info(f"Starting optimization with {len(self.training_examples)} training examples")
 
-        # Create optimizer based on type
-        if self.config.optimizer_type == OptimizerType.BOOTSTRAP_FEW_SHOT:
-            optimizer = self._create_bootstrap_optimizer()
-        elif self.config.optimizer_type == OptimizerType.MIPRO:
-            optimizer = self._create_mipro_optimizer()
-        elif self.config.optimizer_type == OptimizerType.COPRO:
-            optimizer = self._create_copro_optimizer()
-        elif self.config.optimizer_type == OptimizerType.LABELED_FEW_SHOT:
-            optimizer = self._create_labeled_few_shot_optimizer()
-        else:
-            raise ValueError(f"Unknown optimizer type: {self.config.optimizer_type}")
-
-        # Use default metric if not provided
+        # Use default metric if not provided. Metric is known before optimizer
+        # construction because several DSPy 2.x optimizers accept it in
+        # `__init__` rather than `compile(...)`.
         if metric is None:
             metric = self._default_metric
+
+        # Create optimizer based on type
+        if self.config.optimizer_type == OptimizerType.BOOTSTRAP_FEW_SHOT:
+            optimizer = self._create_bootstrap_optimizer(metric=metric)
+        elif self.config.optimizer_type == OptimizerType.MIPRO:
+            optimizer = self._create_mipro_optimizer(metric=metric)
+        elif self.config.optimizer_type == OptimizerType.COPRO:
+            optimizer = self._create_copro_optimizer(metric=metric)
+        elif self.config.optimizer_type == OptimizerType.LABELED_FEW_SHOT:
+            optimizer = self._create_labeled_few_shot_optimizer(metric=metric)
+        else:
+            raise ValueError(f"Unknown optimizer type: {self.config.optimizer_type}")
 
         # Prepare training set
         trainset = self._prepare_trainset()
@@ -144,33 +175,21 @@ class DRGOptimizer:
         # DSPy 2.4+ uses compile() method for all optimizers (BootstrapFewShot, MIPRO, COPRO, etc.)
         # BootstrapFewShot is a teleprompter that wraps the module during forward pass
         try:
-            # All DSPy optimizers (including BootstrapFewShot) use compile() method
-            if hasattr(optimizer, "compile"):
-                self.optimized_extractor = optimizer.compile(
-                    student=self.base_extractor,
-                    trainset=trainset,
-                    metric=metric,
+            if not hasattr(optimizer, "compile"):
+                raise RuntimeError(
+                    f"{type(optimizer).__name__} does not expose compile(); "
+                    "DRG requires DSPy optimizers that actually compile."
                 )
-            # Fallback for older DSPy versions or custom optimizers
-            elif hasattr(optimizer, "optimize"):
-                self.optimized_extractor = optimizer.optimize(
-                    student=self.base_extractor,
-                    trainset=trainset,
-                    metric=metric,
-                )
-            else:
-                # Final fallback: BootstrapFewShot can be called directly (teleprompter pattern)
-                # This wraps the module during forward pass, but compile() is preferred
-                logger.warning(
-                    "Optimizer doesn't have compile() or optimize() method, using module directly"
-                )
-                self.optimized_extractor = self.base_extractor
+            self.optimized_extractor = self._compile_optimizer(
+                optimizer=optimizer,
+                trainset=trainset,
+                metric=metric,
+                validation_examples=validation_examples,
+            )
 
             logger.info("Optimization completed successfully")
         except Exception as e:
             logger.error(f"Optimization failed: {e}")
-            # Don't silently fallback - raise the error so user knows optimization failed
-            # This is important for debugging and understanding why optimization didn't work
             raise RuntimeError(
                 f"DSPy optimization failed: {e}. "
                 "Check your training examples format and metric function."
@@ -182,45 +201,47 @@ class DRGOptimizer:
         assert self.optimized_extractor is not None
         return self.optimized_extractor
 
-    def _create_bootstrap_optimizer(self) -> dspy.BootstrapFewShot:
+    def _create_bootstrap_optimizer(self, *, metric: Callable) -> dspy.BootstrapFewShot:
         """Create BootstrapFewShot optimizer."""
         # BootstrapFewShot is a teleprompter, not a direct optimizer
         # It optimizes during forward pass
-        return dspy.BootstrapFewShot(
+        return _instantiate_with_supported_kwargs(
+            dspy.BootstrapFewShot,
+            metric=metric,
             max_bootstrapped_demos=self.config.max_bootstrapped_demos,
             max_labeled_demos=self.config.max_labeled_demos,
         )
 
-    def _create_mipro_optimizer(self):
+    def _create_mipro_optimizer(self, *, metric: Callable):
         """Create MIPRO optimizer.
 
         Note: MIPRO may not be available in all DSPy versions.
-        Falls back to COPRO if MIPRO is not available.
         """
-        # Try MIPRO first, fallback to COPRO
         if hasattr(dspy, "MIPRO"):
-            return dspy.MIPRO(
+            return _instantiate_with_supported_kwargs(
+                dspy.MIPRO,
+                metric=metric,
                 num_candidates=self.config.num_candidates,
                 init_temperature=self.config.init_temperature,
             )
-        else:
-            # Fallback to COPRO (similar functionality)
-            logger.warning("MIPRO not available, using COPRO instead")
-            return dspy.COPRO(
-                num_candidates=self.config.num_candidates,
-                init_temperature=self.config.init_temperature,
-            )
+        raise RuntimeError("DSPy MIPRO optimizer is not available")
 
-    def _create_copro_optimizer(self) -> dspy.COPRO:
+    def _create_copro_optimizer(self, *, metric: Callable) -> dspy.COPRO:
         """Create COPRO optimizer."""
-        return dspy.COPRO(
+        return _instantiate_with_supported_kwargs(
+            dspy.COPRO,
+            metric=metric,
             num_candidates=self.config.num_candidates,
             init_temperature=self.config.init_temperature,
         )
 
-    def _create_labeled_few_shot_optimizer(self) -> dspy.LabeledFewShot:
+    def _create_labeled_few_shot_optimizer(self, *, metric: Callable) -> dspy.LabeledFewShot:
         """Create LabeledFewShot optimizer."""
-        return dspy.LabeledFewShot(k=self.config.max_labeled_demos)
+        return _instantiate_with_supported_kwargs(
+            dspy.LabeledFewShot,
+            metric=metric,
+            k=self.config.max_labeled_demos,
+        )
 
     def _prepare_trainset(self) -> list[dspy.Example]:
         """Prepare training set for DSPy.
@@ -243,6 +264,55 @@ class DRGOptimizer:
                 ).with_inputs("text")
             )
         return trainset
+
+    def _compile_optimizer(
+        self,
+        *,
+        optimizer: Any,
+        trainset: list[dspy.Example],
+        metric: Callable,
+        validation_examples: list[dict[str, Any]] | None,
+    ) -> KGExtractor:
+        """Compile a DSPy optimizer and fail if required configuration is dropped."""
+        compile_kwargs: dict[str, Any] = {
+            "student": self.base_extractor,
+            "trainset": trainset,
+            "metric": metric,
+        }
+        if validation_examples:
+            compile_kwargs["valset"] = self._prepare_examples(validation_examples)
+        supported_kwargs = _filter_supported_kwargs(optimizer.compile, compile_kwargs)
+        missing_core = [k for k in ("student", "trainset") if k not in supported_kwargs]
+        if missing_core:
+            raise RuntimeError(
+                f"{type(optimizer).__name__}.compile does not accept required kwargs: {missing_core}"
+            )
+        if "metric" not in supported_kwargs and not self._optimizer_has_metric(optimizer, metric):
+            raise RuntimeError(
+                f"{type(optimizer).__name__} does not preserve the metric configuration"
+            )
+        if validation_examples and "valset" not in supported_kwargs:
+            raise RuntimeError(
+                f"{type(optimizer).__name__}.compile does not accept validation examples"
+            )
+        self.last_compile_config = {
+            "lm": self.lm,
+            "trainset": trainset,
+            "valset": supported_kwargs.get("valset"),
+            "metric": metric,
+        }
+        return optimizer.compile(**supported_kwargs)
+
+    def _optimizer_has_metric(self, optimizer: Any, metric: Callable) -> bool:
+        return getattr(optimizer, "metric", None) is metric
+
+    def _prepare_examples(self, examples: list[dict[str, Any]]) -> list[dspy.Example]:
+        old_examples = self.training_examples
+        try:
+            self.training_examples = examples
+            return self._prepare_trainset()
+        finally:
+            self.training_examples = old_examples
 
     def _default_metric(
         self,

@@ -251,3 +251,40 @@ class TestSchemaFiltering:
 
         relation_names = {r[1] for r in triples}
         assert "invented_by" not in relation_names
+
+    def test_relation_metadata_is_preserved_for_valid_triples(self, simple_schema: DRGSchema):
+        mock_result = self._mock_extractor_result(
+            entities=[("Apple", "Company"), ("iPhone", "Product")],
+            relations=[("Apple", "produces", "iPhone")],
+        )
+        mock_result.enriched_relations = [
+            {
+                "relation": ("Apple", "produces", "iPhone"),
+                "confidence": 0.91,
+                "evidence": "Apple produces iPhone.",
+                "temporal": {"start": "2007", "precision": "year"},
+                "is_negated": False,
+                "metadata": {"chunk_id": "c1"},
+            }
+        ]
+        mock_extractor = Mock(return_value=mock_result)
+
+        with (
+            patch("drg.extract._get_extractor", return_value=mock_extractor),
+            patch("drg.extract.resolve_entities_and_relations", None),
+            patch("drg.extract.dspy") as mock_dspy,
+        ):
+            mock_dspy.settings.lm = Mock()
+            entities, triples, enriched = extract_typed(
+                "Apple produces iPhone.",
+                simple_schema,
+                return_enriched=True,
+                enable_implicit_relationships=False,
+            )
+
+        assert entities == [("Apple", "Company"), ("iPhone", "Product")]
+        assert triples == [("Apple", "produces", "iPhone")]
+        assert enriched[0]["confidence"] == 0.91
+        assert enriched[0]["evidence"] == "Apple produces iPhone."
+        assert enriched[0]["temporal"]["start"] == "2007"
+        assert enriched[0]["metadata"]["chunk_id"] == "c1"
