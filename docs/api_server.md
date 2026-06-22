@@ -4,8 +4,11 @@ DRG, üretilen Knowledge Graph'ı incelemek için FastAPI tabanlı bir REST + UI
 sunucusu içerir. Bu doküman onun kullanımını anlatır.
 
 > **Tasarım notu (önemli):** UI'daki query endpoint'i **deterministic KG
-> lookup** yapar — LLM ile cevap üretmez. DRG bilinçli olarak bir RAG/serving
-> framework değildir (`docs/project_overview.md` §2 ve §7).
+> lookup** yapar; LLM ile cevap üretmez (`docs/project_overview.md` §2 ve §7).
+
+> **UI hedefi:** Bu yüzey bir production dashboard değil, read-only KG inspection
+> aracıdır. Öncelik node/edge arama, filtreleme, metadata inceleme, export ve
+> boş/hata durumlarını anlaşılır göstermektir.
 
 ---
 
@@ -44,12 +47,23 @@ API key gerektiren LLM tabanlı pipeline'ı çalıştırmadan UI'ı denemek iste
 |-----|----------|
 | http://localhost:8000 | Cytoscape tabanlı interaktif KG UI |
 | http://localhost:8000/docs | OpenAPI / Swagger dokümantasyonu |
+| `GET /healthz` | Liveness probe |
+| `GET /readyz` | KG ve opsiyonel Neo4j config readiness durumu |
 | `GET /api/graph` | Tam graph datası |
 | `GET /api/graph/stats` | Graph istatistikleri |
+| `POST /api/extract` | Metinden KG çıkar ve opsiyonel olarak server state'e yükle |
 | `GET /api/communities` | Tüm community/cluster verileri |
 | `GET /api/communities/{cluster_id}` | Belirli bir community raporu |
 | `GET /api/visualization/{format}` | `cytoscape` \| `vis-network` \| `d3` |
 | `GET /api/visualization/communities/{format}` | Cluster renk kodlamalı view |
+
+UI tarafında beklenen temel inceleme akışı:
+
+- graph istatistiklerini kontrol et
+- node veya edge araması yap
+- büyük graph'larda filtreleri kullan
+- seçili node/edge metadata panelini incele
+- gerekiyorsa graph JSON/export endpoint'leriyle çıktıyı indir
 
 ### Query endpoint'i
 
@@ -59,7 +73,40 @@ API key gerektiren LLM tabanlı pipeline'ı çalıştırmadan UI'ı denemek iste
 - (opsiyonel) relation filter
 - seed entity etrafında neighborhood expansion
 
-yapar. RAG/Generation isteyen kullanıcılar için DRG uygun değildir.
+yapar. Generation isteyen kullanıcılar için ayrı bir uygulama katmanı gerekir.
+
+### Extract endpoint'i
+
+`POST /api/extract`, CLI'daki text → extraction → `EnhancedKG` yolunun REST
+karşılığıdır. Bu endpoint DSPy/LLM provider kullanır; cloud model için API key
+veya lokal model konfigürasyonu gerekir.
+
+```bash
+curl -X POST http://localhost:8000/api/extract \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "TechCorp was founded by Jane Doe.",
+    "schema": {
+      "entity_types": [
+        {"name": "Company", "description": "Companies"},
+        {"name": "Person", "description": "People"}
+      ],
+      "relation_groups": [
+        {
+          "name": "founding",
+          "relations": [
+            {"name": "founded_by", "src": "Company", "dst": "Person"}
+          ]
+        }
+      ]
+    },
+    "store_graph": true
+  }'
+```
+
+Yanıt `entities`, `triples`, `counts` ve `graph` alanlarını döndürür.
+`store_graph: true` ise sonuç `/api/graph`, `/api/graph/stats` ve UI
+tarafından hemen kullanılabilir hale gelir.
 
 ---
 
@@ -75,8 +122,40 @@ export NEO4J_PASSWORD="your_password"
 
 İlgili endpoint'ler:
 
+- `GET /api/neo4j/test` — config ve bağlantı testi
 - `POST /api/neo4j/sync` — KG'yi Neo4j'e senkronize et
+- `POST /api/neo4j/sync?dry_run=true` — yazma yapmadan sync planını gör
 - `GET /api/neo4j/stats` — Neo4j tarafındaki istatistikler
+
+### Demo akışı
+
+Önce API server'ı örnek KG ile aç:
+
+```bash
+python examples/api_server_example.py
+```
+
+Sonra ayrı bir terminalde bağlantı ve planı kontrol et:
+
+```bash
+curl http://localhost:8000/api/neo4j/test
+
+curl -X POST "http://localhost:8000/api/neo4j/sync?dry_run=true"
+```
+
+`dry_run=true` hiçbir yazma yapmaz; node, edge, cluster ve ilişki tipi sayısını
+döndüren bir sync planı üretir. Demo veya ilk kurulumda bu adımı geçmeden gerçek
+sync çalıştırma.
+
+Plan doğru görünüyorsa gerçek sync:
+
+```bash
+curl -X POST "http://localhost:8000/api/neo4j/sync"
+```
+
+`clear_existing=true` yalnızca disposable demo database üzerinde kullanılmalıdır;
+mevcut graph datasını temizleyebilir. Public demo için ayrı bir Neo4j database
+ve önce `dry_run=true` önerilir.
 
 ---
 
@@ -115,3 +194,5 @@ görselleştirme için gerekli değildir.
 - `.env` dosyaları `.gitignore` ile dışlanmıştır; yeni `*.env` veya hassas
   dosyalar eklerken bu pattern'i bozma.
 - Production'da `CORSMiddleware` ayarlarını domain'lerine göre daraltmayı unutma.
+- Production gözlemlenebilirliği için `X-Request-ID` header'ı desteklenir ve
+  response'a geri yazılır; upstream gateway'in ürettiği request ID korunur.

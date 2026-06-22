@@ -253,6 +253,11 @@ def main():
     print(f"📚 API Docs: http://localhost:{port}/docs")
     print(f"🔍 Graph API: http://localhost:{port}/api/graph")
     print(f"👥 Communities API: http://localhost:{port}/api/communities")
+    if neo4j_config is not None:
+        print(
+            f"🧪 Neo4j dry-run: curl -X POST 'http://localhost:{port}/api/neo4j/sync?dry_run=true'"
+        )
+        print(f"🔗 Neo4j test: http://localhost:{port}/api/neo4j/test")
     print("\nPress Ctrl+C to stop the server\n")
 
     server.run(host="0.0.0.0", port=port, reload=False)

@@ -38,6 +38,7 @@ def _clean_env(monkeypatch):
         "GOOGLE_API_KEY",
         "ANTHROPIC_API_KEY",
         "OPENROUTER_API_KEY",
+        "PERPLEXITY_API_KEY",
         "DRG_DEBUG",
     ):
         monkeypatch.delenv(var, raising=False)
@@ -65,11 +66,21 @@ class TestArgparseWiring:
         assert excinfo.value.code == 0
         captured = capsys.readouterr().out
         assert "DRG" in captured
+        assert "extract" in captured
+        assert "validate" in captured
+        assert "versions" in captured
+
+    def test_extract_help_exits_cleanly(self, monkeypatch, capsys):
+        with pytest.raises(SystemExit) as excinfo:
+            _run_main(monkeypatch, ["drg", "extract", "--help"])
+        assert excinfo.value.code == 0
+        captured = capsys.readouterr().out
         assert "--auto-schema" in captured
+        assert "--update" in captured
 
     def test_missing_required_input_arg_errors(self, monkeypatch, capsys):
         with pytest.raises(SystemExit) as excinfo:
-            _run_main(monkeypatch, ["drg"])
+            _run_main(monkeypatch, ["drg", "extract"])
         # argparse exits with code 2 when a required arg is missing.
         assert excinfo.value.code == 2
         assert "input" in capsys.readouterr().err.lower()
@@ -190,6 +201,26 @@ class TestApiKeyRouting:
         assert os.environ["GEMINI_API_KEY"] == "gemini-secret"
         assert os.environ["GOOGLE_API_KEY"] == "gemini-secret"
 
+    def test_openrouter_env_key_suppresses_missing_key_warning(self, monkeypatch, tmp_path, capsys):
+        input_file = tmp_path / "in.txt"
+        input_file.write_text("Apple makes iPhones.")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "openrouter-secret")
+        monkeypatch.setattr(cli_mod, "extract_typed", lambda text, schema: ([], []))
+
+        _run_main(
+            monkeypatch,
+            [
+                "drg",
+                str(input_file),
+                "--model",
+                "openrouter/openai/gpt-4o",
+                "-o",
+                str(tmp_path / "out.json"),
+            ],
+        )
+
+        assert "No API key found" not in capsys.readouterr().err
+
 
 class TestExtractionSuccess:
     def test_stdout_output_prints_json(self, monkeypatch, tmp_path, capsys):
@@ -234,9 +265,10 @@ class TestExtractionSuccess:
         monkeypatch.setattr(
             cli_mod,
             "extract_typed",
-            lambda text, schema: (
+            lambda text, schema, **kwargs: (
                 [("Apple", "Company"), ("iPhones", "Product")],
                 [("Apple", "produces", "iPhones")],
+                [],
             ),
         )
         _run_main(monkeypatch, ["drg", str(input_file), "-o", str(out_file)])
@@ -244,6 +276,99 @@ class TestExtractionSuccess:
         # EnhancedKG output includes nodes/edges/clusters; legacy is just nodes/edges.
         assert "nodes" in payload
         assert "edges" in payload
+
+    def test_enhanced_output_preserves_temporal_relation_metadata(self, monkeypatch, tmp_path):
+        input_file = tmp_path / "in.txt"
+        input_file.write_text("Steve Jobs led Apple from 1997 to 2011.")
+        out_file = tmp_path / "temporal_kg.json"
+
+        def _extract(text, schema, **kwargs):
+            assert kwargs["return_enriched"] is True
+            return (
+                [("Steve Jobs", "Company"), ("Apple", "Product")],
+                [("Steve Jobs", "produces", "Apple")],
+                [
+                    {
+                        "relation": ("Steve Jobs", "produces", "Apple"),
+                        "confidence": None,
+                        "temporal": {"start": "1997", "end": "2011", "precision": "year"},
+                        "is_negated": False,
+                    }
+                ],
+            )
+
+        monkeypatch.setattr(cli_mod, "extract_typed", _extract)
+
+        _run_main(monkeypatch, ["drg", str(input_file), "-o", str(out_file)])
+        payload = json.loads(out_file.read_text())
+        assert payload["edges"][0]["start_time"] == "1997"
+        assert payload["edges"][0]["end_time"] == "2011"
+        assert payload["edges"][0]["metadata"]["temporal"]["precision"] == "year"
+
+    def test_update_defaults_output_to_update_path(self, monkeypatch, tmp_path, capsys):
+        input_file = tmp_path / "in.txt"
+        input_file.write_text("Apple produces iPhones.")
+        update_file = tmp_path / "existing_kg.json"
+        monkeypatch.setattr(
+            cli_mod,
+            "extract_typed",
+            lambda text, schema, **kwargs: (
+                [("Apple", "Company"), ("iPhones", "Product")],
+                [("Apple", "produces", "iPhones")],
+                [],
+            ),
+        )
+
+        _run_main(
+            monkeypatch,
+            [
+                "drg",
+                str(input_file),
+                "--update",
+                str(update_file),
+                "--api-key",
+                "secret-token",
+            ],
+        )
+
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert update_file.exists()
+        payload = json.loads(update_file.read_text())
+        assert "nodes" in payload
+
+    def test_update_can_write_merge_diff_report(self, monkeypatch, tmp_path):
+        input_file = tmp_path / "in.txt"
+        input_file.write_text("Apple produces iPhones.")
+        update_file = tmp_path / "existing_kg.json"
+        diff_file = tmp_path / "merge_diff.json"
+        monkeypatch.setattr(
+            cli_mod,
+            "extract_typed",
+            lambda text, schema, **kwargs: (
+                [("Apple", "Company"), ("iPhones", "Product")],
+                [("Apple", "produces", "iPhones")],
+                [],
+            ),
+        )
+
+        _run_main(
+            monkeypatch,
+            [
+                "drg",
+                str(input_file),
+                "--update",
+                str(update_file),
+                "--diff-output",
+                str(diff_file),
+                "--api-key",
+                "secret-token",
+            ],
+        )
+
+        payload = json.loads(diff_file.read_text())
+        assert payload["type"] == "merge"
+        assert payload["summary"]["added_nodes"] == 2
 
 
 class TestStdinInput:
@@ -349,3 +474,192 @@ class TestWarningPath:
         )
         err = capsys.readouterr().err
         assert "API key" not in err
+
+
+class TestEvalCommand:
+    def test_eval_run_accepts_prediction_artifact(self, monkeypatch, tmp_path):
+        dataset = tmp_path / "dataset.json"
+        dataset.write_text(
+            json.dumps(
+                {
+                    "name": "tiny",
+                    "text": "Apple acquired Beats.",
+                    "gold_entities": [
+                        {"name": "Apple", "type": "Company"},
+                        {"name": "Beats", "type": "Company"},
+                    ],
+                    "gold_relations": [
+                        {
+                            "source": "Apple",
+                            "relationship_type": "ACQUIRED",
+                            "target": "Beats",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        predictions = tmp_path / "predictions.json"
+        predictions.write_text(
+            json.dumps(
+                {
+                    "adapter": "oracle",
+                    "predictions": {
+                        "tiny": {
+                            "entities": [["Apple", "Company"], ["Beats", "Company"]],
+                            "relations": [["Apple", "ACQUIRED", "Beats"]],
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        report_path = tmp_path / "report.json"
+        markdown_path = tmp_path / "report.md"
+
+        _run_main(
+            monkeypatch,
+            [
+                "drg",
+                "eval",
+                "run",
+                str(dataset),
+                "--predictions",
+                str(predictions),
+                "--adapter",
+                "oracle",
+                "-o",
+                str(report_path),
+                "--markdown-output",
+                str(markdown_path),
+            ],
+        )
+
+        report = json.loads(report_path.read_text())
+        assert report["aggregate"]["extraction_f1"] == 1.0
+        assert report["metadata"]["adapter"] == "oracle"
+        assert "Evaluation Report" in markdown_path.read_text()
+
+
+class TestValidateCommand:
+    def test_validate_valid_graph_exits_zero(self, monkeypatch, tmp_path, capsys):
+        graph = tmp_path / "kg.json"
+        graph.write_text(
+            json.dumps(
+                {
+                    "nodes": [{"id": "a"}, {"id": "b"}],
+                    "edges": [
+                        {
+                            "source": "a",
+                            "target": "b",
+                            "relationship_type": "R",
+                            "relationship_detail": "a R b",
+                        }
+                    ],
+                    "clusters": [],
+                }
+            )
+        )
+
+        _run_main(monkeypatch, ["drg", "validate", str(graph)])
+        out = capsys.readouterr().out
+        assert "valid" in out
+        assert "graph_valid" in out
+
+    def test_validate_broken_edge_exits_one(self, monkeypatch, tmp_path, capsys):
+        graph = tmp_path / "kg.json"
+        graph.write_text(
+            json.dumps(
+                {
+                    "nodes": [{"id": "a"}],
+                    "edges": [
+                        {
+                            "source": "a",
+                            "target": "ghost",
+                            "relationship_type": "R",
+                            "relationship_detail": "a R ghost",
+                        }
+                    ],
+                    "clusters": [],
+                }
+            )
+        )
+
+        with pytest.raises(SystemExit) as excinfo:
+            _run_main(monkeypatch, ["drg", "validate", str(graph)])
+        assert excinfo.value.code == 1
+        assert "edge_target_missing_node" in capsys.readouterr().out
+
+    def test_validate_json_output_is_machine_readable(self, monkeypatch, tmp_path, capsys):
+        graph = tmp_path / "kg.json"
+        graph.write_text(json.dumps({"nodes": [{"id": "a"}], "edges": [], "clusters": []}))
+
+        _run_main(monkeypatch, ["drg", "validate", str(graph), "--json"])
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["valid"] is True
+        assert payload["summary"]["errors"] == 0
+
+    def test_validate_parse_error_exits_two(self, monkeypatch, tmp_path, capsys):
+        graph = tmp_path / "bad.json"
+        graph.write_text("{not json")
+
+        with pytest.raises(SystemExit) as excinfo:
+            _run_main(monkeypatch, ["drg", "validate", str(graph)])
+        assert excinfo.value.code == 2
+        assert "Invalid graph JSON" in capsys.readouterr().err
+
+
+class TestDiffCommand:
+    def test_diff_no_changes_exits_zero(self, monkeypatch, tmp_path, capsys):
+        old = tmp_path / "old.json"
+        new = tmp_path / "new.json"
+        payload = {"nodes": [{"id": "a"}], "edges": [], "clusters": []}
+        old.write_text(json.dumps(payload))
+        new.write_text(json.dumps(payload))
+
+        _run_main(monkeypatch, ["drg", "diff", str(old), str(new)])
+        assert "No graph changes" in capsys.readouterr().out
+
+    def test_diff_json_reports_added_nodes(self, monkeypatch, tmp_path, capsys):
+        old = tmp_path / "old.json"
+        new = tmp_path / "new.json"
+        old.write_text(json.dumps({"nodes": [{"id": "a"}], "edges": [], "clusters": []}))
+        new.write_text(
+            json.dumps({"nodes": [{"id": "a"}, {"id": "b"}], "edges": [], "clusters": []})
+        )
+
+        _run_main(monkeypatch, ["drg", "diff", str(old), str(new), "--json"])
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["changed"] is True
+        assert payload["added_nodes"] == ["b"]
+
+    def test_diff_fail_on_change_exits_one(self, monkeypatch, tmp_path):
+        old = tmp_path / "old.json"
+        new = tmp_path / "new.json"
+        old.write_text(json.dumps({"nodes": [{"id": "a"}], "edges": [], "clusters": []}))
+        new.write_text(
+            json.dumps({"nodes": [{"id": "a"}, {"id": "b"}], "edges": [], "clusters": []})
+        )
+
+        with pytest.raises(SystemExit) as excinfo:
+            _run_main(monkeypatch, ["drg", "diff", str(old), str(new), "--fail-on-change"])
+        assert excinfo.value.code == 1
+
+    def test_diff_invalid_input_exits_two(self, monkeypatch, tmp_path, capsys):
+        old = tmp_path / "old.json"
+        new = tmp_path / "new.json"
+        old.write_text(json.dumps({"nodes": [{"id": "a"}], "edges": [], "clusters": []}))
+        new.write_text(
+            json.dumps(
+                {
+                    "nodes": [{"id": "a"}],
+                    "edges": [{"source": "a", "target": "ghost", "relationship_type": "R"}],
+                    "clusters": [],
+                }
+            )
+        )
+
+        with pytest.raises(SystemExit) as excinfo:
+            _run_main(monkeypatch, ["drg", "diff", str(old), str(new)])
+        assert excinfo.value.code == 2
+        assert "invalid graph input" in capsys.readouterr().err

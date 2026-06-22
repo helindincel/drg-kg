@@ -16,7 +16,7 @@ if TYPE_CHECKING:
         LouvainClustering,
         SpectralClustering,
     )
-    from .extract import (  # noqa: F401
+    from .extract import (
         KGExtractor,
         create_kgedge_from_triple,
         extract_from_chunks,
@@ -84,6 +84,7 @@ __all__ = [
     "EvidenceBundle",
     "EvidenceLink",
     "Explanation",
+    "GraphMetricScore",
     "GraphQuery",
     "InMemoryBackend",
     "InferenceReport",
@@ -102,11 +103,15 @@ __all__ = [
     "SymmetricRule",
     "TextSpan",
     "TransitiveRule",
+    "create_kgedge_from_triple",
     "default_event_registry",
     "example_event_registry",
     "extract_events",
+    "extract_from_chunks",
+    "extract_from_chunks_async",
     "extract_triples",
     "extract_typed",
+    "extract_typed_async",
     "generate_schema_from_text",
     "reason_over_graph",
 ]
@@ -132,7 +137,11 @@ def __getattr__(name: str):
         "DefaultConfidenceStrategy": ".confidence",
         # Extraction (may require optional heavy deps)
         "extract_typed": ".extract",
+        "extract_typed_async": ".extract",
         "extract_triples": ".extract",
+        "extract_from_chunks": ".extract",
+        "extract_from_chunks_async": ".extract",
+        "create_kgedge_from_triple": ".extract",
         "KGExtractor": ".extract",
         "generate_schema_from_text": ".extract",
         # Graph module (heavy - many submodules)
@@ -181,8 +190,7 @@ def __getattr__(name: str):
         "OpenRouterEmbeddingProvider": ".embedding",
         "LocalEmbeddingProvider": ".embedding",
         "create_embedding_provider": ".embedding",
-        # NOTE: This project is not a RAG/retrieval framework. Public API intentionally does not
-        # export retrieval/search helpers; focus is KG extraction + analysis utilities.
+        # Public API focuses on KG extraction and analysis utilities.
         # Clustering module
         "ClusteringAlgorithm": ".clustering",
         "LouvainClustering": ".clustering",
@@ -245,6 +253,7 @@ def __getattr__(name: str):
         "EntityView": ".query",
         "EdgeView": ".query",
         "GraphPath": ".query",
+        "GraphMetricScore": ".query",
         "QueryAnswer": ".query",
         "NeighborhoodView": ".query",
         "RelatedEntityMatch": ".query",

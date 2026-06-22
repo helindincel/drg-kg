@@ -38,10 +38,11 @@ def _run(*args: str, input_: str | None = None) -> subprocess.CompletedProcess:
 
 
 class TestCLIHelp:
-    def test_no_args_exits_nonzero(self):
-        # Without subcommand the parser should show help and exit
+    def test_no_args_shows_top_level_help(self):
         result = _run()
-        assert result.returncode != 0 or result.stdout or result.stderr
+        assert result.returncode == 0
+        assert "COMMAND" in result.stdout
+        assert "extract" in result.stdout
 
     def test_help_flag_exits_zero(self):
         result = _run("--help")
@@ -50,3 +51,8 @@ class TestCLIHelp:
     def test_help_mentions_extract(self):
         result = _run("--help")
         assert "extract" in result.stdout.lower() or "extract" in result.stderr.lower()
+
+    def test_extract_help_mentions_auto_schema(self):
+        result = _run("extract", "--help")
+        assert result.returncode == 0
+        assert "--auto-schema" in result.stdout

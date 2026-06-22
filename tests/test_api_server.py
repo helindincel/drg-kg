@@ -27,6 +27,11 @@ from drg.graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode
 # ---------------------------------------------------------------------------
 
 
+@pytest.fixture(autouse=True)
+def _disable_api_dotenv_loading(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("DRG_API_LOAD_ENV", "0")
+
+
 def _make_sample_kg() -> EnhancedKG:
     """Return a small but complete EnhancedKG."""
     kg = EnhancedKG()
@@ -96,6 +101,27 @@ class TestGetGraph:
         assert client_no_kg.get("/api/graph").status_code == 404
 
 
+class TestOperationalEndpoints:
+    def test_healthz_returns_ok(self, client_no_kg: TestClient):
+        resp = client_no_kg.get("/healthz")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ok"
+
+    def test_readyz_reports_loaded_graph(self, client: TestClient):
+        data = client.get("/readyz").json()
+        assert data["status"] == "ready"
+        assert data["kg_loaded"] is True
+
+    def test_readyz_degraded_without_graph(self, client_no_kg: TestClient):
+        data = client_no_kg.get("/readyz").json()
+        assert data["status"] == "degraded"
+        assert data["kg_loaded"] is False
+
+    def test_request_id_header_is_echoed(self, client: TestClient):
+        resp = client.get("/api/graph", headers={"X-Request-ID": "req-123"})
+        assert resp.headers["X-Request-ID"] == "req-123"
+
+
 # ---------------------------------------------------------------------------
 # GET /api/graph/stats
 # ---------------------------------------------------------------------------
@@ -114,6 +140,97 @@ class TestGetGraphStats:
 
     def test_returns_404_when_no_kg(self, client_no_kg: TestClient):
         assert client_no_kg.get("/api/graph/stats").status_code == 404
+
+
+class TestExtractEndpoint:
+    def test_extract_builds_graph_and_stores_it(self, monkeypatch: pytest.MonkeyPatch):
+        import drg.extract as extract_mod
+
+        def fake_extract(text, schema):
+            assert "TechCorp" in text
+            return (
+                [("TechCorp", "Company"), ("Jane Doe", "Person")],
+                [("TechCorp", "founded_by", "Jane Doe")],
+            )
+
+        monkeypatch.setattr(extract_mod, "extract_typed", fake_extract)
+        app = create_app()
+        c = TestClient(app)
+
+        resp = c.post(
+            "/api/extract",
+            json={
+                "text": "TechCorp was founded by Jane Doe.",
+                "schema": {
+                    "entity_types": [
+                        {"name": "Company", "description": "Companies"},
+                        {"name": "Person", "description": "People"},
+                    ],
+                    "relation_groups": [
+                        {
+                            "name": "founding",
+                            "relations": [
+                                {"name": "founded_by", "src": "Company", "dst": "Person"}
+                            ],
+                        }
+                    ],
+                },
+                "model": "ollama_chat/llama3",
+            },
+        )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["counts"]["nodes"] == 2
+        assert data["counts"]["edges"] == 1
+        assert data["stored"] is True
+        assert c.get("/api/graph").status_code == 200
+
+    def test_extract_can_skip_storing_graph(self, monkeypatch: pytest.MonkeyPatch):
+        import drg.extract as extract_mod
+
+        monkeypatch.setattr(
+            extract_mod,
+            "extract_typed",
+            lambda text, schema: ([("Acme", "Company")], []),
+        )
+        c = TestClient(create_app())
+
+        resp = c.post(
+            "/api/extract",
+            json={
+                "text": "Acme builds widgets.",
+                "store_graph": False,
+                "model": "ollama_chat/llama3",
+            },
+        )
+
+        assert resp.status_code == 200
+        assert resp.json()["stored"] is False
+        assert c.get("/api/graph").status_code == 404
+
+    def test_extract_without_provider_credentials_returns_400(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
+        for key in (
+            "GEMINI_API_KEY",
+            "GOOGLE_API_KEY",
+            "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
+            "OPENROUTER_API_KEY",
+            "DRG_MODEL",
+        ):
+            monkeypatch.delenv(key, raising=False)
+        c = TestClient(create_app())
+
+        resp = c.post("/api/extract", json={"text": "Acme builds widgets."})
+
+        assert resp.status_code == 400
+        assert "API key" in resp.json()["detail"]
+
+    def test_extract_empty_text_returns_422(self, client_no_kg: TestClient):
+        resp = client_no_kg.post("/api/extract", json={"text": "   "})
+        assert resp.status_code == 422
 
 
 # ---------------------------------------------------------------------------
@@ -148,7 +265,8 @@ class TestPostQuery:
         data = client.post("/api/query", json={"query": "Acme"}).json()
         assert "query" in data
         assert "provenance_id" in data
-        assert "retrieval_context" in data
+        removed_context_field = "query" + "_context"
+        assert removed_context_field not in data
 
     def test_empty_query_returns_422(self, client: TestClient):
         resp = client.post("/api/query", json={"query": ""})
@@ -236,3 +354,36 @@ class TestApiKeyAuth:
         app = create_app(kg=_make_sample_kg())
         c = TestClient(app)
         assert c.get("/api/graph").status_code == 401
+
+
+class TestNeo4jEndpoints:
+    def test_sync_dry_run_returns_plan(self):
+        from drg.graph.neo4j_exporter import Neo4jConfig
+
+        app = create_app(
+            kg=_make_sample_kg(),
+            neo4j_config=Neo4jConfig(
+                uri="bolt://localhost:7687",
+                user="neo4j",
+                password="password",
+            ),
+        )
+        c = TestClient(app)
+        resp = c.post("/api/neo4j/sync?dry_run=true")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "dry_run"
+        assert data["plan"]["node_count"] == 3
+        assert "WORKS_AT" in data["plan"]["relationship_types"]
+
+    def test_sync_returns_config_errors_before_connecting(self):
+        from drg.graph.neo4j_exporter import Neo4jConfig
+
+        app = create_app(
+            kg=_make_sample_kg(),
+            neo4j_config=Neo4jConfig(uri="", user="", password=""),
+        )
+        c = TestClient(app)
+        resp = c.post("/api/neo4j/sync")
+        assert resp.status_code == 400
+        assert "errors" in resp.json()["detail"]

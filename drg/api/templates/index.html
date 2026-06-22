@@ -147,6 +147,121 @@
             color: #1e293b;
             font-weight: 600;
         }
+
+        .empty-state {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        .empty-state.active {
+            display: flex;
+        }
+
+        .empty-card {
+            max-width: 520px;
+            background: rgba(255,255,255,0.96);
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(15,23,42,0.16);
+            text-align: center;
+        }
+
+        .empty-card h2 {
+            font-size: 22px;
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+
+        .empty-card p {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.7;
+            margin: 8px 0;
+        }
+
+        .empty-card code {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 12px;
+        }
+
+        .detail-list {
+            margin: 8px 0 0 18px;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .detail-list li {
+            margin: 4px 0;
+        }
+
+        .detail-section {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .detail-section h5 {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .legend-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .legend-swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(15,23,42,0.18);
+            flex: 0 0 auto;
+        }
+
+        .legend-count {
+            color: #64748b;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .muted {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -179,6 +294,18 @@
                 Adds small proxy nodes to reduce star-shaped hubs in the layout. Does not change the KG.
             </div>
 
+            <h3 style="margin-top: 24px;">Entity Search</h3>
+            <input
+                type="search"
+                id="entity-search"
+                list="entity-options"
+                placeholder="Search entities..."
+                onkeydown="handleEntitySearchKeydown(event)"
+            >
+            <datalist id="entity-options"></datalist>
+            <button onclick="zoomToSelectedEntity()">Zoom to Entity</button>
+            <div class="muted">Start typing an entity name, then select a match to focus it in the graph.</div>
+
             <h3 style="margin-top: 24px;">Layout</h3>
             <select id="layout-select" onchange="changeLayout()">
                 <option value="breadthfirst">Breadth-First</option>
@@ -199,6 +326,11 @@
                 <p>Clusters: <span id="cluster-count">-</span></p>
             </div>
 
+            <div id="legend" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #0f172a;">Legend</h3>
+                <div id="legend-content" class="muted">Load a graph to see entity types.</div>
+            </div>
+
             <div id="query-results" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0; display: none;">
                 <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #0f172a;">Query Results</h3>
                 <div id="query-results-content" style="font-size: 13px; color: #475569; line-height: 1.6;">
@@ -209,6 +341,13 @@
 
         <section>
             <div id="cy"></div>
+            <div class="empty-state" id="empty-state">
+                <div class="empty-card">
+                    <h2>No graph loaded</h2>
+                    <p>Use Load Full Graph after starting the API with a KG, or run the bundled demo server first.</p>
+                    <code>python examples/api_server_example.py</code>
+                </div>
+            </div>
             <div class="info" id="info-panel">
                 <div id="info-content"></div>
             </div>
@@ -217,9 +356,229 @@
 
     <script>
         let cy;
+        let graphElements = [];
+        let entityIndex = [];
         // Default to a force-directed layout to avoid "single hub star" visuals.
         // Persist user preference in localStorage.
         let currentLayout = (localStorage.getItem('drg_layout') || 'cose');
+        const DEFAULT_ENTITY_COLORS = {
+            Person: '#8b5cf6',
+            Company: '#3b82f6',
+            Organization: '#14b8a6',
+            Location: '#10b981',
+            Product: '#f59e0b',
+            Service: '#06b6d4',
+            Year: '#64748b',
+            Event: '#ef4444',
+            HubProxy: '#cbd5e1',
+            Unknown: '#94a3b8',
+        };
+
+        function setEmptyState(active, message) {
+            const emptyState = document.getElementById('empty-state');
+            if (!emptyState) return;
+            emptyState.classList.toggle('active', !!active);
+            if (message) {
+                const p = emptyState.querySelector('p');
+                if (p) p.textContent = message;
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function displayValue(value) {
+            if (value === null || value === undefined || value === '') return 'Not available';
+            if (Array.isArray(value)) return value.map(displayValue).join(', ');
+            if (typeof value === 'object') return JSON.stringify(value);
+            return String(value);
+        }
+
+        function isNodeElement(element) {
+            return !!(element && element.data && element.data.id && !element.data.source && !element.data.target);
+        }
+
+        function isEdgeElement(element) {
+            return !!(element && element.data && element.data.source && element.data.target);
+        }
+
+        function entityColor(type, fallback) {
+            if (fallback) return fallback;
+            if (type && type.startsWith && type.startsWith('Event:')) return DEFAULT_ENTITY_COLORS.Event;
+            return DEFAULT_ENTITY_COLORS[type || 'Unknown'] || DEFAULT_ENTITY_COLORS.Unknown;
+        }
+
+        function prepareGraphElements(elements = []) {
+            const degree = new Map();
+            for (const element of elements) {
+                if (!isEdgeElement(element)) continue;
+                degree.set(element.data.source, (degree.get(element.data.source) || 0) + 1);
+                degree.set(element.data.target, (degree.get(element.data.target) || 0) + 1);
+            }
+
+            return (elements || []).map(element => {
+                const next = {
+                    ...element,
+                    data: { ...(element.data || {}) },
+                    style: { ...(element.style || {}) },
+                };
+                if (isNodeElement(next)) {
+                    const type = next.data.type || 'Unknown';
+                    const count = degree.get(next.data.id) || next.data.connection_count || 0;
+                    next.data.type = type;
+                    next.data.connection_count = count;
+                    next.data.weight = Math.max(1, Math.min(12, count || next.data.weight || 1));
+                    next.data.color = entityColor(type, next.style['background-color']);
+                }
+                return next;
+            });
+        }
+
+        function extractProvenance(data) {
+            const metadata = data.metadata || {};
+            const provenance = metadata.provenance && typeof metadata.provenance === 'object'
+                ? metadata.provenance
+                : {};
+            return {
+                document_id: provenance.document_id || metadata.document_id || metadata.source_ref || (Array.isArray(metadata.source_documents) ? metadata.source_documents[0] : null),
+                sentence_id: provenance.sentence_id || metadata.sentence_id || null,
+                snippet: provenance.snippet || metadata.snippet || metadata.evidence || null,
+                extracted_at: provenance.extracted_at || metadata.extracted_at || null,
+            };
+        }
+
+        function hasProvenance(provenance) {
+            return !!(provenance.document_id || provenance.sentence_id || provenance.snippet || provenance.extracted_at);
+        }
+
+        function renderKeyValueList(title, values) {
+            const entries = Object.entries(values || {}).filter(([, value]) => value !== undefined && value !== null && value !== '');
+            if (entries.length === 0) return '';
+            let html = `<div class="detail-section"><h5>${escapeHtml(title)}</h5><ul class="detail-list">`;
+            for (const [key, value] of entries) {
+                html += `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(displayValue(value))}</li>`;
+            }
+            html += '</ul></div>';
+            return html;
+        }
+
+        function renderProvenanceSection(data) {
+            const provenance = extractProvenance(data);
+            if (!hasProvenance(provenance)) return '';
+            return renderKeyValueList('Provenance', provenance);
+        }
+
+        function relationLabel(edge, nodeId, direction) {
+            const rel = edge.data('relationship_type') || edge.data('label') || 'relation';
+            const peerId = direction === 'incoming' ? edge.data('source') : edge.data('target');
+            const peer = cy ? cy.getElementById(peerId) : null;
+            const peerLabel = peer && peer.length ? (peer.data('label') || peer.id()) : peerId;
+            const arrow = direction === 'incoming' ? 'from' : 'to';
+            return `${rel} ${arrow} ${peerLabel}`;
+        }
+
+        function renderNodeRelations(node) {
+            const incoming = node.incomers('edge').map(edge => relationLabel(edge, node.id(), 'incoming'));
+            const outgoing = node.outgoers('edge').map(edge => relationLabel(edge, node.id(), 'outgoing'));
+            let html = '<div class="detail-section"><h5>Relations</h5>';
+            html += '<p><strong>Incoming:</strong></p>';
+            html += incoming.length
+                ? `<ul class="detail-list">${incoming.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+                : '<p class="muted">No incoming relations.</p>';
+            html += '<p style="margin-top: 10px;"><strong>Outgoing:</strong></p>';
+            html += outgoing.length
+                ? `<ul class="detail-list">${outgoing.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+                : '<p class="muted">No outgoing relations.</p>';
+            html += '</div>';
+            return html;
+        }
+
+        function renderLegend() {
+            const legendContent = document.getElementById('legend-content');
+            if (!legendContent) return;
+            const counts = new Map();
+            const colors = new Map();
+            for (const element of graphElements) {
+                if (!isNodeElement(element)) continue;
+                const type = element.data.type || 'Unknown';
+                counts.set(type, (counts.get(type) || 0) + 1);
+                colors.set(type, element.data.color || entityColor(type));
+            }
+            if (counts.size === 0) {
+                legendContent.className = 'muted';
+                legendContent.textContent = 'Load a graph to see entity types.';
+                return;
+            }
+            const items = [...counts.keys()].sort((a, b) => a.localeCompare(b));
+            legendContent.className = 'legend-items';
+            legendContent.innerHTML = items.map(type => `
+                <div class="legend-item">
+                    <span class="legend-label">
+                        <span class="legend-swatch" style="background:${escapeHtml(colors.get(type))}"></span>
+                        <span>${escapeHtml(type)}</span>
+                    </span>
+                    <span class="legend-count">${counts.get(type)}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateEntitySearch() {
+            const options = document.getElementById('entity-options');
+            if (!options) return;
+            entityIndex = graphElements
+                .filter(isNodeElement)
+                .map(element => ({
+                    id: element.data.id,
+                    label: element.data.label || element.data.id,
+                    type: element.data.type || 'Unknown',
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+            options.innerHTML = entityIndex.map(entity => (
+                `<option value="${escapeHtml(entity.label)}" label="${escapeHtml(entity.type)}"></option>`
+            )).join('');
+        }
+
+        function findEntityBySearchValue(value) {
+            const q = (value || '').trim().toLowerCase();
+            if (!q) return null;
+            return entityIndex.find(entity => entity.label.toLowerCase() === q)
+                || entityIndex.find(entity => entity.id.toLowerCase() === q)
+                || entityIndex.find(entity => entity.label.toLowerCase().includes(q));
+        }
+
+        function zoomToSelectedEntity() {
+            const input = document.getElementById('entity-search');
+            if (!cy || !input) return;
+            const entity = findEntityBySearchValue(input.value);
+            if (!entity) {
+                setEmptyState(false);
+                input.focus();
+                return;
+            }
+            const node = cy.getElementById(entity.id);
+            if (node.length === 0) return;
+            cy.elements().removeClass('query-highlight');
+            node.addClass('query-highlight');
+            cy.animate({
+                center: { eles: node },
+                zoom: Math.max(cy.zoom(), 1.6),
+            }, { duration: 500 });
+            node.select();
+            showNodeInfo(node);
+        }
+
+        function handleEntitySearchKeydown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                zoomToSelectedEntity();
+            }
+        }
 
         function computeMaxDegree(elements) {
             const deg = new Map();
@@ -257,6 +616,12 @@
                 cy.destroy();
             }
 
+            elements = prepareGraphElements(elements);
+            graphElements = elements;
+            renderLegend();
+            updateEntitySearch();
+            setEmptyState(!elements || elements.length === 0);
+
             cy = cytoscape({
                 container: document.getElementById('cy'),
                 elements: elements,
@@ -265,11 +630,11 @@
                     {
                         selector: 'node',
                         style: {
-                            'background-color': '#3b82f6',
+                            'background-color': 'data(color)',
                             'label': 'data(label)',
-                            'width': 'mapData(weight, 0, 10, 120, 180)',
-                            'height': 'mapData(weight, 0, 10, 120, 180)',
-                            'font-size': '15px',
+                            'width': 'mapData(connection_count, 0, 12, 42, 104)',
+                            'height': 'mapData(connection_count, 0, 12, 42, 104)',
+                            'font-size': '13px',
                             'font-weight': '600',
                             'text-valign': 'center',
                             'text-halign': 'center',
@@ -282,10 +647,10 @@
                             'border-opacity': 0.3,
                             'shape': 'ellipse',
                             'text-wrap': 'wrap',
-                            'text-max-width': '140px',
+                            'text-max-width': '96px',
                             'padding': '10px',
-                            'min-width': 120,
-                            'min-height': 120,
+                            'min-width': 42,
+                            'min-height': 42,
                         }
                     },
                     // Entity type colors - Professional palette
@@ -351,9 +716,9 @@
                     {
                         selector: 'node:hover',
                         style: {
-                            'width': 'mapData(weight, 0, 10, 130, 190)',
-                            'height': 'mapData(weight, 0, 10, 130, 190)',
-                            'font-size': '16px',
+                            'width': 'mapData(connection_count, 0, 12, 50, 114)',
+                            'height': 'mapData(connection_count, 0, 12, 50, 114)',
+                            'font-size': '14px',
                             'border-width': 5,
                             'z-index': 999,
                         }
@@ -482,26 +847,32 @@
             const nodeId = node.id();
             const isProxy = nodeType === 'HubProxy' || (typeof nodeId === 'string' && nodeId.startsWith('hubproxy::'));
 
-            let html = `<h4>${nodeLabel}</h4>`;
-            html += `<p><strong>Type:</strong> ${nodeType}</p>`;
+            let html = `<h4>${escapeHtml(nodeLabel)}</h4>`;
+            html += `<p><strong>Name:</strong> ${escapeHtml(nodeLabel)}</p>`;
+            html += `<p><strong>Type:</strong> ${escapeHtml(nodeType)}</p>`;
             // Avoid leaking internal proxy ids in the UI; show an explainable summary instead.
             if (isProxy) {
                 const hub = nodeMeta.hub || '';
                 const rel = nodeMeta.relationship_type || nodeLabel || '';
                 if (hub || rel) {
-                    html += `<p><strong>Proxy for:</strong> ${hub ? hub : '(unknown)'} ${rel ? '• ' + rel : ''}</p>`;
+                    html += `<p><strong>Proxy for:</strong> ${escapeHtml(hub ? hub : '(unknown)')} ${rel ? '&bull; ' + escapeHtml(rel) : ''}</p>`;
                 }
             } else {
-                html += `<p><strong>ID:</strong> ${nodeId}</p>`;
+                html += `<p><strong>ID:</strong> ${escapeHtml(nodeId)}</p>`;
             }
+            html += `<p><strong>Degree:</strong> ${escapeHtml(node.data('connection_count') || node.degree(false) || 0)}</p>`;
 
             if (node.data('properties') && Object.keys(node.data('properties')).length > 0) {
-                html += `<p><strong>Properties:</strong></p><ul style="margin-left: 20px; font-size: 13px;">`;
+                html += `<div class="detail-section"><h5>Properties</h5><ul class="detail-list">`;
                 for (const [key, value] of Object.entries(node.data('properties'))) {
-                    html += `<li>${key}: ${value}</li>`;
+                    html += `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(displayValue(value))}</li>`;
                 }
-                html += `</ul>`;
+                html += `</ul></div>`;
+            } else {
+                html += `<div class="detail-section"><h5>Properties</h5><p class="muted">No properties available.</p></div>`;
             }
+            html += renderNodeRelations(node);
+            html += renderProvenanceSection(node.data());
 
             content.innerHTML = html;
             panel.classList.add('active');
@@ -514,17 +885,32 @@
             const relType = edge.data('relationship_type') || edge.data('label');
             const source = edge.data('source');
             const target = edge.data('target');
+            const sourceNode = cy ? cy.getElementById(source) : null;
+            const targetNode = cy ? cy.getElementById(target) : null;
+            const sourceLabel = sourceNode && sourceNode.length ? (sourceNode.data('label') || sourceNode.id()) : source;
+            const targetLabel = targetNode && targetNode.length ? (targetNode.data('label') || targetNode.id()) : target;
+            const metadata = edge.data('metadata') || {};
+            const confidence = edge.data('confidence') ?? metadata.confidence ?? null;
 
-            let html = `<h4>${relType}</h4>`;
-            html += `<p><strong>From:</strong> ${source}</p>`;
-            html += `<p><strong>To:</strong> ${target}</p>`;
+            let html = `<h4>${escapeHtml(relType)}</h4>`;
+            html += `<p><strong>Source:</strong> ${escapeHtml(sourceLabel)}</p>`;
+            html += `<p><strong>Target:</strong> ${escapeHtml(targetLabel)}</p>`;
+            html += `<p><strong>Relation:</strong> ${escapeHtml(relType)}</p>`;
+            html += `<p><strong>Confidence:</strong> ${escapeHtml(displayValue(confidence))}</p>`;
 
             if (edge.data('relationship_description')) {
-                html += `<p style="margin-top: 12px;"><strong>Description:</strong><br/>${edge.data('relationship_description')}</p>`;
+                html += `<p style="margin-top: 12px;"><strong>Description:</strong><br/>${escapeHtml(edge.data('relationship_description'))}</p>`;
             }
             if (edge.data('relationship_detail')) {
-                html += `<p style="margin-top: 12px;"><strong>Detail:</strong><br/>${edge.data('relationship_detail')}</p>`;
+                html += `<p style="margin-top: 12px;"><strong>Detail:</strong><br/>${escapeHtml(edge.data('relationship_detail'))}</p>`;
             }
+            html += renderKeyValueList('Temporal Metadata', {
+                start_time: edge.data('start_time') || edge.data('valid_from') || metadata.start_time || metadata.valid_from || metadata.temporal?.valid_from,
+                end_time: edge.data('end_time') || edge.data('valid_to') || metadata.end_time || metadata.valid_to || metadata.temporal?.valid_to,
+                created_at: edge.data('created_at') || metadata.created_at || metadata.temporal?.created_at,
+                updated_at: edge.data('updated_at') || metadata.updated_at || metadata.temporal?.updated_at,
+            });
+            html += renderProvenanceSection(edge.data());
 
             content.innerHTML = html;
             panel.classList.add('active');
@@ -547,13 +933,16 @@
                     ? `/api/visualization/cytoscape?${params}`
                     : '/api/visualization/cytoscape';
                 const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Graph endpoint returned ${response.status}`);
+                }
                 const data = await response.json();
                 maybeAutoSwitchLayoutForHub(data.elements, !!hubSplit);
                 initCytoscape(data.elements);
                 await loadGraphStats();
             } catch (error) {
                 console.error('Error loading graph:', error);
-                alert('Error loading graph: ' + error.message);
+                setEmptyState(true, 'No graph is loaded. Start the demo server with a sample KG first.');
             }
         }
 
@@ -569,13 +958,16 @@
                     ? `/api/visualization/communities/cytoscape?${params}`
                     : '/api/visualization/communities/cytoscape';
                 const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Communities endpoint returned ${response.status}`);
+                }
                 const data = await response.json();
                 maybeAutoSwitchLayoutForHub(data.elements, !!hubSplit);
                 initCytoscape(data.elements);
                 await loadGraphStats();
             } catch (error) {
                 console.error('Error loading communities:', error);
-                alert('Error loading communities: ' + error.message);
+                setEmptyState(true, 'No community graph is available yet. Load a KG, then try again.');
             }
         }
 
@@ -655,63 +1047,7 @@
                     html += `</div>`;
                 }
 
-                // Retrieval Context
-                if (result.retrieval_context) {
-                    const ctx = result.retrieval_context;
-
-                    // Seed entities
-                    if (ctx.seed_entities && ctx.seed_entities.length > 0) {
-                        html += `<div style="margin-bottom: 12px;">`;
-                        html += `<strong style="color: #1e293b; display: block; margin-bottom: 6px;">Found ${ctx.seed_entities.length} relevant entities:</strong>`;
-                        html += `<div style="display: flex; flex-wrap: wrap; gap: 6px;">`;
-                        ctx.seed_entities.slice(0, 10).forEach(entity => {
-                            html += `<span style="padding: 4px 8px; background: #e0e7ff; color: #3730a3; border-radius: 4px; font-size: 12px;">${entity}</span>`;
-                        });
-                        html += `</div></div>`;
-                    }
-
-                    // Communities
-                    if (ctx.community_reports && ctx.community_reports.length > 0) {
-                        html += `<div style="margin-bottom: 12px;">`;
-                        html += `<strong style="color: #1e293b; display: block; margin-bottom: 8px;">Communities (${ctx.community_reports.length}):</strong>`;
-                        ctx.community_reports.slice(0, 3).forEach((report, idx) => {
-                            html += `<div style="margin-bottom: 10px; padding: 10px; background: #f8fafc; border-radius: 6px; border-left: 3px solid #8b5cf6;">`;
-                            html += `<div style="font-weight: 600; color: #6d28d9; margin-bottom: 6px; font-size: 13px;">Cluster ${report.cluster_id || idx + 1}</div>`;
-                            if (report.summary) {
-                                // Show full summary if available, otherwise truncate
-                                const summaryText = report.summary.length > 200
-                                    ? report.summary.substring(0, 200) + '...'
-                                    : report.summary;
-                                html += `<div style="color: #475569; font-size: 12px; line-height: 1.6;">${summaryText}</div>`;
-                            }
-                            html += `</div>`;
-                        });
-                        html += `</div>`;
-                    }
-
-                    // Entities count
-                    if (ctx.entities && ctx.entities.length > 0) {
-                        html += `<div style="margin-bottom: 8px; color: #64748b;">`;
-                        html += `<strong>Total entities:</strong> ${ctx.entities.length}`;
-                        html += `</div>`;
-                    }
-                }
-
                 resultsContent.innerHTML = html;
-
-                // Highlight entities in graph if available
-                if (result.retrieval_context && result.retrieval_context.seed_entities && cy) {
-                    // Clear previous highlights
-                    cy.elements().removeClass('query-highlight');
-
-                    // Highlight seed entities
-                    result.retrieval_context.seed_entities.forEach(entityId => {
-                        const node = cy.getElementById(entityId);
-                        if (node.length > 0) {
-                            node.addClass('query-highlight');
-                        }
-                    });
-                }
 
             } catch (error) {
                 console.error('Error executing query:', error);
