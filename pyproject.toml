@@ -220,16 +220,14 @@ omit = [
     "drg/api/__init__.py",
     # MCP server requires mcp SDK (optional dep); skipped in base CI environment.
     "drg/mcp_server.py",
-    "drg/mcp_api.py",
     # Visualization is rendering glue — exercised in examples, not unit-tested.
     "drg/graph/visualization.py",
-    "drg/graph/visualization_adapter.py",
+    "drg/graph/visualization_adapter/**",
     "drg/graph/neo4j_exporter.py",
     # LLM-driven modules: exercised by integration tests (require live API
     # keys). Excluded from unit-test coverage to keep the floor meaningful.
     "drg/optimizer/optimizer.py",
     "drg/optimizer/metrics.py",
-    "drg/graph/schema_generator.py",
     "drg/graph/relationship_model/_llm_based.py",
     "drg/utils/llm_throttle.py",
     "drg/utils/env_loader.py",

@@ -10,7 +10,13 @@ import os
 import threading
 import warnings
 
-import dspy
+try:
+    import dspy
+except ImportError as _dspy_import_err:
+    raise ImportError(
+        "DSPy is required for drg.config. "
+        "Install it with: pip install drg-kg[extract]"
+    ) from _dspy_import_err
 
 from .errors import LLMConfigError
 from .utils.env_loader import load_dotenv

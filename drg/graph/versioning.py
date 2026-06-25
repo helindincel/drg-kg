@@ -207,20 +207,40 @@ def rollback_to_version(
     *,
     versions_dir: str | Path | None = None,
 ) -> GraphVersion:
-    """Replace ``graph_path`` with the selected snapshot and record rollback."""
+    """Replace ``graph_path`` with the selected snapshot and record rollback.
+
+    The pre-rollback state is saved to its own snapshot file so the version
+    history remains linear and auditable.  The rollback entry's
+    ``snapshot_path`` points to this pre-rollback snapshot (not to the
+    restored target), preserving all states in the version chain.
+    """
 
     graph_path = Path(graph_path)
     manifest = VersionManifest.load(graph_path, versions_dir)
     target = manifest.get(version_id)
+    vdir = _versions_dir(graph_path, versions_dir)
+    vdir.mkdir(parents=True, exist_ok=True)
+
+    # Capture the current (pre-rollback) state before overwriting graph_path.
+    rollback_seq = len(manifest.versions) + 1
+    pre_rollback_id = f"pre-rollback-{version_id}-{rollback_seq}"
+    pre_rollback_path = vdir / f"{pre_rollback_id}.json"
+    if graph_path.exists():
+        shutil.copyfile(graph_path, pre_rollback_path)
+    else:
+        # Nothing to preserve — point to target as fallback
+        pre_rollback_path = Path(target.snapshot_path)
+
+    # Restore the target snapshot.
     graph_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(target.snapshot_path, graph_path)
 
     rollback = GraphVersion(
-        version_id=f"rollback-{version_id}-{len(manifest.versions) + 1}",
+        version_id=f"rollback-{version_id}-{rollback_seq}",
         parent_version_id=manifest.versions[-1].version_id if manifest.versions else None,
         created_at=_utc_now_iso(),
         operation="rollback",
-        snapshot_path=target.snapshot_path,
+        snapshot_path=str(pre_rollback_path),
         document_id=target.document_id,
         diff_summary={},
     )

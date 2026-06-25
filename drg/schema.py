@@ -88,8 +88,8 @@ class RelationGroup:
     """Group of related relations with semantic meaning."""
 
     name: str
-    description: str
-    relations: list[Relation]
+    description: str = ""
+    relations: list[Relation] = field(default_factory=list)
     examples: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self):

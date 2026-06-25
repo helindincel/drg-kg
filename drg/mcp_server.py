@@ -51,6 +51,12 @@ from .schema import (  # noqa: E402
 # ---------------------------------------------------------------------------
 # In-memory stores (stateful across tool calls within one server session)
 # ---------------------------------------------------------------------------
+# WARNING: These module-level dicts are process-local.  In a multi-worker
+# deployment (e.g. ``uvicorn --workers N``) each worker has its own copy;
+# a schema or KG registered in one worker is invisible to others.  For
+# single-worker stdio / HTTP+SSE usage (the intended MCP deployment model)
+# this is fine.  If you need multi-worker support, swap these dicts for a
+# shared backend (Redis, SQLite, etc.) and inject via FastMCP lifespan.
 _schemas: dict[str, DRGSchema | EnhancedDRGSchema] = {}
 _knowledge_graphs: dict[str, EnhancedKG] = {}
 

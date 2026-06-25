@@ -173,15 +173,39 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
         return result["embedding"]
 
     def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        """Embed batch of texts."""
-        # Gemini embedding API
-        embeddings = []
-        for text in texts:
+        """Embed batch of texts using concurrent API calls."""
+        if not texts:
+            return []
+        # Try batch embed_content first (available in google-generativeai >= 0.8)
+        try:
             result = self.genai_module.embed_content(
-                model=self.model_name, content=text, task_type="semantic_similarity"
+                model=self.model_name,
+                content=texts,
+                task_type="semantic_similarity",
             )
-            embeddings.append(result["embedding"])
-        return embeddings
+            embeddings = result.get("embedding")
+            if isinstance(embeddings, list) and embeddings and isinstance(embeddings[0], list):
+                return embeddings
+        except Exception:  # noqa: BLE001 — batch API not available, fall through
+            pass
+        # Fall back to concurrent individual calls via ThreadPoolExecutor
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        results: list[list[float] | None] = [None] * len(texts)
+        with ThreadPoolExecutor(max_workers=min(8, len(texts))) as pool:
+            future_to_idx = {
+                pool.submit(
+                    self.genai_module.embed_content,
+                    model=self.model_name,
+                    content=text,
+                    task_type="semantic_similarity",
+                ): i
+                for i, text in enumerate(texts)
+            }
+            for future in as_completed(future_to_idx):
+                idx = future_to_idx[future]
+                results[idx] = future.result()["embedding"]
+        return [r for r in results if r is not None]
 
     def get_dimension(self) -> int:
         """Get embedding dimension."""

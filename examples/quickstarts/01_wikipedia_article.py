@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Quickstart 1 — Wikipedia-style biographical article -> Knowledge Graph
+"""Quickstart 1 — Wikipedia-style biographical article -> Knowledge Graph
 =======================================================================
 
 Showcases the most generic DRG use case: turning an encyclopedic paragraph
@@ -12,15 +11,15 @@ What this script does
    Organization, Work) with three relation groups (affiliation, location,
    creation).
 2. Runs `extract_typed()` over a short sample paragraph (Marie Curie).
-3. Builds a `KG` (legacy lightweight graph) and prints a human-readable
+3. Builds an `EnhancedKG` and prints a human-readable
    summary plus a JSON dump.
 
 Prerequisites
 -------------
 - An LLM provider key in the environment (default: `OPENAI_API_KEY`).
-- Override the model with `DRG_MODEL`, e.g.:
+- Override the model with `DRG_MODEL`, e.g.::
 
-    DRG_MODEL=gemini/gemini-2.0-flash-exp GEMINI_API_KEY=... \
+    DRG_MODEL=gemini/gemini-2.0-flash-exp GEMINI_API_KEY=... \\
         python examples/quickstarts/01_wikipedia_article.py
 
 Run
@@ -38,13 +37,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from drg import (
-    KG,
     EnhancedDRGSchema,
     EntityType,
     Relation,
     RelationGroup,
     extract_typed,
 )
+from drg.graph.builders import build_enhanced_kg
 from drg.utils.env_loader import load_dotenv
 
 load_dotenv(".env", override=False)
@@ -138,7 +137,12 @@ def main() -> int:
     print(f"\nInput text ({len(SAMPLE_TEXT)} chars):\n{SAMPLE_TEXT}\n")
 
     entities, triples = extract_typed(SAMPLE_TEXT, schema)
-    kg = KG.from_typed(entities, triples)
+    kg = build_enhanced_kg(
+        entities_typed=entities,
+        triples=triples,
+        schema=schema,
+        source_text=SAMPLE_TEXT,
+    )
 
     print(f"Extracted {len(entities)} entities and {len(triples)} triples.\n")
 

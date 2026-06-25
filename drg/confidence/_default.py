@@ -45,10 +45,13 @@ import re
 from typing import Any
 
 from ..schema import DRGSchema, EnhancedDRGSchema
+from ..utils.logging import get_logger
 from ._strategy import ConfidenceStrategy, EntityScoreMap, RelationScoreMap
 from ._types import ConfidenceScore, clamp_confidence
 
 __all__ = ["DefaultConfidenceStrategy"]
+
+logger = get_logger(__name__)
 
 
 # Bounds applied after summing signals — keeps values out of the degenerate
@@ -99,6 +102,11 @@ def _schema_allows_relation(
         try:
             return schema.is_valid_relation(rel_name, s_type, o_type)
         except Exception:
+            logger.debug(
+                "schema relation check failed for rel=%r src=%r dst=%r",
+                rel_name, s_type, o_type,
+                exc_info=True,
+            )
             return False
     rels = getattr(schema, "relations", [])
     return any(

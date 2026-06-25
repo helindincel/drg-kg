@@ -237,51 +237,46 @@ def _schema_from_payload(schema_data: dict[str, Any] | None):
     )
 
 
-def _apply_extraction_env(request: ExtractRequest) -> dict[str, str | None]:
-    """Apply per-request provider settings and return previous env values."""
+def _build_request_lm(request: ExtractRequest):
+    """Build a per-request dspy.LM without touching os.environ.
 
-    keys = [
-        "DRG_MODEL",
-        "DRG_BASE_URL",
-        "DRG_TEMPERATURE",
-        "OPENAI_API_KEY",
-        "GEMINI_API_KEY",
-        "GOOGLE_API_KEY",
-        "ANTHROPIC_API_KEY",
-        "OPENROUTER_API_KEY",
-    ]
-    previous = {key: os.environ.get(key) for key in keys}
+    Returns a configured ``dspy.LM`` instance when the request supplies
+    model or API-key overrides, or ``None`` when no overrides are present
+    and the globally configured LM should be used.
 
-    if request.model:
-        os.environ["DRG_MODEL"] = request.model
+    This function is the thread-safe replacement for the former
+    ``_apply_extraction_env`` / ``_restore_env`` pair.  Use it with
+    ``dspy.context(lm=...)`` which scopes the override to the current
+    asyncio task / thread via Python's contextvars machinery.
+    """
+    if not request.model and not request.api_key and not request.base_url:
+        return None
+    try:
+        import dspy  # optional dep — only needed when extract extra is installed
+    except ImportError:
+        return None
+
+    model_name = request.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
+
+    kwargs: dict[str, object] = {}
     if request.base_url:
-        os.environ["DRG_BASE_URL"] = request.base_url
+        kwargs["base_url"] = request.base_url
     if request.temperature is not None:
-        os.environ["DRG_TEMPERATURE"] = str(request.temperature)
+        kwargs["temperature"] = request.temperature
     if request.api_key:
-        model = request.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
-        if "gemini" in model.lower():
-            os.environ["GEMINI_API_KEY"] = request.api_key
-            os.environ["GOOGLE_API_KEY"] = request.api_key
-        elif "anthropic" in model.lower() or "claude" in model.lower():
-            os.environ["ANTHROPIC_API_KEY"] = request.api_key
-        elif "openrouter" in model.lower():
-            os.environ["OPENROUTER_API_KEY"] = request.api_key
-        else:
-            os.environ["OPENAI_API_KEY"] = request.api_key
-    return previous
+        kwargs["api_key"] = request.api_key
+
+    try:
+        return dspy.LM(model_name, **kwargs)
+    except Exception:
+        logger.debug("Could not build per-request dspy.LM", exc_info=True)
+        return None
 
 
-def _restore_env(previous: dict[str, str | None]) -> None:
-    for key, value in previous.items():
-        if value is None:
-            os.environ.pop(key, None)
-        else:
-            os.environ[key] = value
-
-
-def _has_provider_credentials(model: str) -> bool:
+def _has_provider_credentials(model: str, *, request_api_key: str | None = None) -> bool:
     if model.lower().startswith("ollama"):
+        return True
+    if request_api_key:
         return True
     return any(
         os.getenv(key)
@@ -340,12 +335,19 @@ def create_app(
     # DRG_CORS_ORIGINS: comma-separated list of allowed origins.
     # Defaults to ["*"] for local development; restrict in production:
     #   export DRG_CORS_ORIGINS="https://app.example.com,https://admin.example.com"
+    #
+    # Security note: allow_credentials=True is incompatible with allow_origins=["*"]
+    # per the Fetch specification §3.2 — browsers will reject the combination.
+    # We therefore only enable credentials when DRG_CORS_ORIGINS is set to a
+    # non-wildcard value, and fall back to credentials=False for the open default.
     _cors_origins_env = os.getenv("DRG_CORS_ORIGINS", "*").strip()
     cors_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+    _cors_wildcard = cors_origins == ["*"]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cors_origins,
-        allow_credentials=True,
+        # credentials require explicit origins — wildcard + credentials is rejected by browsers
+        allow_credentials=not _cors_wildcard,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -486,19 +488,23 @@ def create_app(
 
         schema = _schema_from_payload(request.extraction_schema)
         document_id = request.document_id or f"api:{uuid.uuid4()}"
-        previous_env = _apply_extraction_env(request)
+        lm_override = _build_request_lm(request)
+        model = request.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
+        if not _has_provider_credentials(model, request_api_key=request.api_key):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Extraction requires a provider API key or a local Ollama model. "
+                    "Pass `api_key`, set provider environment variables, or use an "
+                    "ollama model with `base_url`."
+                ),
+            )
         try:
-            model = request.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
-            if not _has_provider_credentials(model):
-                raise HTTPException(
-                    status_code=400,
-                    detail=(
-                        "Extraction requires a provider API key or a local Ollama model. "
-                        "Pass `api_key`, set provider environment variables, or use an "
-                        "ollama model with `base_url`."
-                    ),
-                )
-            entities_typed, triples = await asyncio.to_thread(extract_typed, request.text, schema)
+            import contextlib
+            import dspy
+            ctx = dspy.context(lm=lm_override) if lm_override is not None else contextlib.nullcontext()
+            with ctx:
+                entities_typed, triples = await asyncio.to_thread(extract_typed, request.text, schema)
         except HTTPException:
             raise
         except Exception as e:
@@ -506,8 +512,6 @@ def create_app(
             raise HTTPException(
                 status_code=500, detail=f"Extraction failed: {type(e).__name__}"
             ) from e
-        finally:
-            _restore_env(previous_env)
 
         triples = list(dict.fromkeys(triples))
         kg = await asyncio.to_thread(
@@ -552,26 +556,28 @@ def create_app(
 
         schema = _schema_from_payload(request.extraction_schema)
         document_id = request.document_id or f"api:{uuid.uuid4()}"
-        previous_env = _apply_extraction_env(request)
+        lm_override = _build_request_lm(request)
+        model = request.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
+        if not _has_provider_credentials(model, request_api_key=request.api_key):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Graph update requires a provider API key or a local Ollama model. "
+                    "Pass `api_key`, set provider environment variables, or use an "
+                    "ollama model with `base_url`."
+                ),
+            )
         try:
-            model = request.model or os.getenv("DRG_MODEL", "openai/gpt-4o-mini")
-            if not _has_provider_credentials(model):
-                raise HTTPException(
-                    status_code=400,
-                    detail=(
-                        "Graph update requires a provider API key or a local Ollama model. "
-                        "Pass `api_key`, set provider environment variables, or use an "
-                        "ollama model with `base_url`."
-                    ),
-                )
-            entities_typed, triples = await asyncio.to_thread(extract_typed, request.text, schema)
+            import contextlib
+            import dspy
+            ctx = dspy.context(lm=lm_override) if lm_override is not None else contextlib.nullcontext()
+            with ctx:
+                entities_typed, triples = await asyncio.to_thread(extract_typed, request.text, schema)
         except HTTPException:
             raise
         except Exception as e:
             logger.error("API graph update failed: %s", e, exc_info=True)
             raise HTTPException(status_code=500, detail=f"Graph update failed: {type(e).__name__}") from e
-        finally:
-            _restore_env(previous_env)
 
         triples = list(dict.fromkeys(triples))
         incoming = await asyncio.to_thread(

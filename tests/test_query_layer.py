@@ -12,6 +12,7 @@ import pytest
 from drg.graph import EnhancedKG, GraphMerger, KGEdge, KGNode
 from drg.graph.builders import build_enhanced_kg
 from drg.query import GraphQuery, QueryError
+from drg.reasoning import MultiDocumentReasoner, ReasoningConfig
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -63,6 +64,9 @@ def _apple_beats_kg() -> EnhancedKG:
             metadata={"label": "tech"},
         )
     )
+
+    # Run reasoning to add inferred edges (inverse, symmetric, path-bridge)
+    MultiDocumentReasoner(config=ReasoningConfig(min_confidence=0.1)).reason(base)
     return base
 
 
