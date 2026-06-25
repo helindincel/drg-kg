@@ -74,15 +74,10 @@ def generate_schema_from_text(text: str) -> EnhancedDRGSchema:
     sample_text = _sample_text_for_schema_generation(text)
 
     try:
-        if not hasattr(dspy, "TypedPredictor"):
-            raise SchemaGenerationError("DSPy TypedPredictor is required for typed schema generation")
-        schema_generator = dspy.TypedPredictor(SchemaGeneration, output_type=SchemaOutput)
+        schema_generator = dspy.Predict(SchemaGeneration)
         throttle_llm_calls()
         schema_result = schema_generator(text=sample_text)
-        if isinstance(schema_result, SchemaOutput):
-            schema_data = schema_result.model_dump()
-        else:
-            schema_data = _schema_prediction_to_dict(schema_result)
+        schema_data = _schema_prediction_to_dict(schema_result)
         logger.info("Schema generation completed")
     except Exception as e:
         logger.error(f"Schema generation failed: {e}")

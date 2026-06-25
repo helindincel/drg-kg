@@ -44,10 +44,8 @@ sys.modules.setdefault("dspy", _dspy_stub)
 def mock_dspy():
     """Fixture to mock DSPy module."""
     with patch("drg.extract.dspy") as mock_dspy:
-        # Mock TypedPredictor
-        mock_typed_predictor = Mock()
-        mock_dspy.TypedPredictor = Mock(return_value=mock_typed_predictor)
-        mock_dspy.Predict = Mock()
+        mock_predictor_instance = Mock()
+        mock_dspy.Predict = Mock(return_value=mock_predictor_instance)
         mock_dspy.Module = type("Module", (), {})
         mock_dspy.Signature = type("Signature", (), {})
         mock_dspy.InputField = Mock()

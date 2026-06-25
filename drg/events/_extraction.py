@@ -187,18 +187,13 @@ def extract_events(
 
     Signature = _build_signature(registry)
 
-    use_typed = hasattr(dspy, "TypedPredictor")
     try:
-        if use_typed:
-            predictor = dspy.TypedPredictor(Signature, output_type=RawEventList)
-        else:
-            predictor = dspy.Predict(Signature)
+        predictor = dspy.Predict(Signature)
     except Exception as exc:
         if is_strict():
             raise
-        logger.warning("TypedPredictor unavailable for events: %s", exc, exc_info=True)
-        predictor = dspy.Predict(Signature)
-        use_typed = False
+        logger.warning("Predictor creation failed for events: %s", exc, exc_info=True)
+        return []
 
     if effective_lm is None:
         if os.getenv("DRG_REQUIRE_LM", "").lower() in {"1", "true", "yes"}:
@@ -211,16 +206,8 @@ def extract_events(
     with _maybe_lm_context(lm):
         try:
             throttle_llm_calls()
-            if use_typed:
-                result = predictor(text=text, entities=entities_typed)
-                raw_field = getattr(result, "events", None)
-                if raw_field is None and isinstance(result, RawEventList):
-                    raw_events = list(result.events)
-                else:
-                    raw_events = _coerce_raw_events(raw_field if raw_field is not None else result)
-            else:
-                result = predictor(text=text, entities=json.dumps(entities_typed))
-                raw_events = _coerce_raw_events(getattr(result, "events", "[]"))
+            result = predictor(text=text, entities=entities_typed)
+            raw_events = _coerce_raw_events(getattr(result, "events", []))
         except Exception as exc:
             if is_strict():
                 raise

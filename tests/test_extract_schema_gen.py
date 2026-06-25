@@ -150,7 +150,7 @@ def _patched_dspy(
         return _call
 
     fake_dspy = SimpleNamespace(
-        TypedPredictor=_make_predictor,
+        Predict=_make_predictor,
         ChainOfThought=_make_predictor,
         Signature=type("Signature", (), {}),
         InputField=lambda **_: None,

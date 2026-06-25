@@ -66,10 +66,7 @@ class TestKGExtractor:
     @patch("drg.extract.dspy")
     def test_extractor_initialization(self, mock_dspy):
         """Test that KGExtractor initializes correctly."""
-        # Mock TypedPredictor to avoid actual initialization
-        mock_dspy.TypedPredictor = Mock()
         mock_dspy.Predict = Mock()
-        mock_dspy.hasattr = lambda obj, attr: False  # TypedPredictor not available
         mock_dspy.Module = type("Module", (), {})
         mock_dspy.Signature = type("Signature", (), {})
         mock_dspy.InputField = Mock()

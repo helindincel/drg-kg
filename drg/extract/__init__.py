@@ -418,26 +418,15 @@ class KGExtractor(dspy.Module):
         self._entity_types = list(getattr(EntitySig, "_entity_types", []))
         self._relation_schema = list(getattr(RelationSig, "_relation_schema", []))
 
-        # TypedPredictor is required for DSPy-native structured extraction.
+        # dspy.Predict with typed Signature fields is the standard DSPy 2.5+ pattern.
         try:
-            if not hasattr(dspy, "TypedPredictor"):
-                raise ExtractionError("DSPy TypedPredictor is required for typed KG extraction")
-            self.entity_extractor = dspy.TypedPredictor(EntitySig, output_type=EntityList)
-            self.relation_extractor = dspy.TypedPredictor(RelationSig, output_type=RelationList)
-            self.document_relation_extractor = dspy.TypedPredictor(
-                DocumentRelationSig,
-                output_type=RelationList,
-            )
-            self.implicit_relation_extractor = dspy.TypedPredictor(
-                ImplicitRelationSig,
-                output_type=RelationList,
-            )
-            self.coreference_resolver = dspy.TypedPredictor(
-                CoreferenceSig,
-                output_type=RelationList,
-            )
+            self.entity_extractor = dspy.Predict(EntitySig)
+            self.relation_extractor = dspy.Predict(RelationSig)
+            self.document_relation_extractor = dspy.Predict(DocumentRelationSig)
+            self.implicit_relation_extractor = dspy.Predict(ImplicitRelationSig)
+            self.coreference_resolver = dspy.Predict(CoreferenceSig)
         except Exception as e:
-            logger.error("TypedPredictor initialization failed: %s", e, exc_info=True)
+            logger.error("Predictor initialization failed: %s", e, exc_info=True)
             raise
 
     def forward(

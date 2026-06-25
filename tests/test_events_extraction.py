@@ -92,8 +92,7 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.TypedPredictor = Mock(return_value=Mock(return_value=events_obj))
-            mock_dspy.Predict = Mock()
+            mock_dspy.Predict = Mock(return_value=Mock(return_value=events_obj))
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")
             mock_dspy.OutputField = Mock(return_value="out")
@@ -134,8 +133,7 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.TypedPredictor = Mock(return_value=Mock(return_value=events_obj))
-            mock_dspy.Predict = Mock()
+            mock_dspy.Predict = Mock(return_value=Mock(return_value=events_obj))
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")
             mock_dspy.OutputField = Mock(return_value="out")
@@ -162,8 +160,7 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.TypedPredictor = Mock(return_value=Mock(return_value=events_obj))
-            mock_dspy.Predict = Mock()
+            mock_dspy.Predict = Mock(return_value=Mock(return_value=events_obj))
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")
             mock_dspy.OutputField = Mock(return_value="out")
@@ -195,8 +192,7 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.TypedPredictor = Mock(return_value=Mock(return_value=events_obj))
-            mock_dspy.Predict = Mock()
+            mock_dspy.Predict = Mock(return_value=Mock(return_value=events_obj))
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")
             mock_dspy.OutputField = Mock(return_value="out")

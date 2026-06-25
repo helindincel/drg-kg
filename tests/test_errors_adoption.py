@@ -177,7 +177,7 @@ def test_schema_generation_raises_on_empty_schema():
     # ``create=True`` lets us patch attributes the current DSPy install
     # doesn't expose (e.g. TypedPredictor was removed in DSPy ≥2.5).
     with (
-        mock.patch.object(_schema_gen.dspy, "TypedPredictor", _FakeGen, create=True),
+        mock.patch.object(_schema_gen.dspy, "Predict", _FakeGen, create=True),
         mock.patch.object(_schema_gen.dspy, "ChainOfThought", _FakeGen, create=True),
         mock.patch("drg.extract._configure_llm_auto"),
     ):

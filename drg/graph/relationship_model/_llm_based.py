@@ -87,11 +87,6 @@ if DSPY_AVAILABLE:  # pragma: no cover - exercised in environments with DSPy
             Given the source entity, target entity, their types, and context,
             classify the most appropriate relationship type(s) from the taxonomy.
 
-            Available relationship types: {rel_types_str}
-
-            Categories:
-            {categories_str}
-
             Return the top 3 most likely relationship types with confidence scores.
             """
 
@@ -110,20 +105,22 @@ if DSPY_AVAILABLE:  # pragma: no cover - exercised in environments with DSPy
                 desc="Contextual text where the relationship appears", default=None
             )
 
-        RelationshipClassificationSignature._rel_types = rel_types_str
-        RelationshipClassificationSignature._categories = categories_str
+        # Python class docstrings are literals — format strings are NOT interpolated.
+        # Set __doc__ dynamically so the taxonomy is actually visible to the LLM.
+        RelationshipClassificationSignature.__doc__ = (
+            "Classify the relationship type between two entities.\n\n"
+            "Given the source entity, target entity, their types, and context, "
+            "classify the most appropriate relationship type(s) from the taxonomy.\n\n"
+            f"Available relationship types: {rel_types_str}\n\n"
+            f"Categories:\n{categories_str}\n\n"
+            "Return the top 3 most likely relationship types with confidence scores."
+        )
 
         try:
-            if hasattr(dspy, "TypedPredictor"):
-                return dspy.TypedPredictor(
-                    RelationshipClassificationSignature,
-                    output_type=RelationshipClassification,
-                )
-            logger.warning("TypedPredictor not available, using Predict as fallback")
             return dspy.Predict(RelationshipClassificationSignature)
         except Exception as e:
-            logger.warning(f"Failed to create TypedPredictor: {e}, using Predict")
-            return dspy.Predict(RelationshipClassificationSignature)
+            logger.warning(f"Failed to create predictor: {e}")
+            return None
 
     def build_classification_input(
         source: str,
