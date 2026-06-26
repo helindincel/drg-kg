@@ -26,6 +26,7 @@ class Relation:
     dst: str  # Destination entity type name
     description: str = ""  # Why this relation exists (relationship type description)
     detail: str = ""  # One-sentence evidence for the connection
+    properties: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -246,6 +247,7 @@ class EnhancedDRGSchema:
                             "target": r.dst,
                             "description": r.description,
                             "detail": r.detail,
+                            "properties": r.properties,
                         }
                         for r in rg.relations
                     ],
@@ -351,10 +353,13 @@ class EnhancedDRGSchema:
                     continue
                 rel_desc = r.get("description", "")
                 rel_detail = r.get("detail", "")
+                rel_properties = r.get("properties", {})
                 if not isinstance(rel_desc, str):
                     rel_desc = ""
                 if not isinstance(rel_detail, str):
                     rel_detail = ""
+                if not isinstance(rel_properties, dict):
+                    rel_properties = {}
                 relations.append(
                     Relation(
                         name=str(rel_name).strip(),
@@ -362,6 +367,7 @@ class EnhancedDRGSchema:
                         dst=str(dst).strip(),
                         description=rel_desc,
                         detail=rel_detail,
+                        properties=rel_properties,
                     )
                 )
 
@@ -493,6 +499,9 @@ def load_schema_from_json(schema_path: str | Path) -> DRGSchema | EnhancedDRGSch
                 )
             description = relation.get("description", "")
             detail = relation.get("detail", "")
+            properties = relation.get("properties", {})
+            if not isinstance(properties, dict):
+                properties = {}
             relations.append(
                 Relation(
                     name=str(name).strip(),
@@ -500,6 +509,7 @@ def load_schema_from_json(schema_path: str | Path) -> DRGSchema | EnhancedDRGSch
                     dst=str(dst).strip(),
                     description=description if isinstance(description, str) else "",
                     detail=detail if isinstance(detail, str) else "",
+                    properties=properties,
                 )
             )
 

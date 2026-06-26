@@ -36,8 +36,17 @@ Use this checklist for the TestPyPI dry-run and the public announcement flow.
    ```bash
    python -m venv /tmp/drg-testpypi
    source /tmp/drg-testpypi/bin/activate
-   pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ "drg-kg[api,mcp]"
+   pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ "drg-kg[all]"
    python -c "import drg; print(drg.__version__)"
+   drg --help
+   python -m drg.mcp_server --help
+   python examples/query_layer_example.py
+   ```
+
+6. If an LLM provider is configured, run one small extraction smoke:
+   ```bash
+   drg extract inputs/1example_text.txt --auto-schema --output-format enhancedkg -o /tmp/drg-smoke-kg.json
+   drg validate /tmp/drg-smoke-kg.json
    ```
 
 ## Demo Script

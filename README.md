@@ -5,7 +5,7 @@
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 DRG is a **Knowledge Graph Lifecycle Framework**: a schema-driven Python
-library for turning unstructured text into searchable, explainable Knowledge
+library for turning unstructured text into queryable, explainable Knowledge
 Graphs and managing what happens after the first extraction. It uses
 declarative schemas and DSPy-backed extraction to produce graph objects that
 can be validated, merged, versioned, diffed, queried, evaluated, served through
@@ -70,8 +70,8 @@ DRG is not:
 
 - A general LLM application framework.
 - A chatbot framework.
-- A vector database or graph database.
-- A vector search layer.
+- A database or search backend.
+- A retrieval framework.
 - A replacement for Neo4j, NetworkX, LangChain, LlamaIndex, or DSPy.
 - A hosted product or fully stable production platform yet.
 
@@ -182,10 +182,11 @@ pip install -e ".[mcp]"      # MCP server
 pip install -e ".[neo4j]"    # Neo4j export
 ```
 
-After the public PyPI release, the equivalent package install will be:
+After the public PyPI release, install the package with the extras you need:
 
 ```bash
 pip install "drg-kg[all]"
+pip install "drg-kg[extract]"  # DSPy extraction only
 ```
 
 ## Quickstart
@@ -217,13 +218,18 @@ export DRG_MODEL=ollama_chat/llama3
 export DRG_BASE_URL=http://localhost:11434
 ```
 
-Run a tiny CLI extraction:
+Run a story-oriented CLI extraction:
 
 ```bash
-echo "TechCorp was founded by Jane Doe in 2015." > sample.txt
-drg extract sample.txt --auto-schema -o output_kg.json
-drg validate output_kg.json
+drg extract story.txt --auto-schema --output-format enhancedkg -o story_kg.json
+drg validate story_kg.json
 ```
+
+For the first publishing scenario, start with a roughly 20-page story document.
+DRG samples the document, creates a detailed `EnhancedDRGSchema` with entity
+types, examples, properties, relation groups, and relation examples, then uses
+that schema as structured DSPy input for KG extraction. The output is a graph
+artifact you can validate, diff, version, query deterministically, or export.
 
 Or use the Python API:
 
@@ -233,18 +239,48 @@ from drg.graph.builders import build_enhanced_kg
 
 schema = EnhancedDRGSchema(
     entity_types=[
-        EntityType(name="Company", description="Companies and organizations"),
-        EntityType(name="Person", description="People"),
+        EntityType(
+            name="Place",
+            description="Story locations and meaningful settings",
+            examples=["the old harbor", "the archive tower"],
+            properties={"atmosphere": "mood or sensory quality", "role": "story function"},
+        ),
+        EntityType(
+            name="Artifact",
+            description="Objects that carry plot, memory, or symbolic meaning",
+            examples=["silver compass", "sealed letter"],
+            properties={"condition": "observed state", "significance": "why it matters"},
+        ),
+        EntityType(
+            name="Conflict",
+            description="Tensions, obstacles, or unresolved story problems",
+            examples=["blocked passage", "broken alliance"],
+            properties={"stakes": "what may be lost", "status": "open/resolved/etc."},
+        ),
     ],
     relation_groups=[
         RelationGroup(
-            name="founding",
-            relations=[Relation("founded_by", "Company", "Person")],
+            name="narrative_structure",
+            description="How story elements shape one another",
+            relations=[
+                Relation(
+                    "reveals",
+                    "Artifact",
+                    "Conflict",
+                    description="An artifact exposes or clarifies a conflict",
+                ),
+                Relation(
+                    "located_in",
+                    "Artifact",
+                    "Place",
+                    description="An artifact is found or kept in a place",
+                ),
+            ],
         )
     ],
 )
 
-text = "TechCorp was founded by Jane Doe in 2015."
+text = "The sealed letter in the archive tower revealed why the harbor gate was locked."
 entities, triples = extract_typed(text, schema)
 kg = build_enhanced_kg(entities_typed=entities, triples=triples, schema=schema, source_text=text)
 
@@ -254,7 +290,7 @@ print(kg.to_json())
 To try a deterministic repository demo without setting an API key:
 
 ```bash
-python examples/full_pipeline_example.py 1example
+python examples/query_layer_example.py
 ```
 
 ## Example Gallery

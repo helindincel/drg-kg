@@ -123,7 +123,7 @@ def _score_predictions(predictions, test_examples) -> dict:
     entity_f1s = []
     relation_f1s = []
 
-    for pred, ex_dict in zip(predictions, test_examples):
+    for pred, ex_dict in zip(predictions, test_examples, strict=False):
         # Wrap raw dict as a simple namespace for the metric callables
         class _Ex:
             expected_entities = ex_dict["expected_entities"]
@@ -194,7 +194,7 @@ def main() -> None:
     # 3. Baseline extractor (unoptimised)
     # ------------------------------------------------------------------
     _section("Baseline extractor (unoptimised)")
-    base_extractor = KGExtractor()
+    base_extractor = KGExtractor(schema)
     print("  KGExtractor created (no few-shot examples).")
 
     # ------------------------------------------------------------------
@@ -212,7 +212,7 @@ def main() -> None:
     print(f"  Metric threshold : {config.metric_threshold}")
 
     try:
-        optimised = optimize_extractor(TRAINING_DATA, config=config)
+        optimised = optimize_extractor(TRAINING_DATA, config=config, extractor=base_extractor)
         print("  Optimisation complete.")
     except Exception as e:
         print(f"  Optimisation failed: {e}")
@@ -223,16 +223,23 @@ def main() -> None:
     # 5. Evaluate on test set
     # ------------------------------------------------------------------
     _section("Evaluating on test set")
-    from drg.extract import extract_typed
 
     test_preds = []
     for ex in TEST_EXAMPLES:
         try:
-            entities, triples = extract_typed(ex["text"], schema)
-            pred = type("P", (), {
-                "entities": [{"name": n, "type": t} for n, t in entities],
-                "relations": [{"source": s, "relation": r, "target": tgt} for s, r, tgt in triples],
-            })()
+            result = optimised(ex["text"])
+            entities = getattr(result, "entities", [])
+            triples = getattr(result, "relations", [])
+            pred = type(
+                "P",
+                (),
+                {
+                    "entities": [{"name": n, "type": t} for n, t in entities],
+                    "relations": [
+                        {"source": s, "relation": r, "target": tgt} for s, r, tgt in triples
+                    ],
+                },
+            )()
             test_preds.append(pred)
         except Exception as e:
             print(f"  Extraction failed for test example: {e}")

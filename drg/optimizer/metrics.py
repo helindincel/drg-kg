@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 __all__ = [
     "EntityExtractionMetric",
     "RelationExtractionMetric",
@@ -45,15 +44,19 @@ def _relation_keys(items: list[Any]) -> set[tuple[str, str, str]]:
             out.add((_normalise(str(item[0])), _normalise(str(item[1])), _normalise(str(item[2]))))
         elif isinstance(item, dict):
             src = _normalise(item.get("source", item.get("subject", item.get("src", ""))))
-            rel = _normalise(item.get("relation", item.get("type", item.get("relationship_type", ""))))
+            rel = _normalise(
+                item.get("relation", item.get("type", item.get("relationship_type", "")))
+            )
             tgt = _normalise(item.get("target", item.get("object", item.get("dst", ""))))
             out.add((src, rel, tgt))
         elif hasattr(item, "source"):
-            out.add((
-                _normalise(getattr(item, "source", "")),
-                _normalise(getattr(item, "relation", getattr(item, "relationship_type", ""))),
-                _normalise(getattr(item, "target", "")),
-            ))
+            out.add(
+                (
+                    _normalise(getattr(item, "source", "")),
+                    _normalise(getattr(item, "relation", getattr(item, "relationship_type", ""))),
+                    _normalise(getattr(item, "target", "")),
+                )
+            )
     return out
 
 
@@ -97,9 +100,7 @@ class EntityExtractionMetric:
             or []
         )
         pred_raw = (
-            getattr(prediction, "entities", None)
-            or getattr(prediction, "entity_list", None)
-            or []
+            getattr(prediction, "entities", None) or getattr(prediction, "entity_list", None) or []
         )
         gold = _entity_keys(list(gold_raw))
         pred = _entity_keys(list(pred_raw))

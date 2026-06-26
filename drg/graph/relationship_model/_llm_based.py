@@ -48,6 +48,16 @@ def is_available() -> bool:
     return DSPY_AVAILABLE
 
 
+def _relationship_taxonomy_input() -> list[dict[str, Any]]:
+    return [
+        {
+            "category": category,
+            "relationship_types": [rt.value for rt in types],
+        }
+        for category, types in RELATIONSHIP_CATEGORIES.items()
+    ]
+
+
 # ---------------------------------------------------------------------------
 # DSPy-only definitions
 # ---------------------------------------------------------------------------
@@ -67,25 +77,17 @@ if DSPY_AVAILABLE:  # pragma: no cover - exercised in environments with DSPy
         classifications: list[RelationshipClassificationItem]
 
     def create_relationship_classifier():
-        """Build the DSPy ``TypedPredictor`` for relationship classification.
+        """Build the DSPy ``Predict`` program for relationship classification.
 
         Constructed lazily by :class:`~drg.graph.relationship_model.RelationshipTypeClassifier`
         so we only pay the cost the first time the LLM path is exercised.
         """
-        rel_types = [rt.value for rt in RelationshipType]
-        rel_types_str = ", ".join(sorted(rel_types))
-
-        categories_info = []
-        for category, types in RELATIONSHIP_CATEGORIES.items():
-            types_str = ", ".join([rt.value for rt in types])
-            categories_info.append(f"{category}: {types_str}")
-        categories_str = "\n".join(categories_info)
 
         class RelationshipClassificationSignature(dspy.Signature):
             """Classify the relationship type between two entities.
 
             Given the source entity, target entity, their types, and context,
-            classify the most appropriate relationship type(s) from the taxonomy.
+            classify the most appropriate relationship type(s) from the provided taxonomy.
 
             Return the top 3 most likely relationship types with confidence scores.
             """
@@ -104,17 +106,15 @@ if DSPY_AVAILABLE:  # pragma: no cover - exercised in environments with DSPy
             context: str | None = dspy.InputField(
                 desc="Contextual text where the relationship appears", default=None
             )
-
-        # Python class docstrings are literals — format strings are NOT interpolated.
-        # Set __doc__ dynamically so the taxonomy is actually visible to the LLM.
-        RelationshipClassificationSignature.__doc__ = (
-            "Classify the relationship type between two entities.\n\n"
-            "Given the source entity, target entity, their types, and context, "
-            "classify the most appropriate relationship type(s) from the taxonomy.\n\n"
-            f"Available relationship types: {rel_types_str}\n\n"
-            f"Categories:\n{categories_str}\n\n"
-            "Return the top 3 most likely relationship types with confidence scores."
-        )
+            relationship_taxonomy: list[dict[str, Any]] = dspy.InputField(
+                desc="Available relationship taxonomy grouped by semantic category"
+            )
+            classifications: list[RelationshipClassificationItem] = dspy.OutputField(
+                desc=(
+                    "Top relationship type candidates. Return up to 3 items with "
+                    "relationship_type set to one available taxonomy value and confidence in [0, 1]."
+                )
+            )
 
         try:
             return dspy.Predict(RelationshipClassificationSignature)
@@ -137,6 +137,7 @@ if DSPY_AVAILABLE:  # pragma: no cover - exercised in environments with DSPy
             "target_type": target_type,
             "raw_relation_text": raw_relation_text,
             "context": context,
+            "relationship_taxonomy": _relationship_taxonomy_input(),
         }
 
 else:  # DSPy unavailable — provide stubs that match the public API.
@@ -147,9 +148,24 @@ else:  # DSPy unavailable — provide stubs that match the public API.
         """Stub: DSPy not available, returns ``None``."""
         return None
 
-    def build_classification_input(*args, **kwargs) -> dict[str, Any]:
-        """Stub: DSPy not available, returns empty input dict."""
-        return {}
+    def build_classification_input(
+        source: str,
+        target: str,
+        source_type: str | None = None,
+        target_type: str | None = None,
+        raw_relation_text: str | None = None,
+        context: str | None = None,
+    ) -> dict[str, Any]:
+        """Build classifier input even when the optional LLM path is unavailable."""
+        return {
+            "source": source,
+            "target": target,
+            "source_type": source_type,
+            "target_type": target_type,
+            "raw_relation_text": raw_relation_text,
+            "context": context,
+            "relationship_taxonomy": _relationship_taxonomy_input(),
+        }
 
 
 # ---------------------------------------------------------------------------

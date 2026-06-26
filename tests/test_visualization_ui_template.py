@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 TEMPLATE = Path("drg/api/templates/index.html")
 
 

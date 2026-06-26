@@ -36,18 +36,15 @@ from ._rules import (
 from ._types import EvidenceLink, InferenceReport, InferenceRule, InferredEdge
 
 __all__ = [
-    # Core engine
-    "MultiDocumentReasoner",
-    "ReasoningConfig",
-    # Rules
     "CompositionRule",
-    "InverseRule",
-    "PathBridgeRule",
-    "SymmetricRule",
-    "TransitiveRule",
-    # Types
     "EvidenceLink",
     "InferenceReport",
     "InferenceRule",
     "InferredEdge",
+    "InverseRule",
+    "MultiDocumentReasoner",
+    "PathBridgeRule",
+    "ReasoningConfig",
+    "SymmetricRule",
+    "TransitiveRule",
 ]

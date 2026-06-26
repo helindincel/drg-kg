@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -304,6 +305,64 @@ class TestExtractionSuccess:
         assert payload["edges"][0]["start_time"] == "1997"
         assert payload["edges"][0]["end_time"] == "2011"
         assert payload["edges"][0]["metadata"]["temporal"]["precision"] == "year"
+
+    def test_auto_schema_enhanced_output_requests_enriched_chunk_relations(
+        self, monkeypatch, tmp_path
+    ):
+        input_file = tmp_path / "wiki.txt"
+        input_file.write_text("Göbekli Tepe is a Neolithic archaeological site.")
+        out_file = tmp_path / "wiki_kg.json"
+
+        monkeypatch.setattr(cli_mod, "_ensure_extraction_imports", lambda: None)
+        monkeypatch.setattr(
+            cli_mod,
+            "generate_schema_from_text",
+            lambda text: cli_mod.create_default_schema(),
+        )
+        monkeypatch.setattr(
+            cli_mod,
+            "create_chunker",
+            lambda **kwargs: SimpleNamespace(
+                chunk=lambda text, **_kw: [SimpleNamespace(text=text, chunk_id="chunk-0")]
+            ),
+        )
+
+        def _extract_from_chunks(**kwargs):
+            assert kwargs["return_enriched"] is True
+            return (
+                [("Göbekli Tepe", "Company"), ("Neolithic archaeology", "Product")],
+                [("Göbekli Tepe", "produces", "Neolithic archaeology")],
+                [
+                    {
+                        "relation": (
+                            "Göbekli Tepe",
+                            "produces",
+                            "Neolithic archaeology",
+                        ),
+                        "confidence": 0.8,
+                        "is_negated": False,
+                    }
+                ],
+            )
+
+        monkeypatch.setattr(cli_mod, "extract_from_chunks", _extract_from_chunks)
+
+        _run_main(
+            monkeypatch,
+            [
+                "drg",
+                str(input_file),
+                "--auto-schema",
+                "--output-format",
+                "enhancedkg",
+                "-o",
+                str(out_file),
+            ],
+        )
+
+        payload = json.loads(out_file.read_text())
+        assert "nodes" in payload
+        assert payload["edges"][0]["confidence"] == 0.8
 
     def test_update_defaults_output_to_update_path(self, monkeypatch, tmp_path, capsys):
         input_file = tmp_path / "in.txt"

@@ -186,7 +186,7 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
             embeddings = result.get("embedding")
             if isinstance(embeddings, list) and embeddings and isinstance(embeddings[0], list):
                 return embeddings
-        except Exception:  # noqa: BLE001 — batch API not available, fall through
+        except Exception:
             pass
         # Fall back to concurrent individual calls via ThreadPoolExecutor
         from concurrent.futures import ThreadPoolExecutor, as_completed

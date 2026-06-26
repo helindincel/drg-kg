@@ -1,14 +1,17 @@
 # MCP Entegrasyonu
 
-DRG, resmi MCP Python SDK üzerine kurulu bir server sağlar. Yeni entegrasyonlarda
-önerilen yüzey `drg.mcp_server` modülüdür; eski `drg.mcp_api` JSON-RPC shim'i
-yalnızca geriye dönük contract testleri ve migration için korunur.
+DRG, resmi MCP Python SDK üzerine kurulu bir server sağlar. Desteklenen MCP
+yüzeyi `drg.mcp_server` modülüdür.
 
 ## Kurulum
 
 ```bash
 pip install "drg-kg[mcp]"
 ```
+
+`[mcp]` extra'sı MCP SDK'nın yanında DSPy-backed extraction için gereken
+runtime bağımlılıklarını da kurar; `drg_extract` tool'u yine bir model
+provider/API key veya lokal model konfigürasyonu ister.
 
 Geliştirme ortamında:
 
@@ -146,18 +149,6 @@ KG build payload:
   "triples": [["Apple", "produces", "iPhone"]]
 }
 ```
-
-## Migration Notu: `drg.mcp_api`
-
-`drg.mcp_api`, DRG'nin MCP öncesi JSON-RPC benzeri adapter'ıdır. Şu durumlar
-dışında yeni kodda kullanılmamalıdır:
-
-- Eski in-process contract testleri.
-- Mevcut JSON-RPC payload'larını kısa süreli koruma ihtiyacı.
-- Migration sırasında eski agent entegrasyonlarını karşılaştırma.
-
-Yeni entegrasyonlarda `python -m drg.mcp_server` veya `create_mcp_server()`
-kullanılmalıdır.
 
 ## Operasyonel Notlar
 

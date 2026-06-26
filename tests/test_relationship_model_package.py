@@ -43,6 +43,16 @@ def test_public_api_present():
     assert isinstance(DSPY_AVAILABLE, bool)
 
 
+def test_classification_input_carries_structured_taxonomy():
+    payload = build_classification_input("A", "B", raw_relation_text="A causes B")
+
+    taxonomy = payload["relationship_taxonomy"]
+    assert isinstance(taxonomy, list)
+    assert any(group["category"] == "causal" for group in taxonomy)
+    causal = next(group for group in taxonomy if group["category"] == "causal")
+    assert RelationshipType.CAUSES.value in causal["relationship_types"]
+
+
 def test_relationship_categories_cover_taxonomy():
     """Every category lists only valid RelationshipType members."""
     for category, types in RELATIONSHIP_CATEGORIES.items():

@@ -4,6 +4,7 @@ Pytest configuration and shared fixtures for DRG tests.
 This module provides fixtures and configuration that are shared across all tests.
 """
 
+import contextlib
 import os
 import sys
 from pathlib import Path
@@ -37,6 +38,10 @@ _dspy_stub.Module = type(
 # is configured (extract_typed checks `dspy.settings.lm is None`).
 _dspy_stub.settings = MagicMock()
 _dspy_stub.settings.lm = None
+_dspy_stub.context = lambda **_kwargs: contextlib.nullcontext()
+_dspy_stub.configure = Mock()
+_dspy_stub.LM = Mock()
+_dspy_stub.JSONAdapter = type("JSONAdapter", (), {})
 sys.modules.setdefault("dspy", _dspy_stub)
 
 
@@ -53,6 +58,9 @@ def mock_dspy():
         mock_dspy.Prediction = Mock
         mock_dspy.Example = Mock
         mock_dspy.configure = Mock()
+        mock_dspy.LM = Mock()
+        mock_dspy.context = Mock(return_value=contextlib.nullcontext())
+        mock_dspy.JSONAdapter = type("JSONAdapter", (), {})
 
         # Mock Assert/Suggest if available
         if hasattr(mock_dspy, "Assert"):

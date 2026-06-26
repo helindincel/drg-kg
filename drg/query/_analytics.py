@@ -45,13 +45,15 @@ def pagerank(
     n = len(node_ids)
     if n == 0:
         return []
-    ranks = {node_id: 1.0 / n for node_id in node_ids}
+    ranks = dict.fromkeys(node_ids, 1.0 / n)
     base = (1.0 - damping) / n
 
     for _ in range(max(1, iterations)):
-        next_ranks = {node_id: base for node_id in node_ids}
+        next_ranks = dict.fromkeys(node_ids, base)
         for node_id in node_ids:
-            neighbors = backend.neighbors(node_id, direction="both", include_inferred=include_inferred)
+            neighbors = backend.neighbors(
+                node_id, direction="both", include_inferred=include_inferred
+            )
             if not neighbors:
                 share = damping * ranks[node_id] / n
                 for target in node_ids:

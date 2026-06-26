@@ -45,14 +45,16 @@ internals.
 
 | Component | Metrics |
 |---|---|
-| Entity extraction | precision, recall, F1 |
-| Relationship extraction | precision, recall, F1 |
-| Event extraction | precision, recall, F1 |
+| Entity extraction | alias-aware precision, recall, F1; optional span-overlap matching |
+| Relationship extraction | alias-aware source/type/target precision, recall, F1 |
+| Event extraction | event type, participant role, and timestamp precision, recall, F1 |
 | Entity resolution | pairwise precision, recall, F1 |
 | Graph construction | entity coverage, relation coverage, density, orphan-node rate |
 | Query & reasoning | inference precision, recall, F1 |
 | Community quality | pairwise community precision, recall, F1 |
-| Runtime performance | wall time, p50/p95 latency, Python heap peak, optional RSS, throughput |
+| Evidence quality | evidence/span precision, recall, F1 |
+| Confidence calibration | ECE, Brier score, reliability bins |
+| Runtime performance | mean wall time, total wall time, dataset count |
 
 ## Benchmark Dataset Schema
 
@@ -60,21 +62,47 @@ internals.
 {
   "name": "dataset_name",
   "text": "source text",
-  "gold_entities": [{"name": "OpenAI", "type": "Company"}],
+  "documents": [{"id": "doc-1", "text": "source text"}],
+  "gold_entities": [
+    {
+      "id": "ent:openai",
+      "name": "OpenAI",
+      "type": "Company",
+      "aliases": ["Open AI"],
+      "span": [0, 6],
+      "provenance": {"document_id": "doc-1", "source_span": [0, 6]}
+    }
+  ],
   "gold_relations": [
-    {"source": "Microsoft", "relationship_type": "INVESTED_IN", "target": "OpenAI"}
+    {
+      "id": "rel:investment",
+      "source": "Microsoft",
+      "relationship_type": "INVESTED_IN",
+      "target": "OpenAI",
+      "provenance": {"document_id": "doc-1"}
+    }
   ],
   "gold_events": [
     {
+      "id": "event:acquisition",
       "event_type": "Acquisition",
       "participants": {"acquirer": ["Microsoft"], "acquired": ["GitHub"]},
-      "timestamp": "2018"
+      "timestamp": "2018",
+      "provenance": {"document_id": "doc-1"}
+    }
+  ],
+  "gold_evidence": [
+    {
+      "fact_id": "rel:investment",
+      "snippet": "Microsoft invested in OpenAI.",
+      "source_span": [0, 29]
     }
   ],
   "gold_inferred_relations": [
     {"source": "A", "relationship_type": "CONNECTED_TO", "target": "B"}
   ],
-  "gold_communities": {"OpenAI": "ai", "Microsoft": "ai"}
+  "gold_communities": {"OpenAI": "ai", "Microsoft": "ai"},
+  "metadata": {"domain": "business", "difficulty": "smoke"}
 }
 ```
 
@@ -89,9 +117,9 @@ so external tools can be compared by writing a small adapter that returns
 ## Usage
 
 ```python
-from drg.evaluation import BenchmarkRunner, PipelinePrediction, load_benchmark_dataset
+from drg.evaluation import BenchmarkRunner, PipelinePrediction, load_benchmark_datasets
 
-dataset = load_benchmark_dataset("examples/benchmarks/synthetic_kg_benchmark.json")
+dataset = load_benchmark_datasets("examples/benchmarks/synthetic_kg_benchmark.json")[0]
 prediction = PipelinePrediction(
     entities=[("OpenAI", "Company")],
     relations=[("Microsoft", "INVESTED_IN", "OpenAI")],
@@ -99,7 +127,7 @@ prediction = PipelinePrediction(
 
 report = BenchmarkRunner(run_id="candidate").evaluate(
     [dataset],
-    predictions={dataset.name: prediction},
+    predictions=[prediction],
 )
 ```
 
@@ -152,12 +180,20 @@ python3 examples/evaluation_framework_example.py
 from drg.evaluation import compare_reports
 
 comparison = compare_reports(old_report, new_report, regression_threshold=0.01)
-for regression in comparison.regressions:
-    print(regression)
+for delta in comparison.deltas:
+    print(delta.metric, delta.status)
 ```
 
 Use this in CI to fail a run when key metrics drop by more than an accepted
 tolerance.
+
+Metric- and dataset-specific thresholds are supported for release gates:
+
+```bash
+drg eval compare reports/baseline.json reports/candidate.json \
+  --thresholds-json reports/thresholds.json \
+  --fail-on-regression
+```
 
 ## Reproducibility
 

@@ -73,6 +73,7 @@ from .relationship_model import (
     RelationshipTypeClassifier,
     create_enriched_relationship,
 )
+
 # Graph validation
 from .validation import (
     ValidationIssue,
@@ -148,8 +149,8 @@ __all__ = [
     "diff_graph_data",
     "diff_versions",
     "find_text_provenance",
-    "load_graph_json",
     "list_versions",
+    "load_graph_json",
     "merge_graphs",
     "provenance_from_metadata",
     "rollback_to_version",

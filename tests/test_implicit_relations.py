@@ -128,7 +128,9 @@ def test_cross_chunk_relations_use_document_level_extractor_without_context_stuf
 
     assert relations == [("Jony Ive", "designed", "iPhone")]
     assert len(extractor.document_calls) == 1
-    assert all("[CROSS-CHUNK CONTEXT]" not in c["text"] for c in extractor.document_calls[0]["chunks"])
+    assert all(
+        "[CROSS-CHUNK CONTEXT]" not in c["text"] for c in extractor.document_calls[0]["chunks"]
+    )
 
 
 def test_coreference_uses_dspy_resolution_before_entity_resolution():
@@ -139,7 +141,10 @@ def test_coreference_uses_dspy_resolution_before_entity_resolution():
 
     with (
         patch("drg.extract._get_extractor", return_value=_CoreferenceExtractor()),
-        patch("drg.extract.resolve_coreferences", lambda **kwargs: (kwargs["entities"], kwargs["relations"])),
+        patch(
+            "drg.extract.resolve_coreferences",
+            lambda **kwargs: (kwargs["entities"], kwargs["relations"]),
+        ),
         patch("drg.extract.dspy") as mock_dspy,
     ):
         mock_dspy.settings.lm = Mock()

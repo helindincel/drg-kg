@@ -106,8 +106,8 @@ class SchemaGenerationError(SchemaError, RuntimeError):
 class ExtractionError(DRGError, RuntimeError):
     """Entity/relation extraction failed for reasons beyond bad input.
 
-    Examples: TypedPredictor returned an unparseable shape, the LM raised
-    mid-call, JSON fallback parsing failed.
+    Examples: structured prediction returned an unparseable shape, the LM
+    raised mid-call, JSON fallback parsing failed.
     """
 
 

@@ -176,5 +176,3 @@ def _extract_year_temporal(window: str) -> dict[str, str | None] | None:
         }
 
     return {"start": str(years[0]), "end": None, "precision": "year"}
-
-

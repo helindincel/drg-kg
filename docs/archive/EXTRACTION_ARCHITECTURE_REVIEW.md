@@ -1218,26 +1218,28 @@ Also add a `SchemaRegistry` for managing schemas across documents, with cross-sc
 
 ## 25. Research Novelty and Differentiation
 
-### 25.1 Comparison Against GraphRAG
+### 25.1 Declarative KG Differentiation
 
-**GraphRAG** (Microsoft, 2024) extracts entities and relations without a declared schema using generic types, then performs Leiden community detection over the entity graph and generates community-level summaries for hierarchical retrieval.
+DRG is centered on schema-defined KG construction: users provide or infer a
+schema, extraction is constrained by that schema, and the result is a graph
+artifact that can be validated, diffed, versioned, queried, and exported.
 
-| Dimension | GraphRAG | DRG |
-|---|---|---|
-| Schema | None (generic types) | Declarative (user-defined or auto-generated) |
-| Entity resolution | Community-level via Leiden | String/embedding similarity |
-| Cross-chunk relations | Per-chunk extraction + graph merge | Two-pass + document-level extractor |
-| Query interface | Hierarchical community summaries | Direct graph query |
-| Schema discovery | Not supported | First-class feature |
-| Optimization | Not supported | DSPy optimizer path |
+| Dimension | DRG stance |
+|---|---|
+| Schema | Declarative, user-defined or auto-generated |
+| Entity resolution | Explicit post-processing over extracted entity mentions |
+| Cross-chunk relations | Two-pass extraction plus document-level relation extraction |
+| Query interface | Direct graph query over `EnhancedKG` |
+| Schema discovery | First-class feature from source text |
+| Optimization | Optional experimentation, not the core publishing story |
 
-**DRG's genuine differentiators vs GraphRAG**:
-- Declarative schema constraints at extraction time produce structurally consistent graphs. GraphRAG produces open-ended graphs with ad-hoc entity types.
-- Auto-schema discovery from text is architecturally novel — GraphRAG has no equivalent.
-- DSPy's optimization path allows the extraction program to be improved with labeled examples. GraphRAG's extraction is fixed-prompt.
+**DRG's genuine differentiators**:
+- Declarative schema constraints at extraction time produce structurally consistent graphs.
+- Auto-schema discovery from text is a first-class path.
+- Typed DSPy signatures keep task shape in input and output fields instead of monolithic prompt strings.
 
-**DRG's gaps vs GraphRAG**:
-- GraphRAG's community detection provides global entity resolution via structural graph analysis, not just surface-form similarity. DRG's entity resolution is purely pairwise — it cannot merge entities that are semantically related but have no surface-form similarity.
+**Current gaps**:
+- Entity resolution is still pairwise and should be benchmarked before claiming robust global canonicalization.
 
 ### 25.2 Comparison Against Traditional KG Extraction
 

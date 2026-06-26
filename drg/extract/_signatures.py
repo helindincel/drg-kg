@@ -3,11 +3,12 @@
 Signatures are generated dynamically from the user-provided schema.
 
 Design: Signatures carry the full schema context so the LLM has precise
-guidance — entity type descriptions/examples and relation descriptions/details
-are passed as structured InputField data, not discarded.  OutputField
-annotations use the typed Pydantic models (EntityMention, ExtractedRelation)
-so DSPy generates a rich JSON schema for the output prompt, making confidence,
-evidence, negation, and temporal fields visible to the LLM.
+guidance — entity type descriptions/examples/properties and relation
+descriptions/details/properties/examples are passed as structured InputField data, not
+discarded. OutputField annotations use the typed Pydantic models
+(EntityMention, ExtractedRelation) so DSPy generates a rich JSON schema for the
+output prompt, making properties, confidence, evidence, negation, and temporal
+fields visible to the LLM.
 
 NOTE on DSPy patching:
     Tests patch `drg.extract.dspy`; the signature classes constructed here are
@@ -29,7 +30,8 @@ def _relation_schema_for(schema: DRGSchema | EnhancedDRGSchema) -> list[dict]:
     """Build the relation schema list passed to every relation extraction signature.
 
     For EnhancedDRGSchema, includes group-level context (group name and
-    description) and per-relation semantics (description and detail/example).
+    description/examples) and per-relation semantics (description and
+    detail/example).
     For legacy DRGSchema, includes per-relation description and detail.
     """
     normalized = _normalize_schema(schema)
@@ -41,8 +43,10 @@ def _relation_schema_for(schema: DRGSchema | EnhancedDRGSchema) -> list[dict]:
                 "target_type": r.dst,
                 "description": r.description,
                 "example": r.detail,
+                "properties": r.properties,
                 "group": rg.name,
                 "group_description": rg.description,
+                "group_examples": rg.examples,
             }
             for rg in schema.relation_groups
             for r in rg.relations
@@ -54,6 +58,7 @@ def _relation_schema_for(schema: DRGSchema | EnhancedDRGSchema) -> list[dict]:
             "target_type": r.dst,
             "description": r.description,
             "example": r.detail,
+            "properties": r.properties,
         }
         for r in normalized.relations
     ]
@@ -62,9 +67,10 @@ def _relation_schema_for(schema: DRGSchema | EnhancedDRGSchema) -> list[dict]:
 def _entity_schema_for(schema: DRGSchema | EnhancedDRGSchema) -> list[dict]:
     """Build the entity type list passed to the entity extraction signature.
 
-    For EnhancedDRGSchema, includes description and up to 5 examples per type.
-    For EntityGroup-aware schemas, includes the group name and description
-    so the LLM can distinguish semantically grouped types.
+    For EnhancedDRGSchema, includes description, up to 5 examples per type,
+    and schema-defined properties. For EntityGroup-aware schemas, includes the
+    group name and description so the LLM can distinguish semantically grouped
+    types.
     For legacy DRGSchema, includes only the name (no metadata available).
     """
     normalized = _normalize_schema(schema)
@@ -81,6 +87,7 @@ def _entity_schema_for(schema: DRGSchema | EnhancedDRGSchema) -> list[dict]:
                 "name": et.name,
                 "description": et.description,
                 "examples": et.examples[:5],
+                "properties": et.properties,
             }
             if et.name in entity_to_group:
                 grp_name, grp_desc = entity_to_group[et.name]
@@ -90,17 +97,20 @@ def _entity_schema_for(schema: DRGSchema | EnhancedDRGSchema) -> list[dict]:
         return result
 
     # Legacy DRGSchema — Entity dataclass has only a name field.
-    return [{"name": e.name, "description": "", "examples": []} for e in normalized.entities]
+    return [
+        {"name": e.name, "description": "", "examples": [], "properties": {}}
+        for e in normalized.entities
+    ]
 
 
 def _create_entity_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
     """Build a dspy.Signature class for entity extraction from the given schema.
 
     The entity_types InputField receives full schema metadata (descriptions,
-    examples, optional group context) so the LLM can distinguish between
-    similar entity types. The entities OutputField is annotated with
-    EntityMention so DSPy exposes all output fields (aliases, evidence) to
-    the LLM in the output JSON schema.
+    examples, properties, optional group context) so the LLM can distinguish
+    between similar entity types. The entities OutputField is annotated with
+    EntityMention so DSPy exposes all output fields (aliases, evidence,
+    properties) to the LLM in the output JSON schema.
     """
     entity_types_list = _entity_schema_for(schema)
 
@@ -112,6 +122,7 @@ def _create_entity_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
         - Set type to exactly one value from entity_types[*].name.
         - Set aliases to any abbreviations or alternate forms for the same entity in the text.
         - Set evidence to the shortest verbatim text span that identifies the entity.
+        - Set properties with values found in the text for keys declared in the matching entity type.
         Only extract entities whose type matches one of the provided entity types.
         """
 
@@ -119,7 +130,8 @@ def _create_entity_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
         entity_types: list[dict] = dspy.InputField(
             desc=(
                 "Entity type schema. Each entry: name (type identifier), "
-                "description (what this type means), examples (typical instances). "
+                "description (what this type means), examples (typical instances), "
+                "properties (schema-defined attributes to populate when present). "
                 "Only extract entities whose type exactly matches one of these names."
             )
         )
@@ -129,7 +141,9 @@ def _create_entity_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
                 "name (as it appears in text), "
                 "type (exactly matching one of the provided entity_types names), "
                 "aliases (list of other forms or abbreviations in the text, empty list if none), "
-                "evidence (shortest verbatim span from the text that identifies the entity)."
+                "evidence (shortest verbatim span from the text that identifies the entity), "
+                "properties (only schema-defined keys with values supported by the text), "
+                "metadata (non-schema auxiliary details if needed)."
             )
         )
 
@@ -141,7 +155,7 @@ def _create_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
     """Build a dspy.Signature class for relation extraction from the given schema.
 
     The relation_schema InputField receives full relation semantics (description,
-    example, group context). The relations OutputField is annotated with
+    example, group context, group examples). The relations OutputField is annotated with
     ExtractedRelation so the LLM sees confidence, evidence, is_negated, and
     temporal as required output fields.
     """
@@ -161,14 +175,12 @@ def _create_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
         """
 
         text: str = dspy.InputField(desc="Input text (current chunk)")
-        entities: list[dict] = dspy.InputField(
-            desc="Available entity mentions with name and type"
-        )
+        entities: list[dict] = dspy.InputField(desc="Available entity mentions with name and type")
         relation_schema: list[dict] = dspy.InputField(
             desc=(
                 "Allowed relation types. Each entry: name, source_type, target_type, "
                 "description (what the relation means), example (evidence text), "
-                "group (semantic category), group_description."
+                "group (semantic category), group_description, group_examples."
             )
         )
         relations: list[ExtractedRelation] = dspy.OutputField(
@@ -204,13 +216,11 @@ def _create_document_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -
         document_chunks: list[dict] = dspy.InputField(
             desc="Document chunks, each with chunk_id and text"
         )
-        entities: list[dict] = dspy.InputField(
-            desc="Canonical entity mentions with name and type"
-        )
+        entities: list[dict] = dspy.InputField(desc="Canonical entity mentions with name and type")
         relation_schema: list[dict] = dspy.InputField(
             desc=(
                 "Allowed relation types. Each entry: name, source_type, target_type, "
-                "description, example, group, group_description."
+                "description, example, group, group_description, group_examples."
             )
         )
         relations: list[ExtractedRelation] = dspy.OutputField(
@@ -240,16 +250,14 @@ def _create_implicit_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -
         """
 
         text: str = dspy.InputField(desc="Input text")
-        entities: list[dict] = dspy.InputField(
-            desc="Canonical entity mentions with name and type"
-        )
+        entities: list[dict] = dspy.InputField(desc="Canonical entity mentions with name and type")
         existing_relations: list[dict] = dspy.InputField(
             desc="Already extracted relations (do not repeat these)"
         )
         relation_schema: list[dict] = dspy.InputField(
             desc=(
                 "Allowed relation types. Each entry: name, source_type, target_type, "
-                "description, example, group, group_description."
+                "description, example, group, group_description, group_examples."
             )
         )
         relations: list[ExtractedRelation] = dspy.OutputField(
@@ -277,15 +285,11 @@ def _create_coreference_signature(schema: DRGSchema | EnhancedDRGSchema) -> type
         """
 
         text: str = dspy.InputField(desc="Input text")
-        entities: list[dict] = dspy.InputField(
-            desc="Canonical entity mentions with name and type"
-        )
+        entities: list[dict] = dspy.InputField(desc="Canonical entity mentions with name and type")
         relations: list[dict] = dspy.InputField(
             desc="Relations whose endpoints may contain pronouns or aliases"
         )
-        relation_schema: list[dict] = dspy.InputField(
-            desc="Allowed relation types for validation"
-        )
+        relation_schema: list[dict] = dspy.InputField(desc="Allowed relation types for validation")
         resolved_relations: list[ExtractedRelation] = dspy.OutputField(
             desc=(
                 "Relations with resolved endpoints. Replace pronoun/alias source or target "

@@ -20,6 +20,13 @@ API server opsiyonel bir extra olarak gelir:
 pip install -e ".[api]"
 ```
 
+`POST /api/extract` veya `POST /api/graph/update` gibi DSPy/LLM destekli
+extraction endpoint'lerini kullanacaksan extraction extra'sını da kur:
+
+```bash
+pip install -e ".[api,extract]"
+```
+
 ---
 
 ## 2. Çalıştırma
@@ -79,7 +86,7 @@ yapar. Generation isteyen kullanıcılar için ayrı bir uygulama katmanı gerek
 
 `POST /api/extract`, CLI'daki text → extraction → `EnhancedKG` yolunun REST
 karşılığıdır. Bu endpoint DSPy/LLM provider kullanır; cloud model için API key
-veya lokal model konfigürasyonu gerekir.
+veya lokal model konfigürasyonu ve `[extract]` extra'sı gerekir.
 
 ```bash
 curl -X POST http://localhost:8000/api/extract \

@@ -2,11 +2,11 @@
 
 Used in two places:
 
-1. ``KGExtractor`` fallback path when TypedPredictor is unavailable and the
-   LLM returns a JSON string instead of a parsed Pydantic model.
+1. ``KGExtractor`` fallback path when the LLM returns a JSON string instead of
+   parsed structured fields.
 2. ``generate_schema_from_text`` — the schema-generation Signature always
-   emits a JSON string in its ``generated_schema`` field, even with
-   TypedPredictor, so the schema generator always parses through this helper.
+   accepts a legacy JSON string in its ``generated_schema`` field, so the schema
+   generator keeps this parser for saved examples and mocked tests.
 
 The parser tolerates a few common LLM quirks (markdown code fences,
 python-literal syntax) but raises ``ValueError`` on hard failures so callers
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_json_output(json_str: str, expected_format: str = "array") -> Any:
-    """Parse a JSON string emitted by a non-TypedPredictor DSPy program.
+    """Parse a JSON string emitted by a legacy DSPy program.
 
     This is a defensive parser for legacy DSPy outputs that may wrap JSON in
     markdown code blocks or use Python-literal syntax instead of strict JSON.

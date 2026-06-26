@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from drg.graph.kg_core import EnhancedKG, KGEdge
+    from drg.graph.kg_core import EnhancedKG
 
 
 __all__ = [
@@ -113,7 +113,7 @@ class InferenceRule(abc.ABC):
     @abc.abstractmethod
     def apply(
         self,
-        kg: "EnhancedKG",
+        kg: EnhancedKG,
         *,
         document_id: str | None = None,
     ) -> list[InferredEdge]:

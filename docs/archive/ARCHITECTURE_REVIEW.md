@@ -214,9 +214,9 @@ These files exist and are importable but serve no purpose in the core pipeline:
 
 **What it is:** A complete DSPy few-shot learning and prompt optimization framework (BootstrapFewShot, MIPRO, COPRO, LabeledFewShot). It wraps `KGExtractor`, maintains training examples, evaluates extractions, and iteratively improves LLM prompts.
 
-**Why it's scope creep:** The DRG vision is *declarative schema-driven extraction*, not iterative prompt tuning. Once you have a schema, the extraction should run deterministically against that schema. The optimizer introduces a meta-layer that: (a) requires labeled ground-truth triples, (b) makes repeated LLM calls for optimization, (c) defeats the "declarative" principle by moving intelligence into learned few-shot prompts rather than the schema itself. This is closer to GraphRAG-style prompt engineering than schema-driven extraction.
+**Why it's scope creep:** The DRG vision is *declarative schema-driven extraction*, not iterative prompt tuning. Once you have a schema, the extraction should run deterministically against that schema. The optimizer introduces a meta-layer that: (a) requires labeled ground-truth triples, (b) makes repeated LLM calls for optimization, (c) defeats the "declarative" principle by moving intelligence into learned few-shot prompts rather than the schema itself. This is closer to prompt-engineered retrieval tooling than schema-driven extraction.
 
-**Risk:** Conflates "improve the schema" (the right DRG lever) with "improve the prompt" (the RAG/pipeline tuning approach).
+**Risk:** Conflates "improve the schema" (the right DRG lever) with "improve the prompt" (a pipeline-tuning approach).
 
 ---
 
@@ -234,7 +234,7 @@ These files exist and are importable but serve no purpose in the core pipeline:
 
 **What it is:** A rule-based + LLM-backed relation type classifier with a hard-coded `RelationshipType` enum (`CAUSES`, `LOCATED_AT`, `COLLABORATES_WITH`, etc.), keyword patterns, and a DSPy TypedPredictor path.
 
-**Why it's scope creep:** The entire purpose of the DRG schema is to declare what relation types are valid. Introducing a classifier that re-derives relation types from keywords and LLM calls is a contradiction of the declarative principle: the schema *is* the classifier. The hard-coded `RelationshipType` enum forces all schemas into a common universal ontology, which conflicts with DRG's domain-agnostic positioning. This is precisely the pattern seen in GraphRAG and traditional NLP relation extraction tools.
+**Why it's scope creep:** The entire purpose of the DRG schema is to declare what relation types are valid. Introducing a classifier that re-derives relation types from keywords and LLM calls is a contradiction of the declarative principle: the schema *is* the classifier. The hard-coded `RelationshipType` enum forces all schemas into a common universal ontology, which conflicts with DRG's domain-agnostic positioning. This is a pattern seen in retrieval-oriented and traditional NLP relation extraction tools.
 
 **Risk:** Adds a second, implicit "schema" (the `RelationshipType` enum) that overrides the user's explicit schema. Contradicts the core value proposition.
 
@@ -244,9 +244,9 @@ These files exist and are importable but serve no purpose in the core pipeline:
 
 **What it is:** Three community-detection algorithms (Louvain, Leiden, Spectral) plus an LLM-based cluster summarizer.
 
-**Why it's borderline:** Clustering over an extracted KG is analytically useful, but it is a post-extraction analysis step, not extraction itself. The `ClusterSummarizer` with `use_llm=True` re-introduces an LLM call after extraction is complete — moving toward the GraphRAG "community report" generation pattern. The `graph/community_report.py` module produces community reports in the same style as Microsoft GraphRAG.
+**Why it's borderline:** Clustering over an extracted KG is analytically useful, but it is a post-extraction analysis step, not extraction itself. The `ClusterSummarizer` with `use_llm=True` re-introduces an LLM call after extraction is complete, moving toward community-report generation instead of declarative KG construction.
 
-**Risk:** The LLM-backed summarizer path in `ClusterSummarizer` and the `CommunityReportGenerator` are the clearest signal of GraphRAG influence in the codebase.
+**Risk:** The LLM-backed summarizer path in `ClusterSummarizer` and the `CommunityReportGenerator` are the clearest signal of retrieval-oriented scope creep in the codebase.
 
 ---
 
@@ -262,15 +262,15 @@ These files exist and are importable but serve no purpose in the core pipeline:
 
 ## 5. Specific Anti-Patterns Flagged
 
-### 5.1 GraphRAG-Inspired Logic
+### 5.1 Retrieval-Oriented Community Logic
 
 | Location | Pattern |
 |---|---|
-| `graph/community_report.py` | Generates `CommunityReport` with `summary`, `top_actors`, `top_relationships`, `themes` — exact structure of Microsoft GraphRAG community reports |
+| `graph/community_report.py` | Generates `CommunityReport` with `summary`, `top_actors`, `top_relationships`, `themes` |
 | `clustering/summarization.py` | `ClusterSummarizer(use_llm=True)` calls DSPy to produce narrative cluster descriptions post-extraction |
-| `query/_communities.py` | Community-based query routing mirrors GraphRAG's community-level RAG approach |
+| `query/_communities.py` | Community-based query routing moves beyond direct graph operations |
 
-### 5.2 Hybrid Search
+### 5.2 Search-Oriented Fallbacks
 
 | Location | Pattern |
 |---|---|
@@ -323,7 +323,7 @@ These files exist and are importable but serve no purpose in the core pipeline:
 | Move to `drg/extras/events/` | `events/` | Parallel pipeline; can be expressed via schema |
 | Move to `drg/extras/embedding/` | `embedding/providers.py`, `utils/cache.py` | No core pipeline usage |
 | Move to `drg/extras/relationship_classifier/` | `graph/relationship_model/` | Contradicts declarative principle |
-| Move to `drg/extras/community/` | `clustering/summarization.py` LLM path | GraphRAG pattern; keep template path in `clustering/` |
+| Move to `drg/extras/community/` | `clustering/summarization.py` LLM path | Community-summary pattern; keep template path in `clustering/` |
 
 ### Phase 3 — Harden the Core Pipeline
 
@@ -426,7 +426,7 @@ These files exist and are importable but serve no purpose in the core pipeline:
 | Hard-coded rules | 3 locations with English-specific/ontology-specific rules | 0 in core |
 | LLM call sites outside extraction | 4 (optimizer, cluster summary, relationship classifier, event extraction) | 0 in core |
 | Dead files | 6 | 0 |
-| GraphRAG-pattern files | 3 (`community_report`, `clustering/summarization` LLM, `relationship_model/`) | 0 in core |
+| Retrieval-oriented scope-creep files | 3 (`community_report`, `clustering/summarization` LLM, `relationship_model/`) | 0 in core |
 | API surface stability | Low (Alpha; two parallel MCP modules) | Stable (one MCP module) |
 
 ---

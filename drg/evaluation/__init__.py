@@ -19,7 +19,7 @@ Quick start::
 
 CLI::
 
-    drg eval run --dataset my_datasets.json --output report.json
+    drg eval run my_datasets.json --output report.json
     drg eval compare --baseline baseline.json --candidate new.json
     drg eval list
 """
@@ -38,32 +38,45 @@ from ._runner import BenchmarkRunner
 from ._types import (
     BenchmarkDataset,
     BenchmarkSuite,
+    CalibrationReport,
     EvaluationReport,
     MetricResult,
     PipelinePrediction,
     RegressionComparison,
 )
+from .graph import GraphEvaluationReport, evaluate_graph_quality
+from .ontology import (
+    DEFAULT_ONTOLOGY_EVALUATORS,
+    OntologyEvaluationReport,
+    OntologyEvaluationResult,
+    OntologyMetricEvaluator,
+    evaluate_ontology,
+)
 
 __all__ = [
-    # Runner
-    "BenchmarkRunner",
-    # Types
+    "DEFAULT_ONTOLOGY_EVALUATORS",
     "BenchmarkDataset",
+    "BenchmarkRunner",
     "BenchmarkSuite",
+    "CalibrationReport",
     "EvaluationReport",
+    "GraphEvaluationReport",
     "MetricResult",
+    "OntologyEvaluationReport",
+    "OntologyEvaluationResult",
+    "OntologyMetricEvaluator",
     "PipelinePrediction",
     "RegressionComparison",
-    # Compare / render
     "compare_reports",
-    "render_markdown_report",
-    "render_regression_markdown",
-    # I/O
+    "evaluate_graph_quality",
+    "evaluate_ontology",
     "load_benchmark_datasets",
     "load_benchmark_suite",
     "load_evaluation_report",
     "load_official_benchmark_suite",
     "load_prediction_artifact",
+    "render_markdown_report",
+    "render_regression_markdown",
     "save_json_report",
     "save_markdown_report",
 ]

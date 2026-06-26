@@ -12,8 +12,9 @@ Repo'nun **genel mimarisi ve felsefesi** için `docs/project_overview.md`'ye bak
 | Python  | 3.10, 3.11 veya 3.12 |
 | pip     | son sürüm |
 
-Sadece **core** kullanım için `dspy` ve `pydantic` yeterlidir. İsteğe bağlı özellikler
-(API server, embedding provider'ları, clustering vb.) opsiyonel extra'larla yüklenir.
+Sadece **core** kullanım için `pydantic` ve entity-resolution yolunda kullanılan
+`numpy` kurulur. DSPy destekli extraction, API server, embedding provider'ları
+ve clustering gibi yüzeyler opsiyonel extra'larla yüklenir.
 
 ---
 
@@ -34,6 +35,9 @@ source .venv/bin/activate    # macOS/Linux
 # Sadece çekirdek
 pip install -e .
 
+# DSPy destekli extraction / `drg extract`
+pip install -e ".[extract]"
+
 # Developer modu (test + lint + type-check araçları ile)
 pip install -e ".[dev]"
 
@@ -42,8 +46,8 @@ pip install -e ".[all]"
 ```
 
 > İpucu: `pyproject.toml` içinde `[project.optional-dependencies]` altında tüm
-> extra grupları (api, neo4j, openai, gemini, local, louvain, leiden, networkx,
-> coreference, ...) tanımlıdır. Sadece kullandığını yükle.
+> extra grupları (extract, api, neo4j, openai, gemini, local, louvain, leiden,
+> networkx, coreference, ...) tanımlıdır. Sadece kullandığını yükle.
 
 ---
 
@@ -87,7 +91,7 @@ pytest -m "not integration"
 API key gerektirmeyen smoke örneği (mock mode):
 
 ```bash
-python examples/full_pipeline_example.py 1example
+python examples/query_layer_example.py
 ```
 
 ---
@@ -95,7 +99,8 @@ python examples/full_pipeline_example.py 1example
 ## 5. Yaygın Sorunlar
 
 ### "ModuleNotFoundError: dspy"
-Core dependency yüklenmemiş. `pip install -e .` ile düzelt.
+Extraction extra'sı yüklenmemiş. Kaynak checkout için `pip install -e ".[extract]"`,
+PyPI paketi için `pip install "drg-kg[extract]"` ile düzelt.
 
 ### "No API key configured"
 İlgili `*_API_KEY` environment variable'ı setlenmemiş.

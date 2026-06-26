@@ -188,7 +188,7 @@ class EntityResolver:
             all_resolved.extend(resolved)
             name_mapping.update(mapping)
 
-        type_by_name = {name: etype for name, etype in entities}
+        type_by_name = dict(entities)
         alias_index: dict[str, tuple[str, ...]] = {}
         aliases_by_canonical: dict[str, list[str]] = {}
         for original, canonical in name_mapping.items():
@@ -205,7 +205,9 @@ class EntityResolver:
                 aliases=alias_index.get(canonical, ()),
                 reason="canonical_alias" if original != canonical else "canonical_identity",
             )
-            for original, canonical in sorted(name_mapping.items(), key=lambda item: item[0].lower())
+            for original, canonical in sorted(
+                name_mapping.items(), key=lambda item: item[0].lower()
+            )
         )
 
         logger.info(

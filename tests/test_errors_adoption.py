@@ -174,8 +174,7 @@ def test_schema_generation_raises_on_empty_schema():
             return _FakeResult()
 
     # Patch the actual generator factories actually called by the function.
-    # ``create=True`` lets us patch attributes the current DSPy install
-    # doesn't expose (e.g. TypedPredictor was removed in DSPy ≥2.5).
+    # ``create=True`` lets us patch attributes across DSPy versions.
     with (
         mock.patch.object(_schema_gen.dspy, "Predict", _FakeGen, create=True),
         mock.patch.object(_schema_gen.dspy, "ChainOfThought", _FakeGen, create=True),

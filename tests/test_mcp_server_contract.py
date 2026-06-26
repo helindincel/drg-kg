@@ -46,6 +46,30 @@ def test_define_schema_and_list_schemas():
     assert schemas[0]["summary"]["type"] == "enhanced"
 
 
+def test_define_schema_accepts_canonical_source_target_relations():
+    result = mcp_server.drg_define_schema(
+        "canonical_schema",
+        {
+            "entity_types": [
+                {"name": "Company", "description": "Business organizations"},
+                {"name": "Product", "description": "Commercial products"},
+            ],
+            "relation_groups": [
+                {
+                    "name": "commercial",
+                    "relations": [{"name": "produces", "source": "Company", "target": "Product"}],
+                }
+            ],
+        },
+    )
+
+    assert result["status"] == "defined"
+    schema = mcp_server._schemas["canonical_schema"]
+    relation = schema.relation_groups[0].relations[0]
+    assert relation.src == "Company"
+    assert relation.dst == "Product"
+
+
 def test_build_get_and_export_kg_without_llm():
     build = mcp_server.drg_build_kg(
         kg_id="kg1",

@@ -5,7 +5,8 @@ name: Release
 #     (e.g. v0.1.0, v0.1.0a1, v1.2.0rc1). setuptools_scm picks the version
 #     up from the tag, so the published version is exactly the tag minus
 #     the leading `v`.
-#   - Manual dispatch (workflow_dispatch) for dry-runs against TestPyPI.
+#   - Manual dispatch (workflow_dispatch) for dry-runs against TestPyPI or
+#     explicit PyPI publishes from release tags.
 #
 # Secrets required (Settings -> Secrets and variables -> Actions):
 #   - PYPI_API_TOKEN       : a project-scoped token from pypi.org
@@ -107,19 +108,16 @@ jobs:
     name: Publish to PyPI
     needs: [build, publish-testpypi]
     runs-on: ubuntu-latest
-    # Final-release tags only: vX.Y.Z without an alpha/beta/rc suffix.
-    # Manual dispatch with target=pypi also fires it.
+    # Publish only from release tags (final, alpha, beta, rc) after TestPyPI
+    # succeeds. Manual PyPI dispatch is allowed only when the selected ref is a
+    # tag, so branch/dev versions cannot be uploaded accidentally.
     if: |
       always() &&
       needs.build.result == 'success' &&
+      needs.publish-testpypi.result == 'success' &&
+      startsWith(github.ref, 'refs/tags/v') &&
       (
-        (
-          startsWith(github.ref, 'refs/tags/v') &&
-          !contains(github.ref_name, 'a') &&
-          !contains(github.ref_name, 'b') &&
-          !contains(github.ref_name, 'rc') &&
-          needs.publish-testpypi.result == 'success'
-        ) ||
+        github.event_name == 'push' ||
         (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')
       )
     environment:

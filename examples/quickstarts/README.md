@@ -13,7 +13,8 @@ itself.
 
 ## Prerequisites
 
-- DRG installed (`pip install -e .` from the repo root)
+- DRG installed with extraction support (`pip install "drg-kg[extract]"`, or
+  `pip install -e ".[extract]"` from the repo root)
 - An LLM provider API key in the environment:
   - **OpenAI** (default): `export OPENAI_API_KEY=sk-...`
   - **Gemini**: `export GEMINI_API_KEY=... && export DRG_MODEL=gemini/gemini-2.0-flash-exp`

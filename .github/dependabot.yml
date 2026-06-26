@@ -35,21 +35,14 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
-    # Pin tight constraints (e.g. dspy<3.0.0) are intentional and must
-    # not be relaxed by Dependabot — keep major bumps separate so the
-    # human reviewer can decide if it's safe.
+    # Group minor/patch bumps, but leave future major dependency jumps
+    # as standalone PRs so API migrations stay reviewable.
     groups:
       python-minor-and-patch:
         applies-to: "version-updates"
         update-types:
           - "minor"
           - "patch"
-    ignore:
-      # DSPy 3.x is a deliberate non-target until our extraction code
-      # is migrated. See CHANGELOG "Known limitations".
-      - dependency-name: "dspy"
-        update-types: ["version-update:semver-major"]
-
   # --------------------------------------------------------------------
   # GitHub Actions used by .github/workflows/*.yml.
   # --------------------------------------------------------------------

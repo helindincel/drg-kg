@@ -195,7 +195,7 @@ Use `drg <command> --help` for command-specific options.""",
 
     # eval run
     eval_run_parser = eval_subparsers.add_parser("run", help="Run benchmark")
-    eval_run_parser.add_argument("dataset", type=str, help="Dataset JSON file or directory")
+    eval_run_parser.add_argument("dataset", type=str, help="Dataset JSON file or suite manifest")
     eval_run_parser.add_argument("-o", "--output", type=str, help="Output report file")
     eval_run_parser.add_argument("--run-id", type=str, help="Run ID")
     eval_run_parser.add_argument("--model", type=str, help="Model (overrides env)")
@@ -211,7 +211,7 @@ Use `drg <command> --help` for command-specific options.""",
     eval_run_parser.add_argument(
         "--measure-performance",
         action="store_true",
-        help="Include wall-clock latency, throughput, and memory metrics in the report",
+        help="Include wall-clock timing metrics in the report",
     )
     eval_run_parser.add_argument(
         "--markdown-output",
@@ -225,6 +225,20 @@ Use `drg <command> --help` for command-specific options.""",
     eval_comp_parser.add_argument("candidate", type=str, help="Candidate JSON")
     eval_comp_parser.add_argument("-o", "--output", type=str, help="Output markdown")
     eval_comp_parser.add_argument("--threshold", type=float, default=0.01)
+    eval_comp_parser.add_argument(
+        "--thresholds-json",
+        type=str,
+        default=None,
+        help=(
+            "Optional JSON file with metric_thresholds and/or dataset_thresholds "
+            "for regression gating"
+        ),
+    )
+    eval_comp_parser.add_argument(
+        "--fail-on-regression",
+        action="store_true",
+        help="Exit with code 1 when any metric or dataset regression is detected",
+    )
 
     # eval list
     eval_list_parser = eval_subparsers.add_parser("list", help="List benchmark suite datasets")
@@ -414,13 +428,25 @@ def _handle_extract(args):
             chunk_size = int(os.getenv("DRG_CHUNK_SIZE", "768"))
             chunker = create_chunker(strategy="token_based", chunk_size=chunk_size)
             chunks = chunker.chunk(text, origin_dataset="cli", origin_file=args.input)
-            entities_typed, triples = extract_from_chunks(
-                chunks=[{"text": c.text, "chunk_id": c.chunk_id} for c in chunks],
-                schema=schema,
-                enable_cross_chunk_relationships=True,
-                enable_entity_resolution=True,
-                two_pass_extraction=True,
-            )
+            chunk_inputs = [{"text": c.text, "chunk_id": c.chunk_id} for c in chunks]
+            if output_format == "enhancedkg":
+                entities_typed, triples, enriched_relations = extract_from_chunks(
+                    chunks=chunk_inputs,
+                    schema=schema,
+                    enable_cross_chunk_relationships=True,
+                    enable_entity_resolution=True,
+                    two_pass_extraction=True,
+                    return_enriched=True,
+                )
+            else:
+                entities_typed, triples = extract_from_chunks(
+                    chunks=chunk_inputs,
+                    schema=schema,
+                    enable_cross_chunk_relationships=True,
+                    enable_entity_resolution=True,
+                    two_pass_extraction=True,
+                )
+                enriched_relations = None
         else:
             if output_format == "enhancedkg":
                 entities_typed, triples, enriched_relations = extract_typed(
@@ -607,16 +633,23 @@ def _handle_eval(args):
                 save_markdown_report(report, args.markdown_output)
 
     elif args.eval_command == "compare":
+        threshold_overrides: dict[str, Any] = {}
+        if args.thresholds_json:
+            threshold_overrides = json.loads(Path(args.thresholds_json).read_text(encoding="utf-8"))
         comparison = compare_reports(
             load_evaluation_report(args.baseline),
             load_evaluation_report(args.candidate),
             regression_threshold=args.threshold,
+            metric_thresholds=threshold_overrides.get("metric_thresholds"),
+            dataset_thresholds=threshold_overrides.get("dataset_thresholds"),
         )
         output = render_regression_markdown(comparison)
         if args.output:
             Path(args.output).write_text(output)
         else:
             print(output)
+        if args.fail_on_regression and comparison.overall_regressed:
+            sys.exit(1)
 
     elif args.eval_command == "list":
         suite = load_benchmark_suite(args.suite) if args.suite else load_official_benchmark_suite()

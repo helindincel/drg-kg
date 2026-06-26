@@ -15,6 +15,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,6 +39,7 @@ try:
 except ImportError:
     FastAPI = None
 
+from .. import __version__ as _DRG_VERSION  # noqa: E402
 from ..graph import (  # noqa: E402
     EnhancedKG,
     Neo4jConfig,
@@ -78,6 +80,19 @@ def _require_api_key(api_key: str | None = Security(_API_KEY_HEADER)) -> None:
 
 
 logger = logging.getLogger(__name__)
+
+
+def _redact_secrets(value: str) -> str:
+    """Remove common provider secrets from strings before logging."""
+
+    if not value:
+        return value
+    value = re.sub(r"(?i)(api[_-]?key=)[^&\s]+", r"\1REDACTED", value)
+    value = re.sub(r"(?i)(key=)[^&\s]+", r"\1REDACTED", value)
+    value = re.sub(r"AIzaSy[0-9A-Za-z_-]{20,}", "REDACTED_GOOGLE_API_KEY", value)
+    value = re.sub(r"sk-or-v1-[0-9a-fA-F]{20,}", "REDACTED_OPENROUTER_KEY", value)
+    value = re.sub(r"sk-[A-Za-z0-9_-]{20,}", "REDACTED_OPENAI_KEY", value)
+    return value
 
 
 # Pydantic models for API
@@ -201,6 +216,12 @@ def _schema_from_payload(schema_data: dict[str, Any] | None):
         RelationGroup,
     )
 
+    def _relation_endpoint(rel: dict[str, Any], canonical: str, legacy: str) -> str:
+        raw = rel.get(canonical, rel.get(legacy))
+        if raw is None:
+            raise ValueError(f"relation {rel.get('name', '<unnamed>')!r} missing {canonical!r}")
+        return str(raw)
+
     if "entity_types" in schema_data:
         entity_types = [
             EntityType(
@@ -216,7 +237,11 @@ def _schema_from_payload(schema_data: dict[str, Any] | None):
                 name=group.get("name", "relations"),
                 description=group.get("description", ""),
                 relations=[
-                    Relation(name=rel["name"], src=rel["src"], dst=rel["dst"])
+                    Relation(
+                        name=rel["name"],
+                        src=_relation_endpoint(rel, "source", "src"),
+                        dst=_relation_endpoint(rel, "target", "dst"),
+                    )
                     for rel in group.get("relations", [])
                 ],
             )
@@ -231,7 +256,11 @@ def _schema_from_payload(schema_data: dict[str, Any] | None):
     return DRGSchema(
         entities=[Entity(item["name"]) for item in schema_data.get("entities", [])],
         relations=[
-            Relation(name=rel["name"], src=rel["src"], dst=rel["dst"])
+            Relation(
+                name=rel["name"],
+                src=_relation_endpoint(rel, "source", "src"),
+                dst=_relation_endpoint(rel, "target", "dst"),
+            )
             for rel in schema_data.get("relations", [])
         ],
     )
@@ -260,7 +289,7 @@ def _build_request_lm(request: ExtractRequest):
 
     kwargs: dict[str, object] = {}
     if request.base_url:
-        kwargs["base_url"] = request.base_url
+        kwargs["api_base"] = request.base_url
     if request.temperature is not None:
         kwargs["temperature"] = request.temperature
     if request.api_key:
@@ -268,6 +297,17 @@ def _build_request_lm(request: ExtractRequest):
 
     try:
         return dspy.LM(model_name, **kwargs)
+    except TypeError:
+        if not request.base_url:
+            logger.debug("Could not build per-request dspy.LM", exc_info=True)
+            return None
+        fallback_kwargs = dict(kwargs)
+        fallback_kwargs["base_url"] = fallback_kwargs.pop("api_base")
+        try:
+            return dspy.LM(model_name, **fallback_kwargs)
+        except Exception:
+            logger.debug("Could not build per-request dspy.LM", exc_info=True)
+            return None
     except Exception:
         logger.debug("Could not build per-request dspy.LM", exc_info=True)
         return None
@@ -301,6 +341,123 @@ def _graph_payload(kg: EnhancedKG) -> dict[str, Any]:
     return payload
 
 
+def _graph_statistics_payload(kg: EnhancedKG) -> dict[str, Any]:
+    """Return deterministic graph statistics shared by API and evaluation UI."""
+    node_types: dict[str, int] = {}
+    for node in kg.nodes.values():
+        node_type = node.type or "Unknown"
+        node_types[node_type] = node_types.get(node_type, 0) + 1
+
+    relationship_types: dict[str, int] = {}
+    for edge in kg.edges:
+        rel_type = edge.relationship_type
+        relationship_types[rel_type] = relationship_types.get(rel_type, 0) + 1
+
+    node_count = len(kg.nodes)
+    edge_count = len(kg.edges)
+    max_directed_edges = node_count * max(node_count - 1, 0)
+    return {
+        "node_count": node_count,
+        "edge_count": edge_count,
+        "cluster_count": len(kg.clusters),
+        "node_types": node_types,
+        "relationship_types": relationship_types,
+        "average_degree": round((2 * edge_count / node_count), 4) if node_count else 0.0,
+        "density": round((edge_count / max_directed_edges), 4) if max_directed_edges else 0.0,
+    }
+
+
+def _confidence_summary_payload(kg: EnhancedKG) -> dict[str, Any]:
+    """Summarise node/edge confidence availability and distribution."""
+
+    def _coerce_confidence(value: Any) -> float | None:
+        if value is None:
+            return None
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return None
+        if 0.0 <= numeric <= 1.0:
+            return numeric
+        return None
+
+    edge_scores = []
+    for edge in kg.edges:
+        raw = edge.confidence if edge.confidence is not None else edge.metadata.get("confidence")
+        if (score := _coerce_confidence(raw)) is not None:
+            edge_scores.append(score)
+
+    node_scores = []
+    for node in kg.nodes.values():
+        raw = node.confidence if node.confidence is not None else node.metadata.get("confidence")
+        if (score := _coerce_confidence(raw)) is not None:
+            node_scores.append(score)
+    all_scores = [*node_scores, *edge_scores]
+
+    def _bucket(scores: list[float], low: float, high: float) -> int:
+        return sum(1 for score in scores if low <= score < high)
+
+    return {
+        "node_confidence_count": len(node_scores),
+        "edge_confidence_count": len(edge_scores),
+        "total_scored": len(all_scores),
+        "total_items": len(kg.nodes) + len(kg.edges),
+        "coverage": round(len(all_scores) / (len(kg.nodes) + len(kg.edges)), 4)
+        if (kg.nodes or kg.edges)
+        else 0.0,
+        "average": round(sum(all_scores) / len(all_scores), 4) if all_scores else None,
+        "minimum": round(min(all_scores), 4) if all_scores else None,
+        "maximum": round(max(all_scores), 4) if all_scores else None,
+        "buckets": {
+            "low": _bucket(all_scores, 0.0, 0.5),
+            "medium": _bucket(all_scores, 0.5, 0.8),
+            "high": sum(1 for score in all_scores if 0.8 <= score <= 1.0),
+        },
+    }
+
+
+def _ontology_projection_from_graph(kg: EnhancedKG) -> dict[str, Any]:
+    """Build a lightweight ontology projection from graph node/edge types."""
+    entity_types = [
+        {
+            "name": node_type,
+            "description": f"Entity type observed in the loaded knowledge graph: {node_type}.",
+            "examples": sorted(
+                node.id for node in kg.nodes.values() if (node.type or "Unknown") == node_type
+            )[:5],
+            "properties": {},
+        }
+        for node_type in sorted({node.type or "Unknown" for node in kg.nodes.values()})
+    ]
+
+    seen_relations: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for edge in kg.edges:
+        source_node = kg.nodes.get(edge.source)
+        target_node = kg.nodes.get(edge.target)
+        source_type = source_node.type if source_node is not None else None
+        target_type = target_node.type if target_node is not None else None
+        relation: dict[str, Any] = {
+            "name": edge.relationship_type,
+            "source": source_type or "Unknown",
+            "target": target_type or "Unknown",
+            "description": f"Observed relation {edge.relationship_type} from {source_type or 'Unknown'} to {target_type or 'Unknown'}.",
+            "detail": edge.relationship_detail,
+            "properties": {},
+        }
+        seen_relations[(relation["name"], relation["source"], relation["target"])] = relation
+
+    return {
+        "entity_types": entity_types,
+        "relation_groups": [
+            {
+                "name": "Observed Graph Relations",
+                "description": "Relation schema projected from the currently loaded graph.",
+                "relations": list(seen_relations.values()),
+            }
+        ],
+    }
+
+
 def create_app(
     kg: EnhancedKG | None = None,
     neo4j_config: Neo4jConfig | None = None,
@@ -327,7 +484,7 @@ def create_app(
     app = FastAPI(
         title="DRG Knowledge Graph API",
         description="API for DRG Knowledge Graph visualization and querying",
-        version="1.0.0",
+        version=_DRG_VERSION,
         dependencies=[Depends(_require_api_key)],
     )
 
@@ -455,23 +612,37 @@ def create_app(
         # Communities view expects clusters; generate deterministic clusters if missing
         ensure_clusters(kg)
 
-        # Calculate statistics
-        node_types: dict[str, int] = {}
-        for node in kg.nodes.values():
-            node_type = node.type or "Unknown"
-            node_types[node_type] = node_types.get(node_type, 0) + 1
+        return _graph_statistics_payload(kg)
 
-        relationship_types: dict[str, int] = {}
-        for edge in kg.edges:
-            rel_type = edge.relationship_type
-            relationship_types[rel_type] = relationship_types.get(rel_type, 0) + 1
+    @app.get("/api/evaluation/summary")
+    async def get_evaluation_summary():
+        """Return release-readiness evaluation signals for the loaded graph."""
+        kg = app.state.kg
+        if kg is None:
+            raise HTTPException(status_code=404, detail="Knowledge graph not loaded")
 
+        ensure_clusters(kg)
+        from ..evaluation import evaluate_ontology
+
+        ontology_projection = _ontology_projection_from_graph(kg)
+        ontology_report = evaluate_ontology(ontology_projection)
         return {
-            "node_count": len(kg.nodes),
-            "edge_count": len(kg.edges),
-            "cluster_count": len(kg.clusters),
-            "node_types": node_types,
-            "relationship_types": relationship_types,
+            "graph_statistics": _graph_statistics_payload(kg),
+            "confidence_summary": _confidence_summary_payload(kg),
+            "ontology_evaluation": ontology_report.to_dict(),
+            "ontology_projection": {
+                "entity_type_count": len(ontology_projection["entity_types"]),
+                "relation_count": sum(
+                    len(group.get("relations", []))
+                    for group in ontology_projection.get("relation_groups", [])
+                ),
+                "source": "loaded_graph_projection",
+            },
+            "evaluation_ui": {
+                "mode": "graph_quality_summary",
+                "has_gold_labels": False,
+                "note": "Gold-label extraction F1 requires benchmark datasets or prediction artifacts; this panel reports graph, ontology, and confidence quality signals for the loaded KG.",
+            },
         }
 
     @app.post("/api/extract", response_model=ExtractResponse)
@@ -501,14 +672,22 @@ def create_app(
             )
         try:
             import contextlib
+
             import dspy
-            ctx = dspy.context(lm=lm_override) if lm_override is not None else contextlib.nullcontext()
+
+            ctx = (
+                dspy.context(lm=lm_override)
+                if lm_override is not None
+                else contextlib.nullcontext()
+            )
             with ctx:
-                entities_typed, triples = await asyncio.to_thread(extract_typed, request.text, schema)
+                entities_typed, triples = await asyncio.to_thread(
+                    extract_typed, request.text, schema
+                )
         except HTTPException:
             raise
         except Exception as e:
-            logger.error("API extraction failed: %s", e, exc_info=True)
+            logger.error("API extraction failed: %s", _redact_secrets(str(e)), exc_info=True)
             raise HTTPException(
                 status_code=500, detail=f"Extraction failed: {type(e).__name__}"
             ) from e
@@ -569,15 +748,25 @@ def create_app(
             )
         try:
             import contextlib
+
             import dspy
-            ctx = dspy.context(lm=lm_override) if lm_override is not None else contextlib.nullcontext()
+
+            ctx = (
+                dspy.context(lm=lm_override)
+                if lm_override is not None
+                else contextlib.nullcontext()
+            )
             with ctx:
-                entities_typed, triples = await asyncio.to_thread(extract_typed, request.text, schema)
+                entities_typed, triples = await asyncio.to_thread(
+                    extract_typed, request.text, schema
+                )
         except HTTPException:
             raise
         except Exception as e:
-            logger.error("API graph update failed: %s", e, exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Graph update failed: {type(e).__name__}") from e
+            logger.error("API graph update failed: %s", _redact_secrets(str(e)), exc_info=True)
+            raise HTTPException(
+                status_code=500, detail=f"Graph update failed: {type(e).__name__}"
+            ) from e
 
         triples = list(dict.fromkeys(triples))
         incoming = await asyncio.to_thread(

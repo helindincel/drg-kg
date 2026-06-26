@@ -181,6 +181,7 @@ def build_enhanced_kg(
     confidence_strategy: ConfidenceStrategy | None | str = "default",
     entity_confidences: dict[str, float] | None = None,
     relation_confidences: dict[tuple[str, str, str], float] | None = None,
+    entity_properties: dict[str, dict[str, Any]] | None = None,
     document_id: str | None = None,
     events: list[Any] | None = None,
 ) -> EnhancedKG:
@@ -210,6 +211,9 @@ def build_enhanced_kg(
             scores from a custom upstream pipeline.
         relation_confidences: Optional explicit ``(s, r, o) -> score`` map.
             Same semantics as ``entity_confidences`` but for edges.
+        entity_properties: Optional ``entity_name -> properties`` map populated
+            from typed extraction outputs. Values are copied onto matching
+            :class:`KGNode` objects.
         document_id: Optional identifier for the source document. When
             provided, every edge built here is stamped with
             ``metadata['source_ref'] = document_id`` (existing
@@ -229,6 +233,11 @@ def build_enhanced_kg(
     """
     kg = EnhancedKG()
     entity_type_map = dict(entities_typed)
+    entity_properties_map = {
+        str(name): dict(props)
+        for name, props in (entity_properties or {}).items()
+        if isinstance(props, dict)
+    }
 
     # Resolve the strategy. ``"default"`` is a sentinel rather than a real
     # default-arg-instance because instantiating the strategy at module
@@ -291,7 +300,7 @@ def build_enhanced_kg(
             KGNode(
                 id=name,
                 type=etype,
-                properties={},
+                properties=entity_properties_map.get(name, {}),
                 metadata=node_metadata,
                 confidence=ent_score_map.get(name),
             )
@@ -331,7 +340,7 @@ def build_enhanced_kg(
                 KGNode(
                     id=s,
                     type=entity_type_map.get(s),
-                    properties={},
+                    properties=entity_properties_map.get(s, {}),
                     metadata=node_metadata,
                     confidence=ent_score_map.get(s),
                 )
@@ -350,7 +359,7 @@ def build_enhanced_kg(
                 KGNode(
                     id=o,
                     type=entity_type_map.get(o),
-                    properties={},
+                    properties=entity_properties_map.get(o, {}),
                     metadata=node_metadata,
                     confidence=ent_score_map.get(o),
                 )

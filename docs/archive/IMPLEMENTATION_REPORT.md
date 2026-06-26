@@ -1,7 +1,7 @@
 # DRG Extraction Architecture — Implementation Report
 
 > **Phase**: P0 + P1 implementation following `VERIFIED_FINDINGS.md`  
-> **Constraint**: DRG is a schema-first, modular-monolith knowledge-graph extraction library. It is NOT GraphRAG, hybrid search, generic RAG, or a vector database framework. All changes are backward-compatible.
+> **Constraint**: DRG is a schema-first, modular-monolith knowledge-graph extraction library. It is not a retrieval framework, search backend, or database framework. All changes are backward-compatible.
 
 ---
 

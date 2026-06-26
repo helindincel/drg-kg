@@ -9,19 +9,34 @@ import logging
 import os
 import threading
 import warnings
+from typing import Any
 
 try:
     import dspy
 except ImportError as _dspy_import_err:
     raise ImportError(
-        "DSPy is required for drg.config. "
-        "Install it with: pip install drg-kg[extract]"
+        "DSPy is required for drg.config. Install it with: pip install drg-kg[extract]"
     ) from _dspy_import_err
 
 from .errors import LLMConfigError
 from .utils.env_loader import load_dotenv
 
 logger = logging.getLogger(__name__)
+
+
+def _create_dspy_lm(model: str, lm_kwargs: dict[str, Any]):
+    """Create a DSPy LM with flat provider kwargs, tolerating base URL naming drift."""
+    try:
+        return dspy.LM(model, **lm_kwargs)
+    except TypeError as first_error:
+        if "api_base" not in lm_kwargs:
+            raise
+        fallback_kwargs = dict(lm_kwargs)
+        fallback_kwargs["base_url"] = fallback_kwargs.pop("api_base")
+        try:
+            return dspy.LM(model, **fallback_kwargs)
+        except TypeError:
+            raise first_error from None
 
 
 class LMConfig:
@@ -163,32 +178,29 @@ class LMConfig:
         if "perplexity" in model_lower and not base_url:
             base_url = "https://api.perplexity.ai"
 
-        # Build DSPy LM kwargs
-        lm_kwargs = {
-            "model": model,
+        # Build DSPy LM kwargs. DSPy 3 forwards these flat kwargs to LiteLLM;
+        # older nested {"kwargs": {...}} payloads are not part of the public API.
+        lm_kwargs: dict[str, Any] = {
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
+        lm_model = model
 
         # OpenRouter: validate/normalise model name and pass credentials
         if "openrouter" in model_lower:
             # Normalise to LiteLLM format: ensure "openrouter/" prefix
             if not model.startswith("openrouter/"):
-                lm_kwargs["model"] = f"openrouter/{model}"
+                lm_model = f"openrouter/{model}"
             else:
                 # Already has openrouter/ prefix
-                lm_kwargs["model"] = model
+                lm_model = model
 
-            # LiteLLM needs api_key/api_base in kwargs for OpenRouter
             if api_key:
                 # Set env var (LiteLLM reads it automatically)
                 os.environ["OPENROUTER_API_KEY"] = api_key
-                # Also pass in kwargs as a fallback
-                if "kwargs" not in lm_kwargs:
-                    lm_kwargs["kwargs"] = {}
-                lm_kwargs["kwargs"]["api_key"] = api_key
+                lm_kwargs["api_key"] = api_key
                 if base_url:
-                    lm_kwargs["kwargs"]["api_base"] = base_url
+                    lm_kwargs["api_base"] = base_url
         elif api_key:
             # Set env var for other providers
             if "gemini" in model_lower:
@@ -203,15 +215,12 @@ class LMConfig:
             else:
                 os.environ["OPENAI_API_KEY"] = api_key
 
-            # Pass credentials in kwargs as a fallback
-            if "kwargs" not in lm_kwargs:
-                lm_kwargs["kwargs"] = {}
-            lm_kwargs["kwargs"]["api_key"] = api_key
+            lm_kwargs["api_key"] = api_key
             if base_url:
-                lm_kwargs["kwargs"]["api_base"] = base_url
+                lm_kwargs["api_base"] = base_url
 
         try:
-            lm = dspy.LM(**lm_kwargs)
+            lm = _create_dspy_lm(lm_model, lm_kwargs)
             dspy.configure(lm=lm)
         except Exception as e:
             raise LLMConfigError(

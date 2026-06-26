@@ -15,10 +15,10 @@ jobs:
     name: Synthetic scale benchmark smoke
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
@@ -46,7 +46,7 @@ jobs:
             --markdown-output benchmark-artifacts/report.md
 
       - name: Upload benchmark artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: synthetic-scale-benchmark
           path: benchmark-artifacts/

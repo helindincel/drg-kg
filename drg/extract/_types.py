@@ -39,6 +39,7 @@ class EntityMention(BaseModel):
     type: str
     aliases: list[str] = []
     evidence: str | None = None
+    properties: dict[str, Any] = {}
     metadata: dict[str, Any] = {}
 
 
@@ -101,6 +102,7 @@ class SchemaRelation(BaseModel):
     target: str
     description: str = ""
     detail: str = ""
+    properties: dict[str, Any] = {}
 
 
 class SchemaRelationGroup(BaseModel):

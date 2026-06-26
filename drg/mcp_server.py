@@ -73,6 +73,13 @@ mcp = FastMCP("DRG Knowledge Graph")
 
 def _parse_schema(schema_data: dict[str, Any]) -> DRGSchema | EnhancedDRGSchema:
     """Parse a schema dict into a DRGSchema or EnhancedDRGSchema."""
+
+    def _relation_endpoint(rel: dict[str, Any], canonical: str, legacy: str) -> str:
+        raw = rel.get(canonical, rel.get(legacy))
+        if raw is None:
+            raise ValueError(f"relation {rel.get('name', '<unnamed>')!r} missing {canonical!r}")
+        return str(raw)
+
     if "entity_types" in schema_data:
         entity_types = [
             EntityType(
@@ -88,7 +95,11 @@ def _parse_schema(schema_data: dict[str, Any]) -> DRGSchema | EnhancedDRGSchema:
                 name=rg["name"],
                 description=rg.get("description", ""),
                 relations=[
-                    Relation(name=r["name"], src=r["src"], dst=r["dst"])
+                    Relation(
+                        name=r["name"],
+                        src=_relation_endpoint(r, "source", "src"),
+                        dst=_relation_endpoint(r, "target", "dst"),
+                    )
                     for r in rg.get("relations", [])
                 ],
             )
@@ -103,7 +114,11 @@ def _parse_schema(schema_data: dict[str, Any]) -> DRGSchema | EnhancedDRGSchema:
         return DRGSchema(
             entities=[Entity(e["name"]) for e in schema_data.get("entities", [])],
             relations=[
-                Relation(name=r["name"], src=r["src"], dst=r["dst"])
+                Relation(
+                    name=r["name"],
+                    src=_relation_endpoint(r, "source", "src"),
+                    dst=_relation_endpoint(r, "target", "dst"),
+                )
                 for r in schema_data.get("relations", [])
             ],
         )

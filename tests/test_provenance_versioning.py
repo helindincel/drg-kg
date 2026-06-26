@@ -101,9 +101,9 @@ def test_api_update_versions_and_provenance(monkeypatch):
     pytest.importorskip("fastapi")
     pytest.importorskip("httpx")
 
-    import drg.extract as extract_mod
     from fastapi.testclient import TestClient
 
+    import drg.extract as extract_mod
     from drg.api.server import create_app
 
     calls = iter(
@@ -121,14 +121,22 @@ def test_api_update_versions_and_provenance(monkeypatch):
 
     first = client.post(
         "/api/graph/update",
-        json={"text": "Alice works at Acme.", "model": "ollama_chat/llama3", "document_id": "doc_1"},
+        json={
+            "text": "Alice works at Acme.",
+            "model": "ollama_chat/llama3",
+            "document_id": "doc_1",
+        },
     )
     assert first.status_code == 200
     assert first.json()["version"]["version_id"] == "v1"
 
     second = client.post(
         "/api/graph/update",
-        json={"text": "Acme produces Widget.", "model": "ollama_chat/llama3", "document_id": "doc_2"},
+        json={
+            "text": "Acme produces Widget.",
+            "model": "ollama_chat/llama3",
+            "document_id": "doc_2",
+        },
     )
     assert second.status_code == 200
 

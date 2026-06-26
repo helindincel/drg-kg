@@ -160,6 +160,7 @@ def _add_reverse_relations(
                             dst=rel.src,
                             description=f"Reverse of {rel.name}: {rel.description}",
                             detail=f"Reverse relationship: {rel.detail}",
+                            properties=rel.properties,
                         )
                     )
                     added_reverse_relations.add(reverse_name)

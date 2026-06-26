@@ -7,9 +7,11 @@ These tests confirm fixes for VF-1, VF-2, VF-6, VF-9, VF-10:
 - Output field annotations use typed Pydantic models.
 - Signature docstrings include behavioral instructions.
 """
+# ruff: noqa: E402, I001
 
 from __future__ import annotations
 
+import pathlib
 import sys
 from unittest.mock import MagicMock
 
@@ -18,17 +20,18 @@ import pytest
 # Stub dspy before drg imports — avoids requiring a real DSPy installation.
 sys.modules.setdefault("dspy", MagicMock())
 
-from drg.extract._signatures import (  # noqa: E402
-    _create_entity_signature,
-    _create_relation_signature,
-    _create_document_relation_signature,
-    _create_implicit_relation_signature,
+from drg.extract import _coerce_entity_mentions, _entity_mentions_to_dspy_input
+from drg.extract._signatures import (
     _create_coreference_signature,
+    _create_document_relation_signature,
+    _create_entity_signature,
+    _create_implicit_relation_signature,
+    _create_relation_signature,
     _entity_schema_for,
     _relation_schema_for,
 )
-from drg.extract._types import EntityMention, ExtractedRelation  # noqa: E402
-from drg.schema import (  # noqa: E402
+from drg.extract._types import EntityMention
+from drg.schema import (
     DRGSchema,
     EnhancedDRGSchema,
     Entity,
@@ -52,6 +55,7 @@ def enhanced_schema() -> EnhancedDRGSchema:
                 name="Researcher",
                 description="A person who conducts scientific research",
                 examples=["Marie Curie", "Alan Turing"],
+                properties={"field": "Research discipline", "era": "Active period"},
             ),
             EntityType(
                 name="Institution",
@@ -70,6 +74,7 @@ def enhanced_schema() -> EnhancedDRGSchema:
                         dst="Institution",
                         description="A researcher works at or is associated with an institution",
                         detail="Marie Curie was affiliated_with the University of Paris.",
+                        properties={"role": "Nature of the affiliation"},
                     )
                 ],
                 examples=[{"text": "Curie worked at the Sorbonne", "relation": "affiliated_with"}],
@@ -109,6 +114,7 @@ class TestEntitySchemaFor:
         assert researcher["description"] == "A person who conducts scientific research"
         assert "Marie Curie" in researcher["examples"]
         assert "Alan Turing" in researcher["examples"]
+        assert researcher["properties"]["field"] == "Research discipline"
 
     def test_legacy_schema_returns_dicts_with_name(self, legacy_schema):
         result = _entity_schema_for(legacy_schema)
@@ -120,6 +126,7 @@ class TestEntitySchemaFor:
         for entry in result:
             assert "description" in entry
             assert "examples" in entry
+            assert "properties" in entry
 
     def test_entity_group_context_included(self):
         """EntityGroup name and description should appear when entity types are grouped."""
@@ -142,8 +149,12 @@ class TestEntitySchemaFor:
                     name="AcademicStaff",
                     description="People employed by an academic institution",
                     entity_types=[
-                        EntityType(name="Professor", description="Academic faculty member", examples=[]),
-                        EntityType(name="PostDoc", description="Post-doctoral researcher", examples=[]),
+                        EntityType(
+                            name="Professor", description="Academic faculty member", examples=[]
+                        ),
+                        EntityType(
+                            name="PostDoc", description="Post-doctoral researcher", examples=[]
+                        ),
                     ],
                 )
             ],
@@ -172,6 +183,10 @@ class TestRelationSchemaFor:
         assert rel["target_type"] == "Institution"
         assert rel["description"] == "A researcher works at or is associated with an institution"
         assert "Marie Curie" in rel["example"]
+        assert rel["properties"]["role"] == "Nature of the affiliation"
+        assert rel["group_examples"] == [
+            {"text": "Curie worked at the Sorbonne", "relation": "affiliated_with"}
+        ]
 
     def test_enhanced_schema_includes_group_context(self, enhanced_schema):
         result = _relation_schema_for(enhanced_schema)
@@ -187,6 +202,7 @@ class TestRelationSchemaFor:
         rel = result[0]
         assert rel["description"] == "A company manufactures or creates a product"
         assert "Apple produces the iPhone" in rel["example"]
+        assert rel["properties"] == {}
 
     def test_legacy_schema_has_no_group_keys(self, legacy_schema):
         result = _relation_schema_for(legacy_schema)
@@ -208,9 +224,7 @@ class TestEntitySignatureTypes:
 
         assert isinstance(stored, list)
         assert len(stored) > 0
-        assert isinstance(stored[0], dict), (
-            "entity_types should be list[dict] not list[str]"
-        )
+        assert isinstance(stored[0], dict), "entity_types should be list[dict] not list[str]"
 
     def test_entity_types_contain_description(self, enhanced_schema):
         sig = _create_entity_signature(enhanced_schema)
@@ -218,6 +232,7 @@ class TestEntitySignatureTypes:
 
         researcher = next(e for e in stored if e["name"] == "Researcher")
         assert researcher["description"]
+        assert researcher["properties"]["field"] == "Research discipline"
 
     def test_legacy_schema_entity_types_are_dicts(self, legacy_schema):
         sig = _create_entity_signature(legacy_schema)
@@ -231,9 +246,6 @@ class TestEntitySignatureTypes:
 # When DSPy is mocked via MagicMock, the inner class's __doc__ may be
 # absorbed by the MagicMock metaclass. We verify the docstrings exist in
 # the source file directly, which is the canonical source of truth.
-
-import importlib.util
-import pathlib
 
 
 def _signatures_source() -> str:
@@ -294,6 +306,33 @@ class TestRelationSignatureSchema:
             assert stored[0].get("description"), (
                 f"{factory.__name__}: relation missing 'description'"
             )
-            assert stored[0].get("group"), (
-                f"{factory.__name__}: relation missing 'group'"
+            assert stored[0].get("group"), f"{factory.__name__}: relation missing 'group'"
+            assert stored[0].get("group_examples"), (
+                f"{factory.__name__}: relation missing 'group_examples'"
             )
+
+
+class TestTypedOutputModels:
+    def test_entity_mention_exposes_schema_defined_properties(self):
+        mention = EntityMention(
+            name="archive tower",
+            type="Place",
+            properties={"atmosphere": "silent", "role": "setting"},
+        )
+
+        assert mention.properties["atmosphere"] == "silent"
+
+    def test_entity_properties_survive_normalization_and_dspy_input(self):
+        mentions = _coerce_entity_mentions(
+            [
+                {
+                    "name": "sealed letter",
+                    "type": "Artifact",
+                    "properties": {"condition": "unopened"},
+                }
+            ]
+        )
+
+        assert mentions[0].properties == {"condition": "unopened"}
+        dspy_input = _entity_mentions_to_dspy_input(mentions)
+        assert dspy_input[0]["properties"] == {"condition": "unopened"}

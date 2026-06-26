@@ -15,18 +15,16 @@ Quick start::
             "expected_relations": [{"source": "Marie Curie", "relation": "discovered", "target": "radium"}],
         },
     ]
-    optimised = optimize_extractor(examples, config=config)
+    optimised = optimize_extractor(examples, config=config, schema=schema)
 """
 
 from .metrics import EntityExtractionMetric, RelationExtractionMetric, weighted_f1_metric
 from .optimizer import KGOptimizerConfig, optimize_extractor
 
 __all__ = [
-    # Optimizer
-    "KGOptimizerConfig",
-    "optimize_extractor",
-    # Metrics
     "EntityExtractionMetric",
+    "KGOptimizerConfig",
     "RelationExtractionMetric",
+    "optimize_extractor",
     "weighted_f1_metric",
 ]

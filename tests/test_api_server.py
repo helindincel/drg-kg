@@ -11,6 +11,8 @@ Covers:
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
 # Skip the entire module if fastapi / httpx (required by TestClient) are not installed.
@@ -19,7 +21,8 @@ pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient
 
-from drg.api.server import create_app
+from drg import __version__
+from drg.api.server import _redact_secrets, create_app
 from drg.graph.kg_core import Cluster, EnhancedKG, KGEdge, KGNode
 
 # ---------------------------------------------------------------------------
@@ -102,6 +105,9 @@ class TestGetGraph:
 
 
 class TestOperationalEndpoints:
+    def test_openapi_version_matches_package_version(self, client: TestClient):
+        assert cast(Any, client.app).version == __version__
+
     def test_healthz_returns_ok(self, client_no_kg: TestClient):
         resp = client_no_kg.get("/healthz")
         assert resp.status_code == 200
@@ -140,6 +146,39 @@ class TestGetGraphStats:
 
     def test_returns_404_when_no_kg(self, client_no_kg: TestClient):
         assert client_no_kg.get("/api/graph/stats").status_code == 404
+
+
+class TestEvaluationSummary:
+    def test_returns_v01_evaluation_summary(self, client: TestClient):
+        resp = client.get("/api/evaluation/summary")
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["graph_statistics"]["node_count"] == 3
+        assert data["graph_statistics"]["edge_count"] == 2
+        assert data["confidence_summary"]["total_items"] == 5
+        assert "overall_score" in data["ontology_evaluation"]
+        assert data["ontology_projection"]["source"] == "loaded_graph_projection"
+        assert data["evaluation_ui"]["mode"] == "graph_quality_summary"
+
+    def test_returns_404_when_no_kg(self, client_no_kg: TestClient):
+        assert client_no_kg.get("/api/evaluation/summary").status_code == 404
+
+
+class TestApiSecretRedaction:
+    def test_redacts_provider_keys_from_log_messages(self):
+        message = (
+            "provider failed api_key=sk-abcdefghijklmnopqrstuvwxyz "
+            "google=AIzaSyabcdefghijklmnopqrstuvwxyz012345 "
+            "openrouter=sk-or-v1-abcdefabcdefabcdefabcdef"
+        )
+
+        redacted = _redact_secrets(message)
+
+        assert "sk-abcdefghijklmnopqrstuvwxyz" not in redacted
+        assert "AIzaSyabcdefghijklmnopqrstuvwxyz012345" not in redacted
+        assert "sk-or-v1-abcdefabcdefabcdefabcdef" not in redacted
+        assert "REDACTED" in redacted
 
 
 class TestExtractEndpoint:
@@ -185,6 +224,43 @@ class TestExtractEndpoint:
         assert data["counts"]["edges"] == 1
         assert data["stored"] is True
         assert c.get("/api/graph").status_code == 200
+
+    def test_extract_accepts_canonical_source_target_schema(self, monkeypatch: pytest.MonkeyPatch):
+        import drg.extract as extract_mod
+
+        def fake_extract(text, schema):
+            relation = schema.relation_groups[0].relations[0]
+            assert relation.src == "Company"
+            assert relation.dst == "Person"
+            return ([("TechCorp", "Company"), ("Jane Doe", "Person")], [])
+
+        monkeypatch.setattr(extract_mod, "extract_typed", fake_extract)
+        c = TestClient(create_app())
+
+        resp = c.post(
+            "/api/extract",
+            json={
+                "text": "TechCorp was founded by Jane Doe.",
+                "schema": {
+                    "entity_types": [{"name": "Company"}, {"name": "Person"}],
+                    "relation_groups": [
+                        {
+                            "name": "founding",
+                            "relations": [
+                                {
+                                    "name": "founded_by",
+                                    "source": "Company",
+                                    "target": "Person",
+                                }
+                            ],
+                        }
+                    ],
+                },
+                "model": "ollama_chat/llama3",
+            },
+        )
+
+        assert resp.status_code == 200
 
     def test_extract_can_skip_storing_graph(self, monkeypatch: pytest.MonkeyPatch):
         import drg.extract as extract_mod

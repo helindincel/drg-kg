@@ -117,7 +117,18 @@ def load_official_benchmark_suite() -> BenchmarkSuite:
 
 def load_benchmark_suite(path: str | Path) -> BenchmarkSuite:
     """Load a :class:`~drg.evaluation.BenchmarkSuite` from a JSON file."""
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    path = Path(path)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict) and isinstance(data.get("datasets"), list):
+        data = dict(data)
+        data["datasets"] = [
+            (
+                json.loads((path.parent / item).read_text(encoding="utf-8"))
+                if isinstance(item, str)
+                else item
+            )
+            for item in data["datasets"]
+        ]
     return BenchmarkSuite.from_dict(data)
 
 
@@ -134,7 +145,13 @@ def load_benchmark_datasets(path: str | Path | None) -> list[BenchmarkDataset]:
     if isinstance(data, list):
         return [BenchmarkDataset.from_dict(d) for d in data]
     if isinstance(data, dict) and "datasets" in data:
-        return [BenchmarkDataset.from_dict(d) for d in data["datasets"]]
+        base = Path(path).parent
+        datasets = []
+        for item in data["datasets"]:
+            if isinstance(item, str):
+                item = json.loads((base / item).read_text(encoding="utf-8"))
+            datasets.append(BenchmarkDataset.from_dict(item))
+        return datasets
     if isinstance(data, dict) and "name" in data and "text" in data:
         return [BenchmarkDataset.from_dict(data)]
     raise ValueError(f"Unrecognised benchmark JSON format in {path}")
@@ -163,7 +180,12 @@ def load_prediction_artifact(
         raw_preds = data["predictions"]
         # Accept either a list of prediction dicts or a dict keyed by dataset name
         if isinstance(raw_preds, dict):
-            predictions = [PipelinePrediction.from_dict(v) for v in raw_preds.values()]
+            predictions = []
+            for dataset_name, raw_prediction in raw_preds.items():
+                prediction = PipelinePrediction.from_dict(raw_prediction)
+                prediction.metadata.setdefault("dataset", dataset_name)
+                prediction.metadata.setdefault("dataset_name", dataset_name)
+                predictions.append(prediction)
         else:
             predictions = [PipelinePrediction.from_dict(p) for p in raw_preds]
         # Extract metadata: prefer explicit "metadata" key, but also surface

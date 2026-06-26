@@ -17,18 +17,27 @@ python -m pip install --upgrade pip
 Install from PyPI after the public release:
 
 ```bash
+# Graph-only workflows
 pip install drg-kg
+
+# `drg extract` and Python extraction APIs
+pip install "drg-kg[extract]"
 ```
 
 For a source checkout:
 
 ```bash
+# Graph-only workflows
 pip install -e .
+
+# `drg extract` and Python extraction APIs
+pip install -e ".[extract]"
 ```
 
 Install optional extras only when you need them:
 
 ```bash
+pip install -e ".[extract]"  # DSPy extraction
 pip install -e ".[api]"      # FastAPI server and UI
 pip install -e ".[mcp]"      # MCP server
 pip install -e ".[neo4j]"    # Neo4j export
@@ -70,7 +79,7 @@ If you only want to verify the repo without an API key, run the deterministic
 demo instead:
 
 ```bash
-python examples/full_pipeline_example.py 1example
+python examples/query_layer_example.py
 ```
 
 ## 4. Extract and Validate a Small Graph

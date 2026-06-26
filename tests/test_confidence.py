@@ -382,6 +382,19 @@ def test_builder_explicit_entity_overrides_take_precedence():
     assert kg.nodes["Apple"].confidence == pytest.approx(0.99)
 
 
+def test_builder_attaches_entity_properties_to_nodes():
+    kg = build_enhanced_kg(
+        entities_typed=[("sealed letter", "Artifact")],
+        triples=[],
+        entity_properties={"sealed letter": {"condition": "unopened", "significance": "clue"}},
+    )
+
+    assert kg.nodes["sealed letter"].properties == {
+        "condition": "unopened",
+        "significance": "clue",
+    }
+
+
 def test_builder_explicit_relation_overrides_take_precedence():
     kg = build_enhanced_kg(
         entities_typed=[("Apple", "Company"), ("iPhone", "Product")],

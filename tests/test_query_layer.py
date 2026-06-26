@@ -341,9 +341,7 @@ def test_events_for_normalizes_prefixed_event_node_types():
     gq = GraphQuery(kg)
 
     assert [ev.event.id for ev in gq.events_for("Apple")] == ["evt-1"]
-    assert [ev.event.id for ev in gq.events_for("Apple", event_types=("Acquisition",))] == [
-        "evt-1"
-    ]
+    assert [ev.event.id for ev in gq.events_for("Apple", event_types=("Acquisition",))] == ["evt-1"]
 
 
 # ---------------------------------------------------------------------------

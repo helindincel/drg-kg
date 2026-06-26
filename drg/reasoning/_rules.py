@@ -121,12 +121,12 @@ class PathBridgeRule(InferenceRule):
 
     def apply(
         self,
-        kg: "EnhancedKG",
+        kg: EnhancedKG,
         *,
         document_id: str | None = None,
     ) -> list[InferredEdge]:
         results: list[InferredEdge] = []
-        edges = list(kg.edges) if hasattr(kg, 'edges') else []
+        edges = list(kg.edges) if hasattr(kg, "edges") else []
         # Build adjacency: target → list of edges ending there
         by_target: dict[str, list] = {}
         for edge in edges:
@@ -146,9 +146,7 @@ class PathBridgeRule(InferenceRule):
                 if key in seen:
                     continue
                 seen.add(key)
-                conf = round(
-                    _edge_confidence(edge_ab) * _edge_confidence(edge_bc) * 0.8, 4
-                )
+                conf = round(_edge_confidence(edge_ab) * _edge_confidence(edge_bc) * 0.8, 4)
                 evidence = [
                     EvidenceLink(
                         source_node=edge_bc.source,
@@ -202,12 +200,12 @@ class InverseRule(InferenceRule):
 
     def apply(
         self,
-        kg: "EnhancedKG",
+        kg: EnhancedKG,
         *,
         document_id: str | None = None,
     ) -> list[InferredEdge]:
         results: list[InferredEdge] = []
-        edges = list(kg.edges) if hasattr(kg, 'edges') else []
+        edges = list(kg.edges) if hasattr(kg, "edges") else []
         seen: set[tuple[str, str, str]] = set()
         for edge in edges:
             inv_rel = self._map.get(edge.relationship_type)
@@ -270,19 +268,17 @@ class SymmetricRule(InferenceRule):
         symmetric_relations: frozenset[str] | None = None,
     ) -> None:
         self._relations = (
-            symmetric_relations
-            if symmetric_relations is not None
-            else _SYMMETRIC_RELATIONS
+            symmetric_relations if symmetric_relations is not None else _SYMMETRIC_RELATIONS
         )
 
     def apply(
         self,
-        kg: "EnhancedKG",
+        kg: EnhancedKG,
         *,
         document_id: str | None = None,
     ) -> list[InferredEdge]:
         results: list[InferredEdge] = []
-        edges = list(kg.edges) if hasattr(kg, 'edges') else []
+        edges = list(kg.edges) if hasattr(kg, "edges") else []
         seen: set[tuple[str, str, str]] = set()
         for edge in edges:
             if edge.relationship_type not in self._relations:
@@ -307,8 +303,7 @@ class SymmetricRule(InferenceRule):
                     target=edge.source,
                     relationship_type=edge.relationship_type,
                     relationship_detail=(
-                        f"{edge.target} {edge.relationship_type} {edge.source} "
-                        f"(symmetric)"
+                        f"{edge.target} {edge.relationship_type} {edge.source} (symmetric)"
                     ),
                     confidence=conf,
                     rule_name=self.name,
@@ -340,19 +335,17 @@ class TransitiveRule(InferenceRule):
         transitive_relations: frozenset[str] | None = None,
     ) -> None:
         self._relations = (
-            transitive_relations
-            if transitive_relations is not None
-            else _TRANSITIVE_RELATIONS
+            transitive_relations if transitive_relations is not None else _TRANSITIVE_RELATIONS
         )
 
     def apply(
         self,
-        kg: "EnhancedKG",
+        kg: EnhancedKG,
         *,
         document_id: str | None = None,
     ) -> list[InferredEdge]:
         results: list[InferredEdge] = []
-        edges = list(kg.edges) if hasattr(kg, 'edges') else []
+        edges = list(kg.edges) if hasattr(kg, "edges") else []
         seen: set[tuple[str, str, str]] = set()
 
         for rel in self._relations:
@@ -434,12 +427,12 @@ class CompositionRule(InferenceRule):
 
     def apply(
         self,
-        kg: "EnhancedKG",
+        kg: EnhancedKG,
         *,
         document_id: str | None = None,
     ) -> list[InferredEdge]:
         results: list[InferredEdge] = []
-        edges = list(kg.edges) if hasattr(kg, 'edges') else []
+        edges = list(kg.edges) if hasattr(kg, "edges") else []
         seen: set[tuple[str, str, str]] = set()
 
         # index by (source, rel_type) for fast lookup

@@ -12,6 +12,7 @@ Split into two test classes:
 from __future__ import annotations
 
 import json
+import pathlib
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -84,8 +85,31 @@ class TestSampleTextForSchemaGeneration:
         assert len(result) < len(text)
 
 
+def test_schema_generation_prompt_preserves_semantic_quality_goals():
+    prompt = (
+        pathlib.Path(__file__).parent.parent / "drg" / "extract" / "_schema_gen.py"
+    ).read_text()
+
+    assert "reusable semantic roles" in prompt
+    assert "Semantic completeness and recall" in prompt
+    assert "Extractability" in prompt
+    assert "Canonical representation" in prompt
+    assert "single canonical representation" in prompt
+    assert "reliably extractable" in prompt
+    assert "Relation source and target" in prompt
+    assert "primitive value types" in prompt
+    assert "recurring semantic interactions" in prompt
+    assert "significant events as first-class entity types" in prompt
+    assert "reusable relation properties" in prompt
+    assert "Temporal modeling" in prompt
+    assert "internally validate" in prompt
+    assert "smallest ontology" in prompt
+    assert "hard-coded" in prompt
+    assert "domain rules" in prompt
+
+
 class _StubPrediction:
-    """Stand-in for a DSPy ``Prediction`` returned by ``TypedPredictor``."""
+    """Stand-in for a DSPy structured ``Prediction``."""
 
     def __init__(
         self,

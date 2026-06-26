@@ -92,7 +92,8 @@ class TestExtractEvents:
             ]
         )
         with patch("drg.events._extraction.dspy") as mock_dspy:
-            mock_dspy.Predict = Mock(return_value=Mock(return_value=events_obj))
+            predictor = Mock(return_value=events_obj)
+            mock_dspy.Predict = Mock(return_value=predictor)
             mock_dspy.Signature = type("Signature", (), {})
             mock_dspy.InputField = Mock(return_value="in")
             mock_dspy.OutputField = Mock(return_value="out")
@@ -116,6 +117,9 @@ class TestExtractEvents:
         assert ev.properties["deal_value"] == "$3B"
         assert ev.provenance.document_id == "doc1"
         assert 0.0 <= ev.confidence <= 1.0
+        call_kwargs = predictor.call_args.kwargs
+        assert call_kwargs["event_types"][0]["name"] == "Acquisition"
+        assert call_kwargs["event_types"][0]["properties"] == {"deal_value": "amount"}
 
     def test_drops_event_with_unknown_type(self, acquisition_registry):
         from drg.events._extraction import RawEvent, RawEventList

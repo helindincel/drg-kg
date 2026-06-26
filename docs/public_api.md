@@ -9,7 +9,7 @@ These are the preferred imports for downstream users:
 ```python
 from drg import DRGSchema, EnhancedDRGSchema, Entity, EntityType, Relation
 from drg.graph.builders import build_enhanced_kg
-from drg.evaluation import BenchmarkRunner, PipelinePrediction, load_benchmark_dataset
+from drg.evaluation import BenchmarkRunner, PipelinePrediction, load_benchmark_datasets
 ```
 
 CLI commands intended to remain stable through the alpha series:

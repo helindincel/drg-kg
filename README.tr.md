@@ -73,8 +73,8 @@ DRG şunlar değildir:
 
 - Genel amaçlı bir LLM uygulama framework'ü.
 - Chatbot framework'ü.
-- Vector database veya graph database.
-- Vector search katmanı.
+- Database veya search backend.
+- Retrieval framework.
 - Neo4j, NetworkX, LangChain, LlamaIndex veya DSPy yerine geçen bir araç.
 - Henüz hosted product veya tam stabil production platform.
 
@@ -191,10 +191,11 @@ pip install -e ".[mcp]"      # MCP server
 pip install -e ".[neo4j]"    # Neo4j export
 ```
 
-Public PyPI release sonrasında eşdeğer paket kurulumu:
+Public PyPI release sonrasında ihtiyacınız olan extra'larla kurulum:
 
 ```bash
 pip install "drg-kg[all]"
+pip install "drg-kg[extract]"  # Yalnızca DSPy extraction
 ```
 
 ## Hızlı Başlangıç
@@ -226,13 +227,19 @@ export DRG_MODEL=ollama_chat/llama3
 export DRG_BASE_URL=http://localhost:11434
 ```
 
-Küçük bir CLI extraction örneği:
+Hikaye odaklı bir CLI extraction örneği:
 
 ```bash
-echo "TechCorp, 2015 yılında Jane Doe tarafından kuruldu." > ornek.txt
-drg extract ornek.txt --auto-schema -o cikti_kg.json
-drg validate cikti_kg.json
+drg extract hikaye.txt --auto-schema --output-format enhancedkg -o hikaye_kg.json
+drg validate hikaye_kg.json
 ```
+
+İlk yayın senaryosu için yaklaşık 20 sayfalık bir hikaye dokümanı ile
+başlayın. DRG dokümanı örnekler, entity type, example, property, relation group
+ve relation example içeren detaylı bir `EnhancedDRGSchema` oluşturur; ardından
+bu şemayı DSPy’ye structured input olarak verip KG çıkarır. Çıktı
+doğrulanabilir, diff alınabilir, version'lanabilir, deterministik sorgulanabilir
+veya export edilebilir bir graph artifact'ıdır.
 
 Python API ile kullanım:
 
@@ -242,18 +249,48 @@ from drg.graph.builders import build_enhanced_kg
 
 schema = EnhancedDRGSchema(
     entity_types=[
-        EntityType(name="Company", description="Şirketler ve kurumlar"),
-        EntityType(name="Person", description="Kişiler"),
+        EntityType(
+            name="Place",
+            description="Hikayedeki mekanlar ve anlamlı sahneler",
+            examples=["eski liman", "arşiv kulesi"],
+            properties={"atmosphere": "duygu veya duyusal nitelik", "role": "hikayedeki işlev"},
+        ),
+        EntityType(
+            name="Artifact",
+            description="Olay örgüsü, hafıza veya sembolik anlam taşıyan nesneler",
+            examples=["gümüş pusula", "mühürlü mektup"],
+            properties={"condition": "gözlenen durum", "significance": "neden önemli olduğu"},
+        ),
+        EntityType(
+            name="Conflict",
+            description="Gerilimler, engeller veya çözülmemiş hikaye problemleri",
+            examples=["kapalı geçit", "bozulmuş ittifak"],
+            properties={"stakes": "kaybedilebilecek şey", "status": "açık/çözülmüş vb."},
+        ),
     ],
     relation_groups=[
         RelationGroup(
-            name="kurulus",
-            relations=[Relation("founded_by", "Company", "Person")],
+            name="narrative_structure",
+            description="Hikaye öğelerinin birbirini nasıl şekillendirdiği",
+            relations=[
+                Relation(
+                    "reveals",
+                    "Artifact",
+                    "Conflict",
+                    description="Bir nesne bir çatışmayı açığa çıkarır veya netleştirir",
+                ),
+                Relation(
+                    "located_in",
+                    "Artifact",
+                    "Place",
+                    description="Bir nesne bir mekanda bulunur veya saklanır",
+                ),
+            ],
         )
     ],
 )
 
-text = "TechCorp, 2015 yılında Jane Doe tarafından kuruldu."
+text = "Arşiv kulesindeki mühürlü mektup, liman kapısının neden kilitli olduğunu gösterdi."
 entities, triples = extract_typed(text, schema)
 kg = build_enhanced_kg(entities_typed=entities, triples=triples, schema=schema, source_text=text)
 
@@ -263,7 +300,7 @@ print(kg.to_json())
 API key ayarlamadan deterministik repo demosunu denemek için:
 
 ```bash
-python examples/full_pipeline_example.py 1example
+python examples/query_layer_example.py
 ```
 
 ## Örnek Galerisi

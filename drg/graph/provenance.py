@@ -58,7 +58,7 @@ class ProvenanceRecord:
         return out
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any] | None) -> "ProvenanceRecord":
+    def from_dict(cls, data: dict[str, Any] | None) -> ProvenanceRecord:
         if not isinstance(data, dict):
             return cls()
         span_raw = data.get("source_span")
@@ -70,12 +70,18 @@ class ProvenanceRecord:
         ):
             span = (span_raw[0], span_raw[1])
         return cls(
-            document_id=data.get("document_id") if isinstance(data.get("document_id"), str) else None,
-            sentence_id=data.get("sentence_id") if isinstance(data.get("sentence_id"), str) else None,
+            document_id=data.get("document_id")
+            if isinstance(data.get("document_id"), str)
+            else None,
+            sentence_id=data.get("sentence_id")
+            if isinstance(data.get("sentence_id"), str)
+            else None,
             chunk_id=data.get("chunk_id") if isinstance(data.get("chunk_id"), str) else None,
             source_span=span,
             snippet=data.get("snippet") if isinstance(data.get("snippet"), str) else None,
-            extracted_at=data.get("extracted_at") if isinstance(data.get("extracted_at"), str) else None,
+            extracted_at=data.get("extracted_at")
+            if isinstance(data.get("extracted_at"), str)
+            else None,
             extractor_version=(
                 data.get("extractor_version")
                 if isinstance(data.get("extractor_version"), str)

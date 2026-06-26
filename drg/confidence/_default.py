@@ -104,7 +104,9 @@ def _schema_allows_relation(
         except Exception:
             logger.debug(
                 "schema relation check failed for rel=%r src=%r dst=%r",
-                rel_name, s_type, o_type,
+                rel_name,
+                s_type,
+                o_type,
                 exc_info=True,
             )
             return False

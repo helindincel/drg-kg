@@ -23,7 +23,7 @@ Quick start::
     training_examples = [
         {"text": "Apple was founded by Steve Jobs.", "expected_entities": [...], "expected_relations": [...]},
     ]
-    optimised_extractor = optimize_extractor(training_examples, config=config)
+    optimised_extractor = optimize_extractor(training_examples, config=config, schema=schema)
 """
 
 from __future__ import annotations
@@ -87,6 +87,20 @@ def _make_dspy_examples(training_data: list[dict[str, Any]]) -> list[Any]:
     return examples
 
 
+def _get_dspy_optimizer(dspy_module, name: str):
+    optimizer = getattr(dspy_module, name, None)
+    if optimizer is not None:
+        return optimizer
+
+    teleprompt = getattr(dspy_module, "teleprompt", None)
+    if teleprompt is not None:
+        optimizer = getattr(teleprompt, name, None)
+        if optimizer is not None:
+            return optimizer
+
+    raise AttributeError(f"DSPy optimizer {name!r} is not available")
+
+
 def _build_metric(config: KGOptimizerConfig):
     """Return a metric callable with weights from config."""
     entity_w = config.entity_weight
@@ -94,7 +108,9 @@ def _build_metric(config: KGOptimizerConfig):
 
     def metric(example, prediction, trace=None):
         return weighted_f1_metric(
-            example, prediction, trace,
+            example,
+            prediction,
+            trace,
             entity_weight=entity_w,
             relation_weight=relation_w,
         )
@@ -107,6 +123,7 @@ def optimize_extractor(
     *,
     config: KGOptimizerConfig | None = None,
     extractor=None,
+    schema=None,
 ) -> Any:
     """Optimise a :class:`~drg.extract.KGExtractor` using DSPy teleprompters.
 
@@ -119,7 +136,10 @@ def optimize_extractor(
         Optimizer configuration.  Defaults applied when ``None``.
     extractor:
         Pre-built :class:`~drg.extract.KGExtractor` instance.  A new one
-        is created when ``None``.
+        is created from ``schema`` when ``None``.
+    schema:
+        Schema used to build a new :class:`~drg.extract.KGExtractor` when
+        ``extractor`` is not supplied.
 
     Returns
     -------
@@ -129,15 +149,17 @@ def optimize_extractor(
         import dspy
     except ImportError as exc:
         raise ImportError(
-            "DSPy is required for the optimizer. "
-            "Install it with: pip install drg-kg[extract]"
+            "DSPy is required for the optimizer. Install it with: pip install drg-kg[extract]"
         ) from exc
 
     cfg = config or KGOptimizerConfig()
 
     if extractor is None:
         from drg.extract import KGExtractor
-        extractor = KGExtractor()
+
+        if schema is None:
+            raise ValueError("schema is required when extractor is not supplied.")
+        extractor = KGExtractor(schema)
 
     examples = _make_dspy_examples(training_data)
     if not examples:
@@ -150,8 +172,10 @@ def optimize_extractor(
     metric = _build_metric(cfg)
 
     if cfg.optimizer_type == "bootstrap":
-        teleprompter = dspy.BootstrapFewShot(
+        BootstrapFewShot = _get_dspy_optimizer(dspy, "BootstrapFewShot")
+        teleprompter = BootstrapFewShot(
             metric=metric,
+            metric_threshold=cfg.metric_threshold,
             max_bootstrapped_demos=cfg.max_bootstrapped_demos,
             max_labeled_demos=cfg.max_labeled_demos,
             teacher_settings=cfg.teacher_settings or {},
@@ -159,11 +183,13 @@ def optimize_extractor(
         return teleprompter.compile(extractor, trainset=trainset)
 
     elif cfg.optimizer_type == "labeled_few_shot":
-        teleprompter = dspy.LabeledFewShot(k=cfg.max_labeled_demos)
+        LabeledFewShot = _get_dspy_optimizer(dspy, "LabeledFewShot")
+        teleprompter = LabeledFewShot(k=cfg.max_labeled_demos)
         return teleprompter.compile(extractor, trainset=trainset)
 
     elif cfg.optimizer_type == "copro":
-        teleprompter = dspy.COPRO(
+        COPRO = _get_dspy_optimizer(dspy, "COPRO")
+        teleprompter = COPRO(
             metric=metric,
             verbose=False,
         )
@@ -175,14 +201,16 @@ def optimize_extractor(
 
     elif cfg.optimizer_type == "mipro":
         try:
-            teleprompter = dspy.MIPROv2(
+            MIPROv2 = _get_dspy_optimizer(dspy, "MIPROv2")
+            teleprompter = MIPROv2(
                 metric=metric,
                 auto="light",
                 num_candidates=cfg.max_bootstrapped_demos,
             )
         except AttributeError:
             # Fall back to MIPRO for older DSPy versions
-            teleprompter = dspy.MIPRO(metric=metric)
+            MIPRO = _get_dspy_optimizer(dspy, "MIPRO")
+            teleprompter = MIPRO(metric=metric)
         return teleprompter.compile(
             extractor,
             trainset=trainset,

@@ -63,7 +63,7 @@ class GraphVersion:
         return out
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "GraphVersion":
+    def from_dict(cls, data: dict[str, Any]) -> GraphVersion:
         return cls(
             version_id=str(data["version_id"]),
             parent_version_id=(
@@ -91,14 +91,16 @@ class VersionManifest:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "VersionManifest":
+    def from_dict(cls, data: dict[str, Any]) -> VersionManifest:
         return cls(
             graph_path=str(data.get("graph_path", "")),
             versions=[GraphVersion.from_dict(v) for v in data.get("versions", [])],
         )
 
     @classmethod
-    def load(cls, graph_path: str | Path, versions_dir: str | Path | None = None) -> "VersionManifest":
+    def load(
+        cls, graph_path: str | Path, versions_dir: str | Path | None = None
+    ) -> VersionManifest:
         path = _manifest_path(graph_path, versions_dir)
         if not path.exists():
             return cls(graph_path=str(graph_path), versions=[])

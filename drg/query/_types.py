@@ -380,5 +380,3 @@ class QueryAnswer:
             "answer": self.answer,
             "provenance": self.provenance.to_dict(),
         }
-
-

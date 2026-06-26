@@ -262,6 +262,40 @@
             font-size: 12px;
             line-height: 1.5;
         }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .metric-card strong {
+            display: block;
+            font-size: 12px;
+            color: #334155;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .metric-detail {
+            margin-top: 4px;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -324,6 +358,13 @@
                 <p>Nodes: <span id="node-count">-</span></p>
                 <p>Edges: <span id="edge-count">-</span></p>
                 <p>Clusters: <span id="cluster-count">-</span></p>
+                <p>Avg degree: <span id="average-degree">-</span></p>
+                <p>Density: <span id="graph-density">-</span></p>
+            </div>
+
+            <div id="evaluation-panel" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #0f172a;">Evaluation v0.1</h3>
+                <div id="evaluation-content" class="muted">Load a graph to see evaluation metrics.</div>
             </div>
 
             <div id="legend" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
@@ -940,6 +981,7 @@
                 maybeAutoSwitchLayoutForHub(data.elements, !!hubSplit);
                 initCytoscape(data.elements);
                 await loadGraphStats();
+                await loadEvaluationSummary();
             } catch (error) {
                 console.error('Error loading graph:', error);
                 setEmptyState(true, 'No graph is loaded. Start the demo server with a sample KG first.');
@@ -965,6 +1007,7 @@
                 maybeAutoSwitchLayoutForHub(data.elements, !!hubSplit);
                 initCytoscape(data.elements);
                 await loadGraphStats();
+                await loadEvaluationSummary();
             } catch (error) {
                 console.error('Error loading communities:', error);
                 setEmptyState(true, 'No community graph is available yet. Load a KG, then try again.');
@@ -979,8 +1022,71 @@
                 document.getElementById('node-count').textContent = stats.node_count;
                 document.getElementById('edge-count').textContent = stats.edge_count;
                 document.getElementById('cluster-count').textContent = stats.cluster_count;
+                document.getElementById('average-degree').textContent = displayMetric(stats.average_degree);
+                document.getElementById('graph-density').textContent = displayMetric(stats.density);
             } catch (error) {
                 console.error('Error loading stats:', error);
+            }
+        }
+
+        function displayMetric(value) {
+            if (value === null || value === undefined) return '-';
+            if (typeof value === 'number') return value.toFixed(value >= 10 ? 1 : 3).replace(/\.?0+$/, '');
+            return String(value);
+        }
+
+        function scorePercent(value) {
+            if (value === null || value === undefined) return '-';
+            return `${Math.round(Number(value) * 100)}%`;
+        }
+
+        function renderTopScores(scores) {
+            const entries = Object.entries(scores || {})
+                .sort((a, b) => Number(b[1]) - Number(a[1]))
+                .slice(0, 4);
+            if (entries.length === 0) return 'No ontology metrics available.';
+            return entries.map(([name, score]) => `${escapeHtml(name)} ${scorePercent(score)}`).join('<br/>');
+        }
+
+        async function loadEvaluationSummary() {
+            const content = document.getElementById('evaluation-content');
+            if (!content) return;
+            try {
+                const response = await fetch('/api/evaluation/summary');
+                if (!response.ok) throw new Error(`Evaluation endpoint returned ${response.status}`);
+                const data = await response.json();
+                const graph = data.graph_statistics || {};
+                const confidence = data.confidence_summary || {};
+                const ontology = data.ontology_evaluation || {};
+                const projection = data.ontology_projection || {};
+
+                content.className = 'metric-grid';
+                content.innerHTML = `
+                    <div class="metric-card">
+                        <strong>Ontology Evaluation</strong>
+                        <div class="metric-value">${scorePercent(ontology.overall_score)}</div>
+                        <div class="metric-detail">${renderTopScores(ontology.per_metric_scores)}</div>
+                    </div>
+                    <div class="metric-card">
+                        <strong>Graph Statistics</strong>
+                        <div class="metric-value">${escapeHtml(graph.node_count ?? '-')} / ${escapeHtml(graph.edge_count ?? '-')}</div>
+                        <div class="metric-detail">nodes / edges · ${escapeHtml(projection.entity_type_count ?? '-')} types · density ${escapeHtml(displayMetric(graph.density))}</div>
+                    </div>
+                    <div class="metric-card">
+                        <strong>Confidence Summary</strong>
+                        <div class="metric-value">${confidence.average === null || confidence.average === undefined ? 'N/A' : scorePercent(confidence.average)}</div>
+                        <div class="metric-detail">coverage ${scorePercent(confidence.coverage || 0)} · scored ${escapeHtml(confidence.total_scored ?? 0)}/${escapeHtml(confidence.total_items ?? 0)}</div>
+                    </div>
+                    <div class="metric-card">
+                        <strong>Evaluation UI</strong>
+                        <div class="metric-value">v0.1</div>
+                        <div class="metric-detail">${escapeHtml(data.evaluation_ui?.has_gold_labels ? 'Gold-label comparison ready.' : 'Graph-quality summary; gold-label F1 needs benchmark artifacts.')}</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading evaluation summary:', error);
+                content.className = 'muted';
+                content.textContent = 'Evaluation summary is not available for the current graph.';
             }
         }
 
@@ -1029,7 +1135,7 @@
                 // Query
                 html += `<div style="margin-bottom: 16px; padding: 12px; background: #f1f5f9; border-radius: 8px; border-left: 4px solid #3b82f6;">`;
                 html += `<strong style="color: #1e293b; display: block; margin-bottom: 4px;">Query:</strong>`;
-                html += `<span style="color: #475569;">${query}</span>`;
+                html += `<span style="color: #475569;">${escapeHtml(query)}</span>`;
                 html += `</div>`;
 
                 // Answer - Clean and concise
@@ -1043,7 +1149,7 @@
 
                     html += `<div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">`;
                     html += `<strong style="color: #1e293b; display: block; margin-bottom: 8px;">Answer:</strong>`;
-                    html += `<p style="color: #166534; margin: 0; line-height: 1.6;">${answerText}</p>`;
+                    html += `<p style="color: #166534; margin: 0; line-height: 1.6;">${escapeHtml(answerText)}</p>`;
                     html += `</div>`;
                 }
 
@@ -1052,7 +1158,7 @@
             } catch (error) {
                 console.error('Error executing query:', error);
                 resultsContent.innerHTML = `<div style="padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444; color: #991b1b;">`;
-                resultsContent.innerHTML += `<strong>Error:</strong> ${error.message}`;
+                resultsContent.innerHTML += `<strong>Error:</strong> ${escapeHtml(error.message)}`;
                 resultsContent.innerHTML += `</div>`;
             }
         }

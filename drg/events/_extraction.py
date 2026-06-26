@@ -14,7 +14,6 @@ opt-in (``extract_events`` is a dedicated entry point).
 from __future__ import annotations
 
 import contextlib
-import json
 import logging
 import os
 from typing import Any
@@ -56,36 +55,19 @@ class RawEventList(BaseModel):
     events: list[RawEvent] = []
 
 
+def _event_types_for_registry(registry: EventTypeRegistry) -> list[dict[str, Any]]:
+    """Return event registry definitions as structured DSPy input data."""
+    return [event_type.to_dict() for event_type in registry]
+
+
 def _build_signature(registry: EventTypeRegistry) -> type:
     """Build a dynamic ``dspy.Signature`` from the registry.
 
-    The schema description embedded in the OutputField is the *only*
-    domain-specific information the LLM ever sees about events — there
-    is no hard-coded prompt anywhere in this module.
+    Event catalogue data is passed as a structured InputField at call time, so
+    the signature does not hide registry data inside OutputField prose.
     """
-    if len(registry) == 0:
-        type_descriptions = "(no event types registered)"
-    else:
-        parts: list[str] = []
-        for type_def in registry:
-            roles_str = ", ".join(
-                f"{r.name}{'?' if not r.required else ''}"
-                f"{':' + '|'.join(r.entity_types) if r.entity_types else ''}"
-                f"{'[]' if r.cardinality == 'many' else ''}"
-                for r in type_def.roles
-            )
-            props_str = ", ".join(f"{k}" for k in type_def.properties.keys())
-            extras = []
-            if props_str:
-                extras.append(f"properties: [{props_str}]")
-            extras_part = " | " + " | ".join(extras) if extras else ""
-            parts.append(
-                f"- {type_def.name}: {type_def.description} | roles: [{roles_str}]{extras_part}"
-            )
-        type_descriptions = "\n".join(parts)
-
     output_desc = (
-        "Return events as a JSON object with key 'events': a list where each item has: "
+        "Extracted events. Each item has: "
         "event_type (one of the registered types), "
         "participants (object mapping role name -> entity name string OR list of entity names), "
         "timestamp (free-form date string from the text or null), "
@@ -94,8 +76,7 @@ def _build_signature(registry: EventTypeRegistry) -> type:
         "evidence_text (short snippet from the text supporting the event, or null), "
         "confidence (float in [0,1] reflecting how confident you are, or null). "
         "Use ONLY the entity names provided in the entities input. Use ONLY registered event_types. "
-        "Output strict JSON, no comments, no trailing commas.\n\n"
-        f"Registered event types:\n{type_descriptions}"
+        "Populate properties only from keys declared by the matching event type."
     )
 
     class EventExtraction(dspy.Signature):
@@ -104,6 +85,12 @@ def _build_signature(registry: EventTypeRegistry) -> type:
         text: str = dspy.InputField(desc="Input text from which to extract events")
         entities: list[tuple[str, str]] = dspy.InputField(
             desc="Known entities as [(name, type), ...]"
+        )
+        event_types: list[dict[str, Any]] = dspy.InputField(
+            desc=(
+                "Registered event type definitions with name, description, roles, "
+                "properties, and examples."
+            )
         )
         events: list[RawEvent] = dspy.OutputField(desc=output_desc)
 
@@ -132,8 +119,41 @@ def _maybe_lm_context(lm: Any | None):
     return contextlib.nullcontext()
 
 
+def _maybe_json_adapter_context():
+    """Use DSPy 3's JSONAdapter for event structured outputs when available."""
+    json_adapter_cls = getattr(dspy, "JSONAdapter", None)
+    if json_adapter_cls is None or isinstance(json_adapter_cls, _Mock):
+        return contextlib.nullcontext()
+
+    settings = getattr(dspy, "settings", None)
+    if settings is not None and getattr(settings, "adapter", None) is not None:
+        return contextlib.nullcontext()
+
+    try:
+        adapter = json_adapter_cls()
+    except Exception:
+        return contextlib.nullcontext()
+
+    ctx_factory = getattr(dspy, "context", None)
+    if ctx_factory is not None and not isinstance(ctx_factory, _Mock):
+        try:
+            return ctx_factory(adapter=adapter)
+        except TypeError:
+            pass
+
+    if settings is not None:
+        sub_ctx = getattr(settings, "context", None)
+        if sub_ctx is not None and not isinstance(sub_ctx, _Mock):
+            try:
+                return sub_ctx(adapter=adapter)
+            except TypeError:
+                pass
+
+    return contextlib.nullcontext()
+
+
 def _coerce_raw_events(raw: Any) -> list[RawEvent]:
-    """Coerce TypedPredictor / Predict output into a list of :class:`RawEvent`."""
+    """Coerce structured ``Predict`` output into a list of :class:`RawEvent`."""
     if isinstance(raw, RawEventList):
         return list(raw.events)
     if isinstance(raw, list):
@@ -184,8 +204,16 @@ def extract_events(
         return []
 
     effective_lm = lm if lm is not None else getattr(getattr(dspy, "settings", None), "lm", None)
+    if effective_lm is None:
+        if os.getenv("DRG_REQUIRE_LM", "").lower() in {"1", "true", "yes"}:
+            raise ExtractionError(
+                "No DSPy LM configured and DRG_REQUIRE_LM is set; cannot extract events."
+            )
+        logger.warning("No DSPy LM configured; returning empty events (mock mode).")
+        return []
 
     Signature = _build_signature(registry)
+    event_types = _event_types_for_registry(registry)
 
     try:
         predictor = dspy.Predict(Signature)
@@ -195,18 +223,12 @@ def extract_events(
         logger.warning("Predictor creation failed for events: %s", exc, exc_info=True)
         return []
 
-    if effective_lm is None:
-        if os.getenv("DRG_REQUIRE_LM", "").lower() in {"1", "true", "yes"}:
-            raise ExtractionError(
-                "No DSPy LM configured and DRG_REQUIRE_LM is set; cannot extract events."
-            )
-        logger.warning("No DSPy LM configured; returning empty events (mock mode).")
-        return []
-
-    with _maybe_lm_context(lm):
+    with contextlib.ExitStack() as stack:
+        stack.enter_context(_maybe_lm_context(lm))
+        stack.enter_context(_maybe_json_adapter_context())
         try:
             throttle_llm_calls()
-            result = predictor(text=text, entities=entities_typed)
+            result = predictor(text=text, entities=entities_typed, event_types=event_types)
             raw_events = _coerce_raw_events(getattr(result, "events", []))
         except Exception as exc:
             if is_strict():

@@ -21,6 +21,7 @@ def test_enhanced_schema_from_dict_parses_minimal():
                         "target": "Company",
                         "description": "Person works at company",
                         "detail": "Employment relationship",
+                        "properties": {"since": "Start time of the relationship"},
                     }
                 ],
             }
@@ -32,6 +33,11 @@ def test_enhanced_schema_from_dict_parses_minimal():
     assert len(schema.entity_types) == 2
     assert len(schema.relation_groups) == 1
     assert schema.is_valid_relation("works_at", "Person", "Company")
+    relation = schema.relation_groups[0].relations[0]
+    assert relation.properties["since"] == "Start time of the relationship"
+    assert schema.to_dict()["relation_groups"][0]["relations"][0]["properties"] == {
+        "since": "Start time of the relationship"
+    }
 
 
 def test_enhanced_schema_from_dict_accepts_src_dst_aliases():

@@ -18,7 +18,6 @@ Run::
 
 from __future__ import annotations
 
-import json
 import sys
 import tempfile
 from pathlib import Path
@@ -55,7 +54,7 @@ def _make_good_predictions(suite) -> list[PipelinePrediction]:
     preds = []
     for ds in suite.datasets:
         # Inject one false positive to avoid perfect 1.0 (more realistic)
-        entities = list(ds.gold_entities) + [{"name": "Spurious Entity", "type": "Unknown"}]
+        entities = [*ds.gold_entities, {"name": "Spurious Entity", "type": "Unknown"}]
         relations = list(ds.gold_relations)
         preds.append(
             PipelinePrediction(
@@ -98,8 +97,10 @@ def main() -> None:
     print(f"  Datasets    : {len(suite.datasets)}")
     for ds in suite.datasets:
         task = ds.metadata.get("task") or ds.metadata.get("domain") or "general"
-        print(f"    - {ds.name} ({task}): {len(ds.gold_entities)} gold entities, "
-              f"{len(ds.gold_relations)} gold relations")
+        print(
+            f"    - {ds.name} ({task}): {len(ds.gold_entities)} gold entities, "
+            f"{len(ds.gold_relations)} gold relations"
+        )
 
     # ------------------------------------------------------------------
     # 2. Evaluate "good" predictions
@@ -161,8 +162,10 @@ def main() -> None:
     print(f"  Overall regressed: {comparison.overall_regressed}")
     for delta in comparison.deltas:
         status = "REGRESSION" if delta.regressed else "OK"
-        print(f"  {delta.metric:20s}  {delta.baseline:.4f} → {delta.candidate:.4f}  "
-              f"(Δ{delta.delta:+.4f})  {status}")
+        print(
+            f"  {delta.metric:20s}  {delta.baseline:.4f} → {delta.candidate:.4f}  "
+            f"(Δ{delta.delta:+.4f})  {status}"
+        )
 
     print()
     print(render_regression_markdown(comparison))

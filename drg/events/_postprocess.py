@@ -15,9 +15,16 @@ import hashlib
 import logging
 import re
 from datetime import datetime, timezone
+from importlib import metadata
 from typing import Any
 
-from .._version import __version__ as _drg_version  # type: ignore[import-not-found]
+try:
+    from .._version import __version__ as _drg_version  # type: ignore[import-not-found]
+except ModuleNotFoundError:  # pragma: no cover - depends on source checkout/build state
+    try:
+        _drg_version = metadata.version("drg-kg")
+    except metadata.PackageNotFoundError:
+        _drg_version = "unknown"
 from ._types import (
     Event,
     EventProvenance,

@@ -15,7 +15,6 @@ from __future__ import annotations
 import asyncio as _asyncio
 import contextlib
 import functools as _functools
-import json
 import os
 from collections import Counter
 from typing import Any
@@ -38,7 +37,6 @@ from ._chunk_context import (
 from ._heuristics import (
     _infer_relation_metadata_heuristic,
 )
-from ._parsing import _parse_json_output
 from ._relations import (
     REVERSE_RELATION_PATTERNS,
     _infer_reverse_relation_name,
@@ -57,8 +55,8 @@ from ._signatures import (
     _create_relation_signature,
 )
 from ._types import (
-    EntityMention,
     EntityList,
+    EntityMention,
     ExtractedRelation,
     ExtractionResult,
     RelationList,
@@ -137,6 +135,39 @@ def _maybe_lm_context(lm: Any | None):
     return contextlib.nullcontext()
 
 
+def _maybe_json_adapter_context():
+    """Use DSPy 3's JSONAdapter for structured Pydantic outputs when available."""
+    json_adapter_cls = getattr(dspy, "JSONAdapter", None)
+    if json_adapter_cls is None or isinstance(json_adapter_cls, _Mock):
+        return contextlib.nullcontext()
+
+    settings = getattr(dspy, "settings", None)
+    if settings is not None and getattr(settings, "adapter", None) is not None:
+        return contextlib.nullcontext()
+
+    try:
+        adapter = json_adapter_cls()
+    except Exception:
+        return contextlib.nullcontext()
+
+    ctx_factory = getattr(dspy, "context", None)
+    if ctx_factory is not None and not isinstance(ctx_factory, _Mock):
+        try:
+            return ctx_factory(adapter=adapter)
+        except TypeError:
+            pass
+
+    if settings is not None:
+        sub_ctx = getattr(settings, "context", None)
+        if sub_ctx is not None and not isinstance(sub_ctx, _Mock):
+            try:
+                return sub_ctx(adapter=adapter)
+            except TypeError:
+                pass
+
+    return contextlib.nullcontext()
+
+
 def _should_return_dspy_prediction() -> bool:
     """Decide whether it's safe/meaningful to return a real ``dspy.Prediction``.
 
@@ -163,7 +194,9 @@ def _coerce_entity_mentions(raw_entities: Any) -> list[EntityMention]:
     if raw_entities is None:
         return []
     if not isinstance(raw_entities, list):
-        raise ExtractionError(f"Entity extraction returned invalid type: {type(raw_entities).__name__}")
+        raise ExtractionError(
+            f"Entity extraction returned invalid type: {type(raw_entities).__name__}"
+        )
 
     mentions: list[EntityMention] = []
     for item in raw_entities:
@@ -171,7 +204,9 @@ def _coerce_entity_mentions(raw_entities: Any) -> list[EntityMention]:
             mentions.append(item)
         elif hasattr(item, "model_dump"):
             data = item.model_dump()
-            mentions.append(EntityMention(name=str(data["name"]), type=str(data["type"])))
+            mentions.append(
+                EntityMention(**{**data, "name": str(data["name"]), "type": str(data["type"])})
+            )
         elif isinstance(item, dict):
             name = item.get("name") or item.get("entity") or item.get("entity_name")
             etype = item.get("type") or item.get("entity_type")
@@ -193,6 +228,7 @@ def _entity_mentions_to_dspy_input(mentions: list[EntityMention]) -> list[dict[s
             "type": m.type,
             "aliases": m.aliases,
             "evidence": m.evidence,
+            "properties": m.properties,
             "metadata": m.metadata,
         }
         for m in mentions
@@ -434,12 +470,14 @@ class KGExtractor(dspy.Module):
         text: str,
         context_entities: list[tuple[str, str]] | None = None,
     ) -> ExtractionResult:
-        """Extract entities and relations using DSPy TypedPredictor.
+        """Extract entities and relations using DSPy structured outputs.
 
         When ``self.lm`` is set (via constructor injection), the extraction is
         scoped to that LM; otherwise the globally configured DSPy LM is used.
         """
-        with _maybe_lm_context(self.lm):
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(_maybe_lm_context(self.lm))
+            stack.enter_context(_maybe_json_adapter_context())
             return self._forward_impl(text, context_entities)
 
     def _forward_impl(
@@ -453,7 +491,9 @@ class KGExtractor(dspy.Module):
 
         entity_result = self.entity_extractor(text=text, entity_types=self._entity_types)
         entities_raw = (
-            entity_result.entities if isinstance(entity_result, EntityList) else getattr(entity_result, "entities", [])
+            entity_result.entities
+            if isinstance(entity_result, EntityList)
+            else getattr(entity_result, "entities", [])
         )
         entity_mentions = _coerce_entity_mentions(entities_raw)
         entities_list = _entity_mentions_to_tuples(entity_mentions)
@@ -489,7 +529,9 @@ class KGExtractor(dspy.Module):
             relation_schema=self._relation_schema,
         )
         relations_raw = (
-            relation_result.relations if isinstance(relation_result, RelationList) else getattr(relation_result, "relations", [])
+            relation_result.relations
+            if isinstance(relation_result, RelationList)
+            else getattr(relation_result, "relations", [])
         )
         extracted_relations = _coerce_extracted_relations(relations_raw)
         relations_list = [_relation_to_triple(rel) for rel in extracted_relations]
@@ -536,7 +578,9 @@ class KGExtractor(dspy.Module):
         entities: list[tuple[str, str]],
     ) -> ExtractionResult:
         """Extract relations once over the document using structured chunk inputs."""
-        with _maybe_lm_context(self.lm):
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(_maybe_lm_context(self.lm))
+            stack.enter_context(_maybe_json_adapter_context())
             entity_mentions = _tuples_to_entity_mentions(entities)
             result = self.document_relation_extractor(
                 document_chunks=_chunks_to_dspy_input(chunks),
@@ -544,7 +588,9 @@ class KGExtractor(dspy.Module):
                 relation_schema=self._relation_schema,
             )
             raw_relations = (
-                result.relations if isinstance(result, RelationList) else getattr(result, "relations", [])
+                result.relations
+                if isinstance(result, RelationList)
+                else getattr(result, "relations", [])
             )
             return _relations_to_extraction_result(
                 entities=entities,
@@ -560,7 +606,9 @@ class KGExtractor(dspy.Module):
         existing_relations: list[tuple[str, str, str]],
     ) -> ExtractionResult:
         """Infer implicit relations with a typed DSPy program."""
-        with _maybe_lm_context(self.lm):
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(_maybe_lm_context(self.lm))
+            stack.enter_context(_maybe_json_adapter_context())
             entity_mentions = _tuples_to_entity_mentions(entities)
             result = self.implicit_relation_extractor(
                 text=text,
@@ -569,7 +617,9 @@ class KGExtractor(dspy.Module):
                 relation_schema=self._relation_schema,
             )
             raw_relations = (
-                result.relations if isinstance(result, RelationList) else getattr(result, "relations", [])
+                result.relations
+                if isinstance(result, RelationList)
+                else getattr(result, "relations", [])
             )
             return _relations_to_extraction_result(
                 entities=entities,
@@ -585,7 +635,9 @@ class KGExtractor(dspy.Module):
         relations: list[tuple[str, str, str]],
     ) -> ExtractionResult:
         """Resolve relation endpoints with a typed DSPy coreference pass."""
-        with _maybe_lm_context(self.lm):
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(_maybe_lm_context(self.lm))
+            stack.enter_context(_maybe_json_adapter_context())
             entity_mentions = _tuples_to_entity_mentions(entities)
             result = self.coreference_resolver(
                 text=text,
@@ -787,12 +839,16 @@ def extract_from_chunks(
                 )
 
         # PASS 2: extract relations at document scope with canonical entities.
-        logger.info(f"Pass 2: Extracting document relations with {len(all_entities)} global entities...")
+        logger.info(
+            f"Pass 2: Extracting document relations with {len(all_entities)} global entities..."
+        )
         all_triples = []
 
         if enable_cross_chunk_relationships:
             if not hasattr(extractor, "extract_document_relations"):
-                raise ExtractionError("Extractor does not support document-level relation extraction")
+                raise ExtractionError(
+                    "Extractor does not support document-level relation extraction"
+                )
             throttle_llm_calls()
             document_result = extractor.extract_document_relations(
                 chunks=_chunks_to_dspy_input(chunk_texts),
@@ -834,13 +890,12 @@ def extract_from_chunks(
                     )
                     if _snippets:
                         augmented_text = (
-                            chunk_text
-                            + "\n\n[Cross-document context]\n"
-                            + "\n".join(_snippets)
+                            chunk_text + "\n\n[Cross-document context]\n" + "\n".join(_snippets)
                         )
                         logger.debug(
                             "Injected %d cross-chunk snippet(s) into chunk %d.",
-                            len(_snippets), i,
+                            len(_snippets),
+                            i,
                         )
 
                 throttle_llm_calls()
@@ -889,13 +944,12 @@ def extract_from_chunks(
                 )
                 if _snippets:
                     augmented_text = (
-                        chunk_text
-                        + "\n\n[Cross-document context]\n"
-                        + "\n".join(_snippets)
+                        chunk_text + "\n\n[Cross-document context]\n" + "\n".join(_snippets)
                     )
                     logger.debug(
                         "Injected %d cross-chunk snippet(s) into single-pass chunk %d.",
-                        len(_snippets), i,
+                        len(_snippets),
+                        i,
                     )
 
             logger.info(f"Processing chunk {i + 1}/{len(chunks)}...")
@@ -937,11 +991,16 @@ def extract_from_chunks(
 
         if enable_cross_chunk_relationships and all_entities:
             if not hasattr(extractor, "extract_document_relations"):
-                raise ExtractionError("Extractor does not support document-level relation extraction")
+                raise ExtractionError(
+                    "Extractor does not support document-level relation extraction"
+                )
             throttle_llm_calls()
             document_result = extractor.extract_document_relations(
                 chunks=_chunks_to_dspy_input(
-                    [chunk.get("text", "") if isinstance(chunk, dict) else str(chunk) for chunk in chunks]
+                    [
+                        chunk.get("text", "") if isinstance(chunk, dict) else str(chunk)
+                        for chunk in chunks
+                    ]
                 ),
                 entities=_dedupe_preserve_order(all_entities),
             )

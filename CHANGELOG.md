@@ -304,7 +304,8 @@ to land on a coherent, production-leaning foundation.
   `neo4j_exporter.py`) is intentionally excluded from coverage gating —
   exercised end-to-end but not unit-tested.
 - Integration tests require live LLM credentials and are skipped in CI.
-- DSPy 3.x is not supported; pinned to `>=2.5.0,<3.0.0`.
+- The original alpha targeted DSPy 2.x. Current unreleased work targets
+  DSPy 3.x via the `>=3.2.1,<4.0.0` optional extraction extra.
 
 [Unreleased]: https://github.com/helindincel/drg-kg/compare/v0.1.0a0...HEAD
 [0.1.0a0]: https://github.com/helindincel/drg-kg/releases/tag/v0.1.0a0

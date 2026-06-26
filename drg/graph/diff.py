@@ -22,6 +22,43 @@ def _cluster_key(cluster: dict[str, Any]) -> str:
     return str(cluster.get("id", ""))
 
 
+def _metadata_value(item: dict[str, Any], key: str) -> Any:
+    metadata = item.get("metadata")
+    if isinstance(metadata, dict) and key in metadata:
+        return metadata.get(key)
+    return item.get(key)
+
+
+def _provenance_value(item: dict[str, Any]) -> Any:
+    metadata = item.get("metadata")
+    if isinstance(metadata, dict):
+        return metadata.get("provenance") or {
+            key: metadata.get(key)
+            for key in ("source_ref", "source_documents")
+            if metadata.get(key) is not None
+        }
+    return None
+
+
+def _semantic_changes(
+    old: dict[str, Any], new: dict[str, Any], fields: tuple[str, ...]
+) -> list[str]:
+    changed: list[str] = []
+    for field_name in fields:
+        if field_name == "provenance":
+            old_value = _provenance_value(old)
+            new_value = _provenance_value(new)
+        elif field_name == "evidence":
+            old_value = _metadata_value(old, "evidence")
+            new_value = _metadata_value(new, "evidence")
+        else:
+            old_value = old.get(field_name)
+            new_value = new.get(field_name)
+        if old_value != new_value:
+            changed.append(field_name)
+    return changed
+
+
 @dataclass
 class SnapshotDiff:
     """Diff between two EnhancedKG JSON snapshots."""
@@ -35,6 +72,8 @@ class SnapshotDiff:
     added_clusters: list[str] = field(default_factory=list)
     removed_clusters: list[str] = field(default_factory=list)
     changed_clusters: list[str] = field(default_factory=list)
+    node_semantic_changes: list[dict[str, Any]] = field(default_factory=list)
+    edge_semantic_changes: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def changed(self) -> bool:
@@ -49,6 +88,8 @@ class SnapshotDiff:
                 self.added_clusters,
                 self.removed_clusters,
                 self.changed_clusters,
+                self.node_semantic_changes,
+                self.edge_semantic_changes,
             )
         )
 
@@ -63,6 +104,8 @@ class SnapshotDiff:
             "added_clusters": len(self.added_clusters),
             "removed_clusters": len(self.removed_clusters),
             "changed_clusters": len(self.changed_clusters),
+            "node_semantic_changes": len(self.node_semantic_changes),
+            "edge_semantic_changes": len(self.edge_semantic_changes),
         }
 
     def to_dict(self) -> dict[str, Any]:
@@ -78,6 +121,16 @@ class SnapshotDiff:
             "added_clusters": self.added_clusters,
             "removed_clusters": self.removed_clusters,
             "changed_clusters": self.changed_clusters,
+            "node_semantic_changes": self.node_semantic_changes,
+            "edge_semantic_changes": [
+                {
+                    **change,
+                    "edge": list(change["edge"])
+                    if isinstance(change.get("edge"), tuple)
+                    else change.get("edge"),
+                }
+                for change in self.edge_semantic_changes
+            ],
         }
 
 
@@ -101,6 +154,35 @@ def diff_graph_data(old: dict[str, Any], new: dict[str, Any]) -> SnapshotDiff:
         if isinstance(cluster, dict)
     }
 
+    node_semantic_changes = [
+        {"node": node_id, "fields": fields}
+        for node_id in sorted(set(old_nodes) & set(new_nodes))
+        if (
+            fields := _semantic_changes(
+                old_nodes[node_id],
+                new_nodes[node_id],
+                ("type", "confidence", "provenance", "evidence"),
+            )
+        )
+    ]
+    edge_semantic_changes = [
+        {"edge": edge_key, "fields": fields}
+        for edge_key in sorted(set(old_edges) & set(new_edges))
+        if (
+            fields := _semantic_changes(
+                old_edges[edge_key],
+                new_edges[edge_key],
+                (
+                    "relationship_type",
+                    "relationship_detail",
+                    "confidence",
+                    "provenance",
+                    "evidence",
+                ),
+            )
+        )
+    ]
+
     return SnapshotDiff(
         added_nodes=sorted(set(new_nodes) - set(old_nodes)),
         removed_nodes=sorted(set(old_nodes) - set(new_nodes)),
@@ -123,4 +205,6 @@ def diff_graph_data(old: dict[str, Any], new: dict[str, Any]) -> SnapshotDiff:
             for cluster_id in set(old_clusters) & set(new_clusters)
             if old_clusters[cluster_id] != new_clusters[cluster_id]
         ),
+        node_semantic_changes=node_semantic_changes,
+        edge_semantic_changes=edge_semantic_changes,
     )

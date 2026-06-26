@@ -83,11 +83,7 @@ class MultiDocumentReasoner:
         self._rules = (
             rules
             if rules is not None
-            else [
-                r
-                for r in _DEFAULT_RULES
-                if r.name not in self._config.disabled_rules
-            ]
+            else [r for r in _DEFAULT_RULES if r.name not in self._config.disabled_rules]
         )
 
     # ------------------------------------------------------------------
@@ -96,7 +92,7 @@ class MultiDocumentReasoner:
 
     def reason(
         self,
-        kg: "EnhancedKG",
+        kg: EnhancedKG,
         *,
         document_id: str | None = None,
         record_history: bool | None = None,
@@ -123,9 +119,7 @@ class MultiDocumentReasoner:
             Summary of what was inferred (and added, if not dry_run).
         """
         should_record = (
-            record_history
-            if record_history is not None
-            else self._config.record_history
+            record_history if record_history is not None else self._config.record_history
         )
 
         all_candidates: list[InferredEdge] = []
@@ -138,9 +132,7 @@ class MultiDocumentReasoner:
                 rules_applied.append(rule.name)
 
         # Filter by confidence
-        passing = [
-            c for c in all_candidates if c.confidence >= self._config.min_confidence
-        ]
+        passing = [c for c in all_candidates if c.confidence >= self._config.min_confidence]
         skipped = len(all_candidates) - len(passing)
 
         # Deduplicate by (source, relationship_type, target), keeping highest confidence
@@ -177,7 +169,7 @@ class MultiDocumentReasoner:
 
     def _write_edges(
         self,
-        kg: "EnhancedKG",
+        kg: EnhancedKG,
         candidates: list[InferredEdge],
         document_id: str | None,
     ) -> int:
@@ -212,13 +204,13 @@ class MultiDocumentReasoner:
                 kg.add_edge(edge)
                 existing_keys.add(key)
                 written += 1
-            except Exception:  # noqa: BLE001 — graph may reject duplicates
+            except Exception:
                 pass
 
         return written
 
     @staticmethod
-    def _record_history(kg: "EnhancedKG", report: InferenceReport) -> None:
+    def _record_history(kg: EnhancedKG, report: InferenceReport) -> None:
         """Append a reasoning history entry to ``kg.metadata``."""
         meta: dict[str, Any] = dict(getattr(kg, "metadata", {}) or {})
         history: list[dict[str, Any]] = list(meta.get("reasoning_history") or [])

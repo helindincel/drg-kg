@@ -4,7 +4,7 @@ DRG benchmark artifacts are designed to answer five adoption questions:
 
 - How accurate is extraction on a known gold dataset?
 - How does a candidate run compare with a baseline?
-- What are the latency, throughput, and memory costs?
+- What are the wall-clock timing costs?
 - Can a large dataset run be reproduced?
 - Can external systems be scored with the same metrics?
 
@@ -21,10 +21,10 @@ drg eval run examples/benchmarks/synthetic_kg_benchmark.json \
 
 The JSON report includes:
 
-- `aggregate`: extraction, graph, reasoning, and overall scores.
-- `datasets[].components`: per-component metrics and diagnostics.
-- `datasets[].metadata.performance`: per-dataset wall time, p50/p95 latency, Python heap, optional process RSS, and throughput.
-- `metadata.performance`: run-level latency and peak-memory summary.
+- `aggregate`: extraction F1 plus entity, relation, event, and evidence F1.
+- `entity_metrics`, `relation_metrics`, `event_metrics`, `reasoning_metrics`, and `evidence_metrics`: precision/recall/F1 details.
+- `per_dataset`: per-dataset F1 scores, basic diagnostics, and optional elapsed seconds.
+- `performance`: run-level `mean_seconds`, `total_seconds`, and `dataset_count` when `--measure-performance` is used.
 
 ## Extraction Accuracy
 
@@ -33,11 +33,19 @@ The extraction report separates:
 - entity extraction precision, recall, and F1
 - relationship extraction precision, recall, and F1
 - event extraction precision, recall, and F1
+- evidence precision, recall, and F1
+- confidence calibration with ECE, Brier score, and reliability bins
 - graph coverage and orphan-node rate
 
 Failure diagnostics classify common misses as `missing_entity`, `wrong_type`,
 `missing_relation`, `wrong_relation_type`, `hallucinated_entity`,
 `hallucinated_edge`, `missing_event`, or `extra_event`.
+
+Gold datasets can include `documents`, `gold_evidence`, entity aliases, spans,
+provenance blocks, event participants, timestamps, and difficulty/domain
+metadata. These fields let the same benchmark score single-document extraction,
+multi-document merge quality, incremental runs, evidence faithfulness, and
+confidence calibration.
 
 ## Large Dataset Runs
 
@@ -83,7 +91,8 @@ JSON:
     "dataset_name": {
       "entities": [["Apple", "Company"]],
       "relations": [["Apple", "ACQUIRED", "Beats"]],
-      "events": []
+      "events": [],
+      "evidence": []
     }
   }
 }
@@ -102,7 +111,19 @@ drg eval run examples/benchmarks/corporate_acquisition_benchmark.json \
 Compare two reports with:
 
 ```bash
-drg eval compare reports/drg.json reports/external-baseline.json -o reports/drg_vs_external.md
+drg eval compare reports/drg.json reports/external-baseline.json \
+  -o reports/drg_vs_external.md \
+  --fail-on-regression
+```
+
+Use a thresholds file when different metrics or datasets need different release
+tolerances:
+
+```json
+{
+  "metric_thresholds": {"entity_f1": 0.01, "relation_f1": 0.02},
+  "dataset_thresholds": {"corporate_acquisition_benchmark": 0.03}
+}
 ```
 
 For fair comparisons, keep corpus, model budget, chunking assumptions, and

@@ -33,7 +33,8 @@ Graph mapping
 
 from __future__ import annotations
 
-from ._extraction import extract_events
+from typing import TYPE_CHECKING
+
 from ._graph_mapping import (
     EVENT_LOCATION_EDGE_TYPE,
     EVENT_NODE_TYPE_PREFIX,
@@ -71,6 +72,9 @@ from ._types import (
     TimestampPrecision,
 )
 
+if TYPE_CHECKING:
+    from ._extraction import extract_events
+
 __all__ = [
     "EVENT_LOCATION_EDGE_TYPE",
     "EVENT_NODE_TYPE_PREFIX",
@@ -102,3 +106,13 @@ __all__ = [
     "parse_timestamp",
     "required_role_coverage",
 ]
+
+
+def __getattr__(name: str):
+    """Lazy-load DSPy-backed extraction while keeping event data imports light."""
+    if name == "extract_events":
+        from ._extraction import extract_events
+
+        globals()[name] = extract_events
+        return extract_events
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

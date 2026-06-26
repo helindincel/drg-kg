@@ -90,7 +90,7 @@ class TestKGExtractor:
             relations=[Relation("works_at", "Person", "Company")],
         )
 
-        # Mock TypedPredictor
+        # Mock structured predictors
         mock_entity_result = Mock()
         mock_entity_result.entities = [("John", "Person"), ("Tesla", "Company")]
 
