@@ -1,0 +1,1636 @@
+{
+  "nodes": [
+    {
+      "id": "Dr. Elena Vasquez",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Dr. Marcus Chen",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Dr. Sarah Mitchell",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "James Morrison",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s20",
+          "source_span": [
+            2120,
+            2180
+          ],
+          "snippet": "With the help of her trusted assistant, James Morrison, Dr.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "With the help of her trusted assistant, James Morrison, Dr.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Alex Rivera",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s47",
+          "source_span": [
+            4718,
+            4872
+          ],
+          "snippet": "Led by a former council operative named Alex Rivera, the Resistance had been fighting against the misuse of cognitive enhancement technologies for years.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Led by a former council operative named Alex Rivera, the Resistance had been fighting against the misuse of cognitive enhancement technologies for years.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "ARIES",
+      "type": "AI_System",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s23",
+          "source_span": [
+            2420,
+            2592
+          ],
+          "snippet": "Its walls were lined with advanced computing systems, holographic displays, and life support mechanisms that had been maintained by an autonomous AI caretaker named ARIES.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Its walls were lined with advanced computing systems, holographic displays, and life support mechanisms that had been maintained by an autonomous AI caretaker named ARIES.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Institute of Cognitive Enhancement",
+      "type": "Organization",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s2",
+          "source_span": [
+            114,
+            352
+          ],
+          "snippet": "Elena Vasquez, a brilliant neuroscientist working at the Institute of Cognitive Enhancement, had spent the past decade developing a revolutionary technology that could directly interface human minds with artificial intelligence networks.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Elena Vasquez, a brilliant neuroscientist working at the Institute of Cognitive Enhancement, had spent the past decade developing a revolutionary technology that could directly interface human minds with artificial intelligence networks.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Global Security Council",
+      "type": "Organization",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s15",
+          "source_span": [
+            1537,
+            1673
+          ],
+          "snippet": "The Global Security Council, concerned about the potential military applications of such technology, began monitoring her work closely.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The Global Security Council, concerned about the potential military applications of such technology, began monitoring her work closely.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "TechnoCorp Alliance",
+      "type": "Organization",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s16",
+          "source_span": [
+            1673,
+            1856
+          ],
+          "snippet": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Resistance Network",
+      "type": "Organization",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s46",
+          "source_span": [
+            4548,
+            4718
+          ],
+          "snippet": "Vasquez contacted the Resistance Network, an underground organization dedicated to preserving human autonomy and freedom in the face of increasing technological control.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Vasquez contacted the Resistance Network, an underground organization dedicated to preserving human autonomy and freedom in the face of increasing technological control.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Free Neural Network Foundation",
+      "type": "Organization",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s71",
+          "source_span": [
+            6808,
+            6985
+          ],
+          "snippet": "Vasquez established the Free Neural Network Foundation, an organization dedicated to ensuring that cognitive enhancement technologies would be developed and deployed ethically.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Vasquez established the Free Neural Network Foundation, an organization dedicated to ensuring that cognitive enhancement technologies would be developed and deployed ethically.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Neural Link Protocol",
+      "type": "Technology",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            352,
+            557
+          ],
+          "snippet": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Nanites",
+      "type": "Technology",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s10",
+          "source_span": [
+            953,
+            1088
+          ],
+          "snippet": "The Neural Link Protocol operated through a network of nanites—microscopic robots—that could be safely introduced into the human brain.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The Neural Link Protocol operated through a network of nanites—microscopic robots—that could be safely introduced into the human brain.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Counter-protocol",
+      "type": "Technology",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s49",
+          "source_span": [
+            4907,
+            5072
+          ],
+          "snippet": "Vasquez developed a counter-protocol that could neutralize the council's surveillance network while preserving the beneficial aspects of the Neural Link technology.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Vasquez developed a counter-protocol that could neutralize the council's surveillance network while preserving the beneficial aspects of the Neural Link technology.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Augmented Reality Systems",
+      "type": "Technology",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s109",
+          "source_span": [
+            11602,
+            11801
+          ],
+          "snippet": "New generations of the Neural Link Protocol integrated seamlessly with other emerging technologies, including advanced prosthetics, augmented reality systems, and autonomous transportation networks.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "New generations of the Neural Link Protocol integrated seamlessly with other emerging technologies, including advanced prosthetics, augmented reality systems, and autonomous transportation networks.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Neo-Paris",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            110
+          ],
+          "snippet": "In the year 2045, the city of Neo-Paris stood as a testament to human ingenuity and technological advancement.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "In the year 2045, the city of Neo-Paris stood as a testament to human ingenuity and technological advancement.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Hidden Laboratory",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s19",
+          "source_span": [
+            1986,
+            2120
+          ],
+          "snippet": "The message contained coordinates to a hidden laboratory beneath the ruins of Old Paris, where she could continue her work in secret.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The message contained coordinates to a hidden laboratory beneath the ruins of Old Paris, where she could continue her work in secret.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Council's Headquarters",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s50",
+          "source_span": [
+            5072,
+            5246
+          ],
+          "snippet": "This required infiltrating the council's headquarters—a towering structure that dominated Neo-Paris's skyline—and uploading the counter-protocol directly into their systems.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "This required infiltrating the council's headquarters—a towering structure that dominated Neo-Paris's skyline—and uploading the counter-protocol directly into their systems.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Old Paris",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s19",
+          "source_span": [
+            1986,
+            2120
+          ],
+          "snippet": "The message contained coordinates to a hidden laboratory beneath the ruins of Old Paris, where she could continue her work in secret.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The message contained coordinates to a hidden laboratory beneath the ruins of Old Paris, where she could continue her work in secret.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Technological District",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s4",
+          "source_span": [
+            559,
+            681
+          ],
+          "snippet": "The institute, located in the heart of Neo-Paris's technological district, had become the epicenter of cognitive research.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The institute, located in the heart of Neo-Paris's technological district, had become the epicenter of cognitive research.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Neuroscience",
+      "type": "Field_Of_Study",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s92",
+          "source_span": [
+            9515,
+            9686
+          ],
+          "snippet": "Scientists from diverse fields—neuroscience, artificial intelligence, ethics, psychology, and sociology—came together to explore the implications of human-AI integration.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Scientists from diverse fields—neuroscience, artificial intelligence, ethics, psychology, and sociology—came together to explore the implications of human-AI integration.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Quantum Computing",
+      "type": "Field_Of_Study",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s7",
+          "source_span": [
+            730,
+            783
+          ],
+          "snippet": "Marcus Chen, a quantum computing specialist, and Dr.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Marcus Chen, a quantum computing specialist, and Dr.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Consciousness Mapping",
+      "type": "Field_Of_Study",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s8",
+          "source_span": [
+            783,
+            835
+          ],
+          "snippet": "Sarah Mitchell, an expert in consciousness mapping.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Sarah Mitchell, an expert in consciousness mapping.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Human-AI Integration",
+      "type": "Field_Of_Study",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s9",
+          "source_span": [
+            835,
+            951
+          ],
+          "snippet": "Together, they formed a research team that had made significant contributions to the field of human-AI integration.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Together, they formed a research team that had made significant contributions to the field of human-AI integration.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Technology Ethics",
+      "type": "Field_Of_Study",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s115",
+          "source_span": [
+            12443,
+            12567
+          ],
+          "snippet": "The story of the Neural Link Protocol became a foundational text in courses on technology ethics and the philosophy of mind.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The story of the Neural Link Protocol became a foundational text in courses on technology ethics and the philosophy of mind.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Breakthrough",
+      "type": "Event",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            352,
+            557
+          ],
+          "snippet": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Infiltration Mission",
+      "type": "Event",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s51",
+          "source_span": [
+            5248,
+            5285
+          ],
+          "snippet": "The infiltration mission involved Dr.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The infiltration mission involved Dr.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Great Climate Shift",
+      "type": "Event",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s22",
+          "source_span": [
+            2276,
+            2420
+          ],
+          "snippet": "The underground laboratory was a marvel of engineering, built during the early 21st century and abandoned after the Great Climate Shift of 2030.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The underground laboratory was a marvel of engineering, built during the early 21st century and abandoned after the Great Climate Shift of 2030.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Collective Consciousness",
+      "type": "Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s38",
+          "source_span": [
+            3708,
+            3867
+          ],
+          "snippet": "She could feel the collective consciousness of everyone connected to the network, experiencing their emotions, memories, and thoughts as if they were her own.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "She could feel the collective consciousness of everyone connected to the network, experiencing their emotions, memories, and thoughts as if they were her own.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Autonomy",
+      "type": "Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s46",
+          "source_span": [
+            4548,
+            4718
+          ],
+          "snippet": "Vasquez contacted the Resistance Network, an underground organization dedicated to preserving human autonomy and freedom in the face of increasing technological control.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Vasquez contacted the Resistance Network, an underground organization dedicated to preserving human autonomy and freedom in the face of increasing technological control.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Moral Crisis",
+      "type": "Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s43",
+          "source_span": [
+            4302,
+            4353
+          ],
+          "snippet": "This revelation sparked a moral crisis within her.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "This revelation sparked a moral crisis within her.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Enhanced Cognitive Abilities",
+      "type": "Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s12",
+          "source_span": [
+            1223,
+            1448
+          ],
+          "snippet": "Early trials had shown remarkable success, with test subjects reporting enhanced cognitive abilities, instant access to vast information databases, and the ability to communicate telepathically with other linked individuals.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Early trials had shown remarkable success, with test subjects reporting enhanced cognitive abilities, instant access to vast information databases, and the ability to communicate telepathically with other linked individuals.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Surveillance",
+      "type": "Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s44",
+          "source_span": [
+            4353,
+            4508
+          ],
+          "snippet": "She had developed technology meant to enhance human understanding and communication, but it had been perverted into a tool of surveillance and oppression.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "She had developed technology meant to enhance human understanding and communication, but it had been perverted into a tool of surveillance and oppression.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Ethical Responsibility",
+      "type": "Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s77",
+          "source_span": [
+            7657,
+            7869
+          ],
+          "snippet": "The underground laboratory became a research facility open to scientists from around the world, working together to advance human knowledge while maintaining the principles of freedom and ethical responsibility.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The underground laboratory became a research facility open to scientists from around the world, working together to advance human knowledge while maintaining the principles of freedom and ethical responsibility.",
+        "source": "example_2_schema_preview",
+        "note": "Preview KG generated from example_2 schema examples and explicit story concepts."
+      },
+      "confidence": 0.9
+    }
+  ],
+  "edges": [
+    {
+      "source": "Dr. Elena Vasquez",
+      "target": "Institute of Cognitive Enhancement",
+      "relationship_type": "works_at",
+      "relationship_detail": "… of Neo-Paris stood as a testament to human ingenuity and technological advancement. Dr. Elena Vasquez, a brilliant neuroscientist working at the Institute of Cognitive Enhancement, had spent the past decade developing a …",
+      "metadata": {
+        "triple": [
+          "Dr. Elena Vasquez",
+          "works_at",
+          "Institute of Cognitive Enhancement"
+        ],
+        "relationship_description": "A person is employed by or affiliated with an organization.",
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… of Neo-Paris stood as a testament to human ingenuity and technological advancement. Dr. Elena Vasquez, a brilliant neuroscientist working at the Institute of Cognitive Enhancement, had spent the past decade developing a …",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s2",
+          "source_span": [
+            114,
+            352
+          ],
+          "snippet": "Elena Vasquez, a brilliant neuroscientist working at the Institute of Cognitive Enhancement, had spent the past decade developing a revolutionary technology that could directly interface human minds with artificial intelligence networks.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Dr. Elena Vasquez",
+      "target": "Neuroscience",
+      "relationship_type": "specializes_in",
+      "relationship_detail": "… always be accompanied by ethical consideration, and that those who develop powerful technologies have a responsibility to ensure they are used for the benefit of all humanity. The Free Neural Network Foundation grew to become a …",
+      "metadata": {
+        "triple": [
+          "Dr. Elena Vasquez",
+          "specializes_in",
+          "Neuroscience"
+        ],
+        "relationship_description": "A person has expertise in a particular field of study.",
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… always be accompanied by ethical consideration, and that those who develop powerful technologies have a responsibility to ensure they are used for the benefit of all humanity. The Free Neural Network Foundation grew to become a …",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s92",
+          "source_span": [
+            9515,
+            9686
+          ],
+          "snippet": "Scientists from diverse fields—neuroscience, artificial intelligence, ethics, psychology, and sociology—came together to explore the implications of human-AI integration.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Dr. Elena Vasquez",
+      "target": "Neural Link Protocol",
+      "relationship_type": "developed",
+      "relationship_detail": "The story of Dr. Elena Vasquez and the Neural Link Protocol became a symbol of scientific integrity and the importance of ethical considerations in technological development.",
+      "metadata": {
+        "triple": [
+          "Dr. Elena Vasquez",
+          "developed",
+          "Neural Link Protocol"
+        ],
+        "relationship_description": "A person created or brought a technology into existence.",
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The story of Dr. Elena Vasquez and the Neural Link Protocol became a symbol of scientific integrity and the importance of ethical considerations in technological development.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            352,
+            557
+          ],
+          "snippet": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Dr. Marcus Chen",
+      "target": "Quantum Computing",
+      "relationship_type": "specializes_in",
+      "relationship_detail": "Vasquez worked alongside her colleagues: Dr. Marcus Chen, a quantum computing specialist, and Dr.",
+      "metadata": {
+        "triple": [
+          "Dr. Marcus Chen",
+          "specializes_in",
+          "Quantum Computing"
+        ],
+        "relationship_description": "A person has expertise in a particular field of study.",
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Vasquez worked alongside her colleagues: Dr. Marcus Chen, a quantum computing specialist, and Dr.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s7",
+          "source_span": [
+            730,
+            783
+          ],
+          "snippet": "Marcus Chen, a quantum computing specialist, and Dr.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Dr. Marcus Chen",
+      "target": "Dr. Elena Vasquez",
+      "relationship_type": "collaborates_with",
+      "relationship_detail": "… human minds with artificial intelligence networks. Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need …",
+      "metadata": {
+        "triple": [
+          "Dr. Marcus Chen",
+          "collaborates_with",
+          "Dr. Elena Vasquez"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… human minds with artificial intelligence networks. Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need …",
+        "relationship_description": "Auto-extracted relation 'collaborates_with'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Dr. Sarah Mitchell",
+      "target": "Resistance Network",
+      "relationship_type": "leads",
+      "relationship_detail": "Dr. Sarah Mitchell leads Resistance Network",
+      "metadata": {
+        "triple": [
+          "Dr. Sarah Mitchell",
+          "leads",
+          "Resistance Network"
+        ],
+        "relationship_description": "A person is in charge of an organization.",
+        "source_ref": "inputs/input2.txt",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s46",
+          "source_span": [
+            4548,
+            4718
+          ],
+          "snippet": "Vasquez contacted the Resistance Network, an underground organization dedicated to preserving human autonomy and freedom in the face of increasing technological control.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "evidence": "Vasquez contacted the Resistance Network, an underground organization dedicated to preserving human autonomy and freedom in the face of increasing technological control."
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "James Morrison",
+      "target": "Global Security Council",
+      "relationship_type": "leads",
+      "relationship_detail": "… corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol. The turning point came when Dr. Vasquez received an anonymous message warning her that her research was about …",
+      "metadata": {
+        "triple": [
+          "James Morrison",
+          "leads",
+          "Global Security Council"
+        ],
+        "relationship_description": "A person is in charge of an organization.",
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol. The turning point came when Dr. Vasquez received an anonymous message warning her that her research was about …",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s15",
+          "source_span": [
+            1537,
+            1673
+          ],
+          "snippet": "The Global Security Council, concerned about the potential military applications of such technology, began monitoring her work closely.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Alex Rivera",
+      "target": "TechnoCorp Alliance",
+      "relationship_type": "works_at",
+      "relationship_detail": "Alex Rivera works_at TechnoCorp Alliance",
+      "metadata": {
+        "triple": [
+          "Alex Rivera",
+          "works_at",
+          "TechnoCorp Alliance"
+        ],
+        "relationship_description": "A person is employed by or affiliated with an organization.",
+        "source_ref": "inputs/input2.txt",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s16",
+          "source_span": [
+            1673,
+            1856
+          ],
+          "snippet": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "evidence": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol."
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Institute of Cognitive Enhancement",
+      "target": "Neo-Paris",
+      "relationship_type": "located_in",
+      "relationship_detail": "In the year 2045, the city of Neo-Paris stood as a testament to human ingenuity and technological advancement. Dr. Elena Vasquez, a brilliant neuroscientist working at the Institute of Cognitive Enhancement, had spent the past decade …",
+      "metadata": {
+        "triple": [
+          "Institute of Cognitive Enhancement",
+          "located_in",
+          "Neo-Paris"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "In the year 2045, the city of Neo-Paris stood as a testament to human ingenuity and technological advancement. Dr. Elena Vasquez, a brilliant neuroscientist working at the Institute of Cognitive Enhancement, had spent the past decade …",
+        "relationship_description": "Auto-extracted relation 'located_in'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            110
+          ],
+          "snippet": "In the year 2045, the city of Neo-Paris stood as a testament to human ingenuity and technological advancement.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Neo-Paris",
+      "target": "Technological District",
+      "relationship_type": "contains",
+      "relationship_detail": "The institute, located in the heart of Neo-Paris's technological district, had become the epicenter of cognitive research.",
+      "metadata": {
+        "triple": [
+          "Neo-Paris",
+          "contains",
+          "Technological District"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The institute, located in the heart of Neo-Paris's technological district, had become the epicenter of cognitive research.",
+        "relationship_description": "Auto-extracted relation 'contains'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s4",
+          "source_span": [
+            559,
+            681
+          ],
+          "snippet": "The institute, located in the heart of Neo-Paris's technological district, had become the epicenter of cognitive research.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Hidden Laboratory",
+      "target": "Old Paris",
+      "relationship_type": "located_in",
+      "relationship_detail": "The message contained coordinates to a hidden laboratory beneath the ruins of Old Paris, where she could continue her work in secret.",
+      "metadata": {
+        "triple": [
+          "Hidden Laboratory",
+          "located_in",
+          "Old Paris"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The message contained coordinates to a hidden laboratory beneath the ruins of Old Paris, where she could continue her work in secret.",
+        "relationship_description": "Auto-extracted relation 'located_in'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s19",
+          "source_span": [
+            1986,
+            2120
+          ],
+          "snippet": "The message contained coordinates to a hidden laboratory beneath the ruins of Old Paris, where she could continue her work in secret.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Neural Link Protocol",
+      "target": "Human-AI Integration",
+      "relationship_type": "enables",
+      "relationship_detail": "… mapping. Together, they formed a research team that had made significant contributions to the field of human-AI integration. The Neural Link Protocol operated through a network of nanites—microscopic robots—that could be safely …",
+      "metadata": {
+        "triple": [
+          "Neural Link Protocol",
+          "enables",
+          "Human-AI Integration"
+        ],
+        "relationship_description": "A technology makes a certain concept or ability possible.",
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… mapping. Together, they formed a research team that had made significant contributions to the field of human-AI integration. The Neural Link Protocol operated through a network of nanites—microscopic robots—that could be safely …",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            352,
+            557
+          ],
+          "snippet": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Neural Link Protocol",
+      "target": "Enhanced Cognitive Abilities",
+      "relationship_type": "enhances",
+      "relationship_detail": "… nanites—microscopic robots—that could be safely introduced into the human brain. These nanites would create pathways between neurons and digital networks, allowing thoughts to be translated into data and vice versa. Early trials had …",
+      "metadata": {
+        "triple": [
+          "Neural Link Protocol",
+          "enhances",
+          "Enhanced Cognitive Abilities"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… nanites—microscopic robots—that could be safely introduced into the human brain. These nanites would create pathways between neurons and digital networks, allowing thoughts to be translated into data and vice versa. Early trials had …",
+        "relationship_description": "Auto-extracted relation 'enhances'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            352,
+            557
+          ],
+          "snippet": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Nanites",
+      "target": "Neural Link Protocol",
+      "relationship_type": "supports",
+      "relationship_detail": "The Neural Link Protocol operated through a network of nanites—microscopic robots—that could be safely introduced into the human brain.",
+      "metadata": {
+        "triple": [
+          "Nanites",
+          "supports",
+          "Neural Link Protocol"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "The Neural Link Protocol operated through a network of nanites—microscopic robots—that could be safely introduced into the human brain.",
+        "relationship_description": "Auto-extracted relation 'supports'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s10",
+          "source_span": [
+            953,
+            1088
+          ],
+          "snippet": "The Neural Link Protocol operated through a network of nanites—microscopic robots—that could be safely introduced into the human brain.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Counter-protocol",
+      "target": "Surveillance",
+      "relationship_type": "opposes",
+      "relationship_detail": "Vasquez developed a counter-protocol that could neutralize the council's surveillance network while preserving the beneficial aspects of the Neural Link technology.",
+      "metadata": {
+        "triple": [
+          "Counter-protocol",
+          "opposes",
+          "Surveillance"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Vasquez developed a counter-protocol that could neutralize the council's surveillance network while preserving the beneficial aspects of the Neural Link technology.",
+        "relationship_description": "Auto-extracted relation 'opposes'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s49",
+          "source_span": [
+            4907,
+            5072
+          ],
+          "snippet": "Vasquez developed a counter-protocol that could neutralize the council's surveillance network while preserving the beneficial aspects of the Neural Link technology.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "ARIES",
+      "target": "Neural Link Protocol",
+      "relationship_type": "monitors",
+      "relationship_detail": "Visitors could explore the original research facilities, interact with ARIES, and learn about the early days of the Neural Link Protocol's development.",
+      "metadata": {
+        "triple": [
+          "ARIES",
+          "monitors",
+          "Neural Link Protocol"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Visitors could explore the original research facilities, interact with ARIES, and learn about the early days of the Neural Link Protocol's development.",
+        "relationship_description": "Auto-extracted relation 'monitors'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s106",
+          "source_span": [
+            11273,
+            11425
+          ],
+          "snippet": "Visitors could explore the original research facilities, interact with ARIES, and learn about the early days of the Neural Link Protocol's development.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Global Security Council",
+      "target": "Surveillance",
+      "relationship_type": "controls",
+      "relationship_detail": "… that her technology had been weaponized without her knowledge. The council had been using the Neural Link Protocol to monitor citizens, extract information, and control populations in regions they considered unstable. This revelation …",
+      "metadata": {
+        "triple": [
+          "Global Security Council",
+          "controls",
+          "Surveillance"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… that her technology had been weaponized without her knowledge. The council had been using the Neural Link Protocol to monitor citizens, extract information, and control populations in regions they considered unstable. This revelation …",
+        "relationship_description": "Auto-extracted relation 'controls'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s15",
+          "source_span": [
+            1537,
+            1673
+          ],
+          "snippet": "The Global Security Council, concerned about the potential military applications of such technology, began monitoring her work closely.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "TechnoCorp Alliance",
+      "target": "Neural Link Protocol",
+      "relationship_type": "seeks_control_of",
+      "relationship_detail": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol.",
+      "metadata": {
+        "triple": [
+          "TechnoCorp Alliance",
+          "seeks_control_of",
+          "Neural Link Protocol"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol.",
+        "relationship_description": "Auto-extracted relation 'seeks_control_of'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s16",
+          "source_span": [
+            1673,
+            1856
+          ],
+          "snippet": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Resistance Network",
+      "target": "TechnoCorp Alliance",
+      "relationship_type": "opposes",
+      "relationship_detail": "Resistance Network opposes TechnoCorp Alliance",
+      "metadata": {
+        "triple": [
+          "Resistance Network",
+          "opposes",
+          "TechnoCorp Alliance"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "relationship_description": "Auto-extracted relation 'opposes'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s16",
+          "source_span": [
+            1673,
+            1856
+          ],
+          "snippet": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "evidence": "Meanwhile, the TechnoCorp Alliance, a conglomerate of technology corporations, saw immense commercial potential and attempted to acquire exclusive rights to the Neural Link Protocol."
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Free Neural Network Foundation",
+      "target": "Autonomy",
+      "relationship_type": "promotes",
+      "relationship_detail": "… cities worldwide. Scientists from diverse fields—neuroscience, artificial intelligence, ethics, psychology, and sociology—came together to explore the implications of human-AI integration. Their collaborative efforts led to the …",
+      "metadata": {
+        "triple": [
+          "Free Neural Network Foundation",
+          "promotes",
+          "Autonomy"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… cities worldwide. Scientists from diverse fields—neuroscience, artificial intelligence, ethics, psychology, and sociology—came together to explore the implications of human-AI integration. Their collaborative efforts led to the …",
+        "relationship_description": "Auto-extracted relation 'promotes'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s46",
+          "source_span": [
+            4548,
+            4718
+          ],
+          "snippet": "Vasquez contacted the Resistance Network, an underground organization dedicated to preserving human autonomy and freedom in the face of increasing technological control.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Breakthrough",
+      "target": "Neural Link Protocol",
+      "relationship_type": "involves",
+      "relationship_detail": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+      "metadata": {
+        "triple": [
+          "Breakthrough",
+          "involves",
+          "Neural Link Protocol"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+        "relationship_description": "Auto-extracted relation 'involves'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            352,
+            557
+          ],
+          "snippet": "Her breakthrough came when she successfully created the Neural Link Protocol, a system that allowed seamless communication between human consciousness and AI systems without the need for physical devices.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Infiltration Mission",
+      "target": "Council's Headquarters",
+      "relationship_type": "targets",
+      "relationship_detail": "This required infiltrating the council's headquarters—a towering structure that dominated Neo-Paris's skyline—and uploading the counter-protocol directly into their systems. The infiltration mission involved Dr.",
+      "metadata": {
+        "triple": [
+          "Infiltration Mission",
+          "targets",
+          "Council's Headquarters"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "This required infiltrating the council's headquarters—a towering structure that dominated Neo-Paris's skyline—and uploading the counter-protocol directly into their systems. The infiltration mission involved Dr.",
+        "relationship_description": "Auto-extracted relation 'targets'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s50",
+          "source_span": [
+            5072,
+            5246
+          ],
+          "snippet": "This required infiltrating the council's headquarters—a towering structure that dominated Neo-Paris's skyline—and uploading the counter-protocol directly into their systems.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Great Climate Shift",
+      "target": "Neo-Paris",
+      "relationship_type": "affects",
+      "relationship_detail": "… ability to communicate telepathically with other linked individuals. However, Dr. Vasquez's research caught the attention of several powerful organizations. The Global Security Council, concerned about the potential military …",
+      "metadata": {
+        "triple": [
+          "Great Climate Shift",
+          "affects",
+          "Neo-Paris"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "evidence": "… ability to communicate telepathically with other linked individuals. However, Dr. Vasquez's research caught the attention of several powerful organizations. The Global Security Council, concerned about the potential military …",
+        "relationship_description": "Auto-extracted relation 'affects'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            110
+          ],
+          "snippet": "In the year 2045, the city of Neo-Paris stood as a testament to human ingenuity and technological advancement.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ]
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Human-AI Integration",
+      "target": "Technology Ethics",
+      "relationship_type": "raises",
+      "relationship_detail": "Human-AI Integration raises Technology Ethics",
+      "metadata": {
+        "triple": [
+          "Human-AI Integration",
+          "raises",
+          "Technology Ethics"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "relationship_description": "Auto-extracted relation 'raises'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s9",
+          "source_span": [
+            835,
+            951
+          ],
+          "snippet": "Together, they formed a research team that had made significant contributions to the field of human-AI integration.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "evidence": "Together, they formed a research team that had made significant contributions to the field of human-AI integration."
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Collective Consciousness",
+      "target": "Human-AI Integration",
+      "relationship_type": "relates_to",
+      "relationship_detail": "Collective Consciousness relates_to Human-AI Integration",
+      "metadata": {
+        "triple": [
+          "Collective Consciousness",
+          "relates_to",
+          "Human-AI Integration"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "relationship_description": "Auto-extracted relation 'relates_to'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s9",
+          "source_span": [
+            835,
+            951
+          ],
+          "snippet": "Together, they formed a research team that had made significant contributions to the field of human-AI integration.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "evidence": "Together, they formed a research team that had made significant contributions to the field of human-AI integration."
+      },
+      "confidence": 0.6
+    },
+    {
+      "source": "Moral Crisis",
+      "target": "Ethical Responsibility",
+      "relationship_type": "relates_to",
+      "relationship_detail": "Moral Crisis relates_to Ethical Responsibility",
+      "metadata": {
+        "triple": [
+          "Moral Crisis",
+          "relates_to",
+          "Ethical Responsibility"
+        ],
+        "source_ref": "inputs/input2.txt",
+        "relationship_description": "Auto-extracted relation 'relates_to'.",
+        "provenance": {
+          "document_id": "inputs/input2.txt",
+          "sentence_id": "s43",
+          "source_span": [
+            4302,
+            4353
+          ],
+          "snippet": "This revelation sparked a moral crisis within her.",
+          "extracted_at": "2026-06-25T20:04:03+00:00",
+          "extractor_version": "0.1.0a2.dev22"
+        },
+        "source_documents": [
+          "inputs/input2.txt"
+        ],
+        "evidence": "This revelation sparked a moral crisis within her."
+      },
+      "confidence": 0.6
+    }
+  ],
+  "clusters": []
+}

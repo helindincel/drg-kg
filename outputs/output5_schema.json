@@ -1,0 +1,389 @@
+{
+  "entity_types": [
+    {
+      "name": "Organization",
+      "description": "A company, institution, or other organized body.",
+      "examples": [
+        "Microsoft Corporation",
+        "IBM",
+        "MITS",
+        "European Commission",
+        "Activision Blizzard",
+        "LinkedIn",
+        "Nokia",
+        "AT&T Corporation",
+        "Seattle Computer Products",
+        "ASCII Magazine",
+        "Federal Trade Commission",
+        "Department of Justice",
+        "General Electric",
+        "NBC",
+        "Netscape",
+        "Borland",
+        "WordPerfect",
+        "Novell",
+        "Lotus",
+        "CompuServe"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Person",
+      "description": "An individual human being.",
+      "examples": [
+        "Bill Gates",
+        "Paul Allen",
+        "Steve Ballmer",
+        "Satya Nadella"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Product",
+      "description": "A tangible good or service produced and marketed.",
+      "examples": [
+        "Windows",
+        "MS-DOS",
+        "Xbox",
+        "Surface",
+        "Azure",
+        "Microsoft Office",
+        "Microsoft 365",
+        "Word",
+        "Excel",
+        "PowerPoint",
+        "Bing",
+        "MSN",
+        "Outlook.com",
+        "Hotmail",
+        "Microsoft Store",
+        "Microsoft SQL Server",
+        "Visual Studio",
+        "Altair 8800",
+        "BASIC interpreters",
+        "Xenix",
+        "CP/M OS",
+        "86-DOS",
+        "IBM PC DOS",
+        "Windows 1.0",
+        "OS/2",
+        "Windows NT",
+        "Windows 95",
+        "Windows CE",
+        "Windows XP",
+        "Windows Vista",
+        "Windows 7",
+        "Windows Mobile",
+        "Windows Phone OS"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Location",
+      "description": "A geographical place or address.",
+      "examples": [
+        "Redmond, Washington",
+        "Albuquerque, New Mexico",
+        "Bellevue, Washington",
+        "Scottsdale, Arizona"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "LegalCase",
+      "description": "A dispute between opposing parties that may be resolved by a court or other legal process.",
+      "examples": [
+        "antitrust legal action",
+        "motion in the Federal District Court"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Division",
+      "description": "A distinct unit or department within a larger organization.",
+      "examples": [
+        "Microsoft Gaming",
+        "Antitrust Division"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Event",
+      "description": "A significant occurrence or happening, often with a specific date or impact.",
+      "examples": [
+        "initial public offering (IPO)",
+        "antitrust legal action",
+        "judgment of €497 million",
+        "fine of €899 million",
+        "Gates's internal 'Internet Tidal Wave memo'",
+        "release of Windows 95"
+      ],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Organizational Structure",
+      "description": "Relations describing the internal structure and personnel of organizations.",
+      "relations": [
+        {
+          "name": "headquartered_in",
+          "source": "Organization",
+          "target": "Location",
+          "description": "",
+          "detail": "An organization's primary administrative location.",
+          "properties": {}
+        },
+        {
+          "name": "founded_by",
+          "source": "Organization",
+          "target": "Person",
+          "description": "",
+          "detail": "A person who established an organization.",
+          "properties": {}
+        },
+        {
+          "name": "founded_in",
+          "source": "Organization",
+          "target": "Location",
+          "description": "",
+          "detail": "The location where an organization was founded.",
+          "properties": {}
+        },
+        {
+          "name": "has_ceo",
+          "source": "Organization",
+          "target": "Person",
+          "description": "",
+          "detail": "A person who holds the chief executive officer position in an organization.",
+          "properties": {}
+        },
+        {
+          "name": "has_division",
+          "source": "Organization",
+          "target": "Division",
+          "description": "",
+          "detail": "An organization that contains a specific division.",
+          "properties": {}
+        },
+        {
+          "name": "resigned_from",
+          "source": "Person",
+          "target": "Organization",
+          "description": "",
+          "detail": "A person who left their position at an organization.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Microsoft Corporation",
+          "relation": "headquartered_in",
+          "tail": "Redmond, Washington"
+        },
+        {
+          "head": "Microsoft",
+          "relation": "founded_by",
+          "tail": "Bill Gates"
+        },
+        {
+          "head": "Microsoft",
+          "relation": "has_ceo",
+          "tail": "Satya Nadella"
+        }
+      ]
+    },
+    {
+      "name": "Corporate Transactions",
+      "description": "Relations describing business activities such as acquisitions, partnerships, and investments.",
+      "relations": [
+        {
+          "name": "acquired",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that purchased another organization.",
+          "properties": {}
+        },
+        {
+          "name": "partnered_with",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that formed a partnership with another organization.",
+          "properties": {}
+        },
+        {
+          "name": "invested_in",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that made an investment in another organization.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Microsoft",
+          "relation": "acquired",
+          "tail": "Skype Technologies"
+        },
+        {
+          "head": "Microsoft",
+          "relation": "partnered_with",
+          "tail": "IBM"
+        }
+      ]
+    },
+    {
+      "name": "Product & Technology",
+      "description": "Relations describing the development, release, and evolution of products and technologies.",
+      "relations": [
+        {
+          "name": "develops",
+          "source": "Organization",
+          "target": "Product",
+          "description": "",
+          "detail": "An organization that created or developed a product.",
+          "properties": {}
+        },
+        {
+          "name": "released",
+          "source": "Organization",
+          "target": "Product",
+          "description": "",
+          "detail": "An organization that launched a product to the market.",
+          "properties": {}
+        },
+        {
+          "name": "markets",
+          "source": "Organization",
+          "target": "Product",
+          "description": "",
+          "detail": "An organization that sells or promotes a product.",
+          "properties": {}
+        },
+        {
+          "name": "provides",
+          "source": "Organization",
+          "target": "Product",
+          "description": "",
+          "detail": "An organization that offers a product or service.",
+          "properties": {}
+        },
+        {
+          "name": "is_version_of",
+          "source": "Product",
+          "target": "Product",
+          "description": "Indicates that one operating system is a version or iteration of another.",
+          "detail": "A version of the operating system",
+          "properties": {}
+        },
+        {
+          "name": "runs_on",
+          "source": "Product",
+          "target": "Product",
+          "description": "Indicates that a product operates or is designed to function on a specific operating system.",
+          "detail": "runs on",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Microsoft",
+          "relation": "released",
+          "tail": "Windows 1.0"
+        },
+        {
+          "head": "Microsoft",
+          "relation": "markets",
+          "tail": "BASIC interpreters"
+        },
+        {
+          "head": "Windows 1.0",
+          "relation": "is_version_of",
+          "tail": "Windows"
+        },
+        {
+          "head": "MS-DOS",
+          "relation": "runs_on",
+          "tail": "IBM PC"
+        }
+      ]
+    },
+    {
+      "name": "Legal and Regulatory",
+      "description": "Relations describing legal actions, criticisms, and compliance issues involving organizations.",
+      "relations": [
+        {
+          "name": "faced_legal_action_from",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that was subject to legal action initiated by another organization.",
+          "properties": {}
+        },
+        {
+          "name": "violated",
+          "source": "Organization",
+          "target": "LegalCase",
+          "description": "",
+          "detail": "An organization that was found to have violated an agreement or ruling related to a legal case.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Microsoft",
+          "relation": "faced_legal_action_from",
+          "tail": "European Union"
+        },
+        {
+          "head": "Microsoft",
+          "relation": "violated",
+          "tail": "agreement"
+        }
+      ]
+    },
+    {
+      "name": "Events and Milestones",
+      "description": "Relations describing significant events and milestones in an organization's history.",
+      "relations": [
+        {
+          "name": "changed_focus_towards",
+          "source": "Organization",
+          "target": "Product",
+          "description": "",
+          "detail": "An organization that shifted its primary business focus towards a particular product or technology.",
+          "properties": {}
+        },
+        {
+          "name": "resulted_in",
+          "source": "Event",
+          "target": "LegalCase",
+          "description": "An event that led to a specific legal case or outcome.",
+          "detail": "resulting in",
+          "properties": {}
+        },
+        {
+          "name": "occurred_in",
+          "source": "Event",
+          "target": "Location",
+          "description": "The location where a significant event took place.",
+          "detail": "in",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Microsoft",
+          "relation": "changed_focus_towards",
+          "tail": "cloud computing"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

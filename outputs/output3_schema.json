@@ -1,0 +1,335 @@
+{
+  "entity_types": [
+    {
+      "name": "Person",
+      "description": "An individual human being.",
+      "examples": [
+        "Marie Skłodowska Curie",
+        "Pierre Curie",
+        "Władysław Skłodowski"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Organization",
+      "description": "A structured group of people with a particular purpose, such as a company, institution, or association.",
+      "examples": [
+        "University of Paris",
+        "Royal Swedish Academy",
+        "Pasteur Institute"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Location",
+      "description": "A geographical place or address.",
+      "examples": [
+        "Warsaw",
+        "Paris",
+        "Sceaux"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Award",
+      "description": "A prize or honor bestowed for achievement.",
+      "examples": [
+        "Nobel Prize",
+        "Legion of Honour",
+        "Cameron Prize for Therapeutics"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Publication",
+      "description": "A work published for public distribution, such as a book, paper, or biography.",
+      "examples": [
+        "Radiology in War",
+        "biography of Pierre Curie",
+        "thirty-two papers"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "ScientificConcept",
+      "description": "A fundamental idea or principle in science.",
+      "examples": [
+        "radioactivity",
+        "X-rays",
+        "polonium"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "EducationalInstitution",
+      "description": "An organization dedicated to education, such as a university or gymnasium.",
+      "examples": [
+        "University of Paris",
+        "Warsaw gymnasium",
+        "Flying University"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "ResearchInstitute",
+      "description": "An organization dedicated to scientific research.",
+      "examples": [
+        "Radium Institute",
+        "Pasteur Institute",
+        "Cavendish Laboratory"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Material",
+      "description": "A substance or mixture of substances, especially one that has a particular use or quality.",
+      "examples": [
+        "radium",
+        "polonium",
+        "uranium"
+      ],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Personal and Professional Relationships",
+      "description": "Describes various relationships between individuals and their affiliations with organizations.",
+      "relations": [
+        {
+          "name": "born_in",
+          "source": "Person",
+          "target": "Location",
+          "description": "",
+          "detail": "Indicates the place of birth for a person.",
+          "properties": {}
+        },
+        {
+          "name": "married_to",
+          "source": "Person",
+          "target": "Person",
+          "description": "",
+          "detail": "Indicates a marital relationship between two people.",
+          "properties": {}
+        },
+        {
+          "name": "has_parent",
+          "source": "Person",
+          "target": "Person",
+          "description": "",
+          "detail": "Indicates a parent-child relationship.",
+          "properties": {}
+        },
+        {
+          "name": "employed_by",
+          "source": "Person",
+          "target": "Organization",
+          "description": "",
+          "detail": "Indicates that a person works for an organization.",
+          "properties": {}
+        },
+        {
+          "name": "studied_at",
+          "source": "Person",
+          "target": "EducationalInstitution",
+          "description": "",
+          "detail": "Indicates where a person received education.",
+          "properties": {}
+        },
+        {
+          "name": "collaborates_with",
+          "source": "Person",
+          "target": "Person",
+          "description": "",
+          "detail": "Indicates a working partnership between individuals.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Marie Skłodowska Curie",
+          "relation": "born_in",
+          "tail": "Warsaw"
+        },
+        {
+          "head": "Marie Skłodowska Curie",
+          "relation": "married_to",
+          "tail": "Pierre Curie"
+        },
+        {
+          "head": "Marie Skłodowska Curie",
+          "relation": "employed_by",
+          "tail": "University of Paris"
+        }
+      ]
+    },
+    {
+      "name": "Achievements and Recognition",
+      "description": "Captures instances of individuals receiving awards or honors for their contributions.",
+      "relations": [
+        {
+          "name": "received",
+          "source": "Person",
+          "target": "Award",
+          "description": "",
+          "detail": "Indicates that a person was given an award.",
+          "properties": {}
+        },
+        {
+          "name": "awarded_by",
+          "source": "Award",
+          "target": "Organization",
+          "description": "",
+          "detail": "Indicates the organization that bestows an award.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Marie Skłodowska Curie",
+          "relation": "received",
+          "tail": "Nobel Prize"
+        },
+        {
+          "head": "Nobel Prize",
+          "relation": "awarded_by",
+          "tail": "Royal Swedish Academy"
+        }
+      ]
+    },
+    {
+      "name": "Research and Discovery",
+      "description": "Focuses on the scientific work, discoveries, and publications of individuals and organizations.",
+      "relations": [
+        {
+          "name": "conducted_research_on",
+          "source": "Person",
+          "target": "ScientificConcept",
+          "description": "",
+          "detail": "Indicates the subject of a person's research.",
+          "properties": {}
+        },
+        {
+          "name": "discovered",
+          "source": "Person",
+          "target": "ScientificConcept",
+          "description": "",
+          "detail": "Indicates a scientific discovery made by a person.",
+          "properties": {}
+        },
+        {
+          "name": "published",
+          "source": "Person",
+          "target": "Publication",
+          "description": "",
+          "detail": "Indicates a publication authored by a person.",
+          "properties": {}
+        },
+        {
+          "name": "develops",
+          "source": "Person",
+          "target": "ScientificConcept",
+          "description": "",
+          "detail": "Indicates a scientific concept or technology developed by a person.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Marie Skłodowska Curie",
+          "relation": "conducted_research_on",
+          "tail": "radioactivity"
+        },
+        {
+          "head": "Marie Skłodowska Curie",
+          "relation": "discovered",
+          "tail": "polonium"
+        },
+        {
+          "head": "Marie Skłodowska Curie",
+          "relation": "published",
+          "tail": "Radiology in War"
+        }
+      ]
+    },
+    {
+      "name": "Organizational Operations",
+      "description": "Describes the establishment and activities of organizations, particularly research and educational institutions.",
+      "relations": [
+        {
+          "name": "founded",
+          "source": "Person",
+          "target": "Organization",
+          "description": "",
+          "detail": "Indicates that a person established an organization.",
+          "properties": {}
+        },
+        {
+          "name": "located_in",
+          "source": "Organization",
+          "target": "Location",
+          "description": "",
+          "detail": "Indicates the geographical location of an organization.",
+          "properties": {}
+        },
+        {
+          "name": "supports",
+          "source": "Organization",
+          "target": "ResearchInstitute",
+          "description": "",
+          "detail": "Indicates an organization provides support to a research institute.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "University of Paris",
+          "relation": "located_in",
+          "tail": "Paris"
+        },
+        {
+          "head": "Pasteur Institute",
+          "relation": "supports",
+          "tail": "Curie Pavilion"
+        }
+      ]
+    },
+    {
+      "name": "Material Properties and Usage",
+      "description": "Describes the characteristics and applications of various materials, particularly in scientific contexts.",
+      "relations": [
+        {
+          "name": "has_property",
+          "source": "Material",
+          "target": "ScientificConcept",
+          "description": "",
+          "detail": "Indicates a scientific property associated with a material.",
+          "properties": {}
+        },
+        {
+          "name": "used_in",
+          "source": "Material",
+          "target": "ScientificConcept",
+          "description": "",
+          "detail": "Indicates a scientific concept or application where a material is used.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "radium",
+          "relation": "has_property",
+          "tail": "radioactivity"
+        },
+        {
+          "head": "radium",
+          "relation": "used_in",
+          "tail": "cancer treatments"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

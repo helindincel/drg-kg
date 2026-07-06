@@ -1,0 +1,497 @@
+{
+  "entity_types": [
+    {
+      "name": "Organization",
+      "description": "A company, institution, or other organized body.",
+      "examples": [
+        "Anthropic",
+        "OpenAI",
+        "Alphabet Inc."
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Person",
+      "description": "An individual human being.",
+      "examples": [
+        "Dario Amodei",
+        "Daniela Amodei",
+        "Jan Leike"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Product",
+      "description": "A good or service developed and offered by an organization.",
+      "examples": [
+        "Claude",
+        "Claude Code",
+        "Claude 4"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "FundingRound",
+      "description": "A specific instance of an organization raising capital.",
+      "examples": [
+        "Series E",
+        "Series F",
+        "May 2026 round"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "LegalCase",
+      "description": "A dispute between parties brought before a court of law.",
+      "examples": [
+        "copyright settlement",
+        "Reddit lawsuit"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Policy",
+      "description": "A course or principle of action adopted or proposed by a government, party, business, or individual.",
+      "examples": [
+        "AI safety",
+        "constitutional AI",
+        "usage policy"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Location",
+      "description": "A geographical place or address.",
+      "examples": [
+        "San Francisco",
+        "Venezuela",
+        "500 Howard Street"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "GovernmentBody",
+      "description": "An official organization that is part of a country's government.",
+      "examples": [
+        "United States Securities and Exchange Commission",
+        "Department of Defense",
+        "Pentagon"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Technology",
+      "description": "A specific tool, system, or method developed from scientific knowledge for practical purposes.",
+      "examples": [
+        "large language models",
+        "Tensor Processing Units",
+        "Maven Smart System"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Event",
+      "description": "A significant occurrence or happening, often with a specific date or duration.",
+      "examples": [
+        "Super Bowl advertising campaign",
+        "developer conference",
+        "IPO"
+      ],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Organizational Structure",
+      "description": "Relations describing the internal and external structure of organizations, including founding, employment, and leadership roles.",
+      "relations": [
+        {
+          "name": "founds",
+          "source": "Person",
+          "target": "Organization",
+          "description": "",
+          "detail": "A person who establishes an organization.",
+          "properties": {}
+        },
+        {
+          "name": "employs",
+          "source": "Organization",
+          "target": "Person",
+          "description": "",
+          "detail": "An organization that has a person working for it.",
+          "properties": {}
+        },
+        {
+          "name": "leads",
+          "source": "Person",
+          "target": "Organization",
+          "description": "",
+          "detail": "A person who holds a leadership position within an organization.",
+          "properties": {}
+        },
+        {
+          "name": "is_headquartered_at",
+          "source": "Organization",
+          "target": "Location",
+          "description": "",
+          "detail": "The primary administrative location of an organization.",
+          "properties": {}
+        },
+        {
+          "name": "has_division",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that contains a specific division or subsidiary.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Dario Amodei",
+          "relation": "founds",
+          "tail": "Anthropic"
+        },
+        {
+          "head": "Anthropic",
+          "relation": "employs",
+          "tail": "Jan Leike"
+        },
+        {
+          "head": "Dario Amodei",
+          "relation": "leads",
+          "tail": "Anthropic"
+        }
+      ]
+    },
+    {
+      "name": "Corporate Transactions",
+      "description": "Relations detailing financial and strategic interactions between organizations, such as investments, acquisitions, and partnerships.",
+      "relations": [
+        {
+          "name": "invests_in",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that provides capital to another organization.",
+          "properties": {}
+        },
+        {
+          "name": "acquires",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that purchases another organization or its assets.",
+          "properties": {}
+        },
+        {
+          "name": "partnered_with",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that collaborates with another organization.",
+          "properties": {}
+        },
+        {
+          "name": "holds_stake_in",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that owns a percentage of another organization.",
+          "properties": {}
+        },
+        {
+          "name": "raises_funding_from",
+          "source": "Organization",
+          "target": "FundingRound",
+          "description": "",
+          "detail": "An organization that secures capital through a funding round.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Alphabet Inc.",
+          "relation": "invests_in",
+          "tail": "Anthropic"
+        },
+        {
+          "head": "Anthropic",
+          "relation": "acquires",
+          "tail": "Bun"
+        }
+      ]
+    },
+    {
+      "name": "Product & Technology",
+      "description": "Relations describing the development, release, and evolution of products and technologies.",
+      "relations": [
+        {
+          "name": "develops",
+          "source": "Organization",
+          "target": "Product",
+          "description": "",
+          "detail": "An organization that creates a product.",
+          "properties": {}
+        },
+        {
+          "name": "releases",
+          "source": "Organization",
+          "target": "Product",
+          "description": "",
+          "detail": "An organization that makes a product available to the public.",
+          "properties": {}
+        },
+        {
+          "name": "uses",
+          "source": "Organization",
+          "target": "Product",
+          "description": "",
+          "detail": "An organization that utilizes a product.",
+          "properties": {}
+        },
+        {
+          "name": "is_version_of",
+          "source": "Product",
+          "target": "Product",
+          "description": "",
+          "detail": "A product that is a specific iteration or variant of another product.",
+          "properties": {}
+        },
+        {
+          "name": "is_based_on",
+          "source": "Product",
+          "target": "Technology",
+          "description": "",
+          "detail": "A product that is built upon a specific technology.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Anthropic",
+          "relation": "develops",
+          "tail": "Claude"
+        },
+        {
+          "head": "Anthropic",
+          "relation": "releases",
+          "tail": "Claude 2"
+        },
+        {
+          "head": "Claude 4",
+          "relation": "is_version_of",
+          "tail": "Claude"
+        }
+      ]
+    },
+    {
+      "name": "Legal and Regulatory Actions",
+      "description": "Relations concerning legal disputes, regulatory compliance, and official designations.",
+      "relations": [
+        {
+          "name": "sues",
+          "source": "Organization",
+          "target": "Organization",
+          "description": "",
+          "detail": "An organization that initiates legal action against another organization.",
+          "properties": {}
+        },
+        {
+          "name": "alleges_violation_by",
+          "source": "LegalCase",
+          "target": "Organization",
+          "description": "",
+          "detail": "A legal case that claims an organization has committed a violation.",
+          "properties": {}
+        },
+        {
+          "name": "rules_on",
+          "source": "Person",
+          "target": "LegalCase",
+          "description": "",
+          "detail": "A person who makes a judicial decision in a legal case.",
+          "properties": {}
+        },
+        {
+          "name": "designates_as",
+          "source": "GovernmentBody",
+          "target": "Organization",
+          "description": "",
+          "detail": "A government body that officially classifies an organization with a specific status.",
+          "properties": {}
+        },
+        {
+          "name": "challenges",
+          "source": "Organization",
+          "target": "Policy",
+          "description": "",
+          "detail": "An organization that disputes or opposes a policy.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Concord",
+          "relation": "sues",
+          "tail": "Anthropic"
+        },
+        {
+          "head": "Pentagon",
+          "relation": "designates_as",
+          "tail": "Anthropic"
+        },
+        {
+          "head": "Anthropic",
+          "relation": "challenges",
+          "tail": "designation"
+        }
+      ]
+    },
+    {
+      "name": "Government and Policy Interactions",
+      "description": "Relations describing interactions between organizations and government bodies, including contracts, restrictions, and policy adherence.",
+      "relations": [
+        {
+          "name": "contracts_with",
+          "source": "Organization",
+          "target": "GovernmentBody",
+          "description": "",
+          "detail": "An organization that enters into an agreement with a government body.",
+          "properties": {}
+        },
+        {
+          "name": "imposes_restriction_on",
+          "source": "GovernmentBody",
+          "target": "Organization",
+          "description": "",
+          "detail": "A government body that places limitations on an organization.",
+          "properties": {}
+        },
+        {
+          "name": "adheres_to",
+          "source": "Organization",
+          "target": "Policy",
+          "description": "",
+          "detail": "An organization that follows a specific policy.",
+          "properties": {}
+        },
+        {
+          "name": "supports",
+          "source": "Organization",
+          "target": "Policy",
+          "description": "",
+          "detail": "An organization that advocates for a specific policy.",
+          "properties": {}
+        },
+        {
+          "name": "uses_in",
+          "source": "Product",
+          "target": "Location",
+          "description": "",
+          "detail": "A product that is deployed or utilized in a specific geographical area.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Anthropic",
+          "relation": "contracts_with",
+          "tail": "Pentagon"
+        },
+        {
+          "head": "Department of Defense",
+          "relation": "imposes_restriction_on",
+          "tail": "Anthropic"
+        },
+        {
+          "head": "Anthropic",
+          "relation": "adheres_to",
+          "tail": "usage policy"
+        }
+      ]
+    },
+    {
+      "name": "Research and Development",
+      "description": "Relations pertaining to the methods, frameworks, and findings of research activities.",
+      "relations": [
+        {
+          "name": "researches",
+          "source": "Organization",
+          "target": "Policy",
+          "description": "",
+          "detail": "An organization that conducts studies on a specific policy or concept.",
+          "properties": {}
+        },
+        {
+          "name": "applies_method",
+          "source": "Product",
+          "target": "Technology",
+          "description": "",
+          "detail": "A product that utilizes a specific method or technique.",
+          "properties": {}
+        },
+        {
+          "name": "publishes_findings_on",
+          "source": "Organization",
+          "target": "Technology",
+          "description": "",
+          "detail": "An organization that releases research results related to a technology.",
+          "properties": {}
+        },
+        {
+          "name": "influences",
+          "source": "Policy",
+          "target": "Product",
+          "description": "",
+          "detail": "A policy that shapes the development or behavior of a product.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Anthropic",
+          "relation": "researches",
+          "tail": "AI safety"
+        },
+        {
+          "head": "Anthropic",
+          "relation": "publishes_findings_on",
+          "tail": "multilingual models"
+        }
+      ]
+    },
+    {
+      "name": "Events and Milestones",
+      "description": "Relations describing significant occurrences, their timing, and participants.",
+      "relations": [
+        {
+          "name": "involves",
+          "source": "Event",
+          "target": "Organization",
+          "description": "",
+          "detail": "An event that includes or affects a specific organization.",
+          "properties": {}
+        },
+        {
+          "name": "announces",
+          "source": "Organization",
+          "target": "Event",
+          "description": "",
+          "detail": "An organization that makes a public declaration about an event.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Super Bowl advertising campaign",
+          "relation": "involves",
+          "tail": "Anthropic"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

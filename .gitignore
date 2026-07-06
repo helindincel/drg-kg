@@ -59,9 +59,11 @@ coverage.xml
 # version string).
 drg/_version.py
 
-# Runtime / generated artifacts
+# Runtime / generated artifacts (demo outputs under outputs/output* are tracked)
 outputs/*
 !outputs/.gitkeep
+!outputs/output*_kg.json
+!outputs/output*_schema.json
 
 # Tooling caches
 .ruff_cache/

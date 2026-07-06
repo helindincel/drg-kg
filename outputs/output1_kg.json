@@ -1,0 +1,622 @@
+{
+  "nodes": [
+    {
+      "id": "Göbekli Tepe",
+      "type": "Archaeological Site",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Pre-Pottery Neolithic period",
+      "type": "Historical Period",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s2",
+          "source_span": [
+            198,
+            301
+          ],
+          "snippet": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "9600 to 8200 BCE",
+      "type": "Historical Period",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s2",
+          "source_span": [
+            198,
+            301
+          ],
+          "snippet": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "southeastern Turkey",
+      "type": "Geographical Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Şanlıurfa",
+      "type": "Geographical Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "monumental circular enclosures",
+      "type": "Structure",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s1",
+          "source_span": [
+            86,
+            198
+          ],
+          "snippet": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "T-shaped limestone pillars",
+      "type": "Structure",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s1",
+          "source_span": [
+            86,
+            198
+          ],
+          "snippet": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "animal reliefs",
+      "type": "Decoration",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s1",
+          "source_span": [
+            86,
+            198
+          ],
+          "snippet": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "ritual",
+      "type": "Scholarly Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            301,
+            433
+          ],
+          "snippet": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "settlement",
+      "type": "Scholarly Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            301,
+            433
+          ],
+          "snippet": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "complex societies",
+      "type": "Scholarly Concept",
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            301,
+            433
+          ],
+          "snippet": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Neolithic period",
+      "type": null,
+      "metadata": {
+        "source_documents": [
+          "inputs/input1.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s2",
+          "source_span": [
+            198,
+            301
+          ],
+          "snippet": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "Göbekli Tepe",
+      "target": "southeastern Turkey",
+      "relationship_type": "located_in",
+      "relationship_detail": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "located_in",
+          "southeastern Turkey"
+        ],
+        "relationship_description": "Indicates the larger geographical area (e.g., region, country) where a site is situated.",
+        "schema_detail": "Göbekli Tepe is in southeastern Turkey",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "Şanlıurfa",
+      "relationship_type": "near",
+      "relationship_detail": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "near",
+          "Şanlıurfa"
+        ],
+        "relationship_description": "Indicates proximity of a site to a specific city or landmark.",
+        "schema_detail": "Göbekli Tepe is near Şanlıurfa",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "Pre-Pottery Neolithic period",
+      "relationship_type": "main_occupation_during",
+      "relationship_detail": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE. Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "main_occupation_during",
+          "Pre-Pottery Neolithic period"
+        ],
+        "relationship_description": "Specifies the primary period of human activity or occupation at a site.",
+        "schema_detail": "main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE. Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "9600 to 8200 BCE",
+      "relationship_type": "main_occupation_during",
+      "relationship_detail": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE. Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "main_occupation_during",
+          "9600 to 8200 BCE"
+        ],
+        "relationship_description": "Specifies the primary period of human activity or occupation at a site.",
+        "schema_detail": "main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE. Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "temporal": {
+          "valid_from": "9600 BCE",
+          "valid_to": "8200 BCE",
+          "precision_from": "year",
+          "raw_text": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "precision": "year"
+        },
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "start_time": "9600 BCE",
+      "valid_from": "9600 BCE",
+      "end_time": "8200 BCE",
+      "valid_to": "8200 BCE",
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "monumental circular enclosures",
+      "relationship_type": "contains",
+      "relationship_detail": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa. The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "contains",
+          "monumental circular enclosures"
+        ],
+        "relationship_description": "Indicates a structure found within an archaeological site.",
+        "schema_detail": "The site contains monumental circular enclosures",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa. The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "T-shaped limestone pillars",
+      "relationship_type": "contains",
+      "relationship_detail": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa. The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "contains",
+          "T-shaped limestone pillars"
+        ],
+        "relationship_description": "Indicates a structure found within an archaeological site.",
+        "schema_detail": "The site contains monumental circular enclosures",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa. The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "T-shaped limestone pillars",
+      "target": "animal reliefs",
+      "relationship_type": "decorated_with",
+      "relationship_detail": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+      "metadata": {
+        "triple": [
+          "T-shaped limestone pillars",
+          "decorated_with",
+          "animal reliefs"
+        ],
+        "relationship_description": "Describes the decorative elements found on a structure.",
+        "schema_detail": "T-shaped limestone pillars decorated with animal reliefs",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s1",
+          "source_span": [
+            86,
+            198
+          ],
+          "snippet": "The site contains monumental circular enclosures with T-shaped limestone pillars decorated with animal reliefs.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "ritual",
+      "relationship_type": "changed_views_about",
+      "relationship_detail": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "changed_views_about",
+          "ritual"
+        ],
+        "relationship_description": "Indicates how a site has altered academic perspectives on certain concepts.",
+        "schema_detail": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            301,
+            433
+          ],
+          "snippet": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "settlement",
+      "relationship_type": "changed_views_about",
+      "relationship_detail": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "changed_views_about",
+          "settlement"
+        ],
+        "relationship_description": "Indicates how a site has altered academic perspectives on certain concepts.",
+        "schema_detail": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            301,
+            433
+          ],
+          "snippet": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "complex societies",
+      "relationship_type": "changed_views_about",
+      "relationship_detail": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "changed_views_about",
+          "complex societies"
+        ],
+        "relationship_description": "Indicates how a site has altered academic perspectives on certain concepts.",
+        "schema_detail": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            301,
+            433
+          ],
+          "snippet": "Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    },
+    {
+      "source": "Göbekli Tepe",
+      "target": "Neolithic period",
+      "relationship_type": "is_from_period",
+      "relationship_detail": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE. Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+      "metadata": {
+        "triple": [
+          "Göbekli Tepe",
+          "is_from_period",
+          "Neolithic period"
+        ],
+        "relationship_description": "Indicates the general historical period to which a site belongs.",
+        "schema_detail": "Göbekli Tepe is a Neolithic archaeological site",
+        "source_ref": "inputs/input1.txt",
+        "evidence": "Archaeologists date its main occupation to the Pre-Pottery Neolithic period, roughly 9600 to 8200 BCE. Göbekli Tepe has changed scholarly views about the relationship between ritual, settlement, and the emergence of complex societies.",
+        "provenance": {
+          "document_id": "inputs/input1.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            86
+          ],
+          "snippet": "Göbekli Tepe is a Neolithic archaeological site in southeastern Turkey near Şanlıurfa.",
+          "extracted_at": "2026-06-25T16:31:59+00:00"
+        },
+        "source_documents": [
+          "inputs/input1.txt"
+        ]
+      },
+      "confidence": 1.0
+    }
+  ],
+  "clusters": []
+}

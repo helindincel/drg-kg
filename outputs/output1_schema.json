@@ -1,0 +1,180 @@
+{
+  "entity_types": [
+    {
+      "name": "ArchaeologicalSite",
+      "description": "A place where evidence of past human activity is preserved, which has been, or may be, investigated using the discipline of archaeology.",
+      "examples": [
+        "Göbekli Tepe"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Location",
+      "description": "A geographical place or region.",
+      "examples": [
+        "Turkey",
+        "Şanlıurfa"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Structure",
+      "description": "A building or other object constructed from several parts.",
+      "examples": [
+        "monumental circular enclosures",
+        "T-shaped limestone pillars"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Decoration",
+      "description": "An embellishment or adornment.",
+      "examples": [
+        "animal reliefs"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "ScholarlyView",
+      "description": "An opinion or perspective held by academics or researchers.",
+      "examples": [
+        "scholarly views"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Concept",
+      "description": "An abstract idea or general notion.",
+      "examples": [
+        "ritual",
+        "settlement",
+        "complex societies"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "TimePeriod",
+      "description": "A defined span of time, often associated with historical or geological eras.",
+      "examples": [
+        "Pre-Pottery Neolithic period",
+        "9600 to 8200 BCE"
+      ],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Location and Identification",
+      "description": "Relations describing the geographical placement and identification of archaeological sites and structures.",
+      "relations": [
+        {
+          "name": "near",
+          "source": "ArchaeologicalSite",
+          "target": "Location",
+          "description": "",
+          "detail": "near",
+          "properties": {}
+        },
+        {
+          "name": "contains",
+          "source": "ArchaeologicalSite",
+          "target": "Structure",
+          "description": "",
+          "detail": "contains",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Göbekli Tepe",
+          "relation": "near",
+          "tail": "Şanlıurfa"
+        },
+        {
+          "head": "Göbekli Tepe",
+          "relation": "contains",
+          "tail": "monumental circular enclosures"
+        }
+      ]
+    },
+    {
+      "name": "Description and Characteristics",
+      "description": "Relations detailing the features and characteristics of structures and sites.",
+      "relations": [
+        {
+          "name": "decorated_with",
+          "source": "Structure",
+          "target": "Decoration",
+          "description": "",
+          "detail": "decorated with",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "T-shaped limestone pillars",
+          "relation": "decorated_with",
+          "tail": "animal reliefs"
+        }
+      ]
+    },
+    {
+      "name": "Research and Impact",
+      "description": "Relations describing the influence of discoveries on scholarly understanding.",
+      "relations": [
+        {
+          "name": "changes",
+          "source": "ArchaeologicalSite",
+          "target": "ScholarlyView",
+          "description": "",
+          "detail": "has changed",
+          "properties": {}
+        },
+        {
+          "name": "about",
+          "source": "ScholarlyView",
+          "target": "Concept",
+          "description": "",
+          "detail": "about the relationship between",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Göbekli Tepe",
+          "relation": "changes",
+          "tail": "scholarly views"
+        },
+        {
+          "head": "scholarly views",
+          "relation": "about",
+          "tail": "ritual"
+        }
+      ]
+    },
+    {
+      "name": "Temporal Relations",
+      "description": "Relations describing the time periods associated with archaeological sites or events.",
+      "relations": [
+        {
+          "name": "dated_to",
+          "source": "ArchaeologicalSite",
+          "target": "TimePeriod",
+          "description": "Indicates the time period to which an archaeological site or its main occupation is dated.",
+          "detail": "dated its main occupation to",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Göbekli Tepe",
+          "relation": "dated_to",
+          "tail": "Pre-Pottery Neolithic period"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

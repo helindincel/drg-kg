@@ -1,0 +1,343 @@
+{
+  "entity_types": [
+    {
+      "name": "FoodDish",
+      "description": "A specific type of prepared food, often with variations and historical development.",
+      "examples": [
+        "pizza",
+        "focaccia",
+        "plakous"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Location",
+      "description": "A geographical place, city, region, or country.",
+      "examples": [
+        "Naples",
+        "Italy",
+        "United States"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Organization",
+      "description": "A company, association, or institution.",
+      "examples": [
+        "Lombardi's",
+        "Associazione Verace Pizza Napoletana",
+        "Pizza Hut"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Person",
+      "description": "An individual involved in the history or development of food.",
+      "examples": [
+        "Raffaele Esposito",
+        "Alexandre Dumas",
+        "Enrico Caruso"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Document",
+      "description": "A written work, such as a book, article, or historical record.",
+      "examples": [
+        "Etymological Dictionary of the Italian Language",
+        "Napoli, contorni e dintorni",
+        "Il talismano della felicità"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Event",
+      "description": "A significant occurrence or happening in time.",
+      "examples": [
+        "World War II",
+        "Italian Campaign",
+        "UNESCO Intangible Cultural Heritage Lists inscription"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Ingredient",
+      "description": "A component used in the preparation of a food dish.",
+      "examples": [
+        "tomato",
+        "mozzarella",
+        "basil"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "DishVariant",
+      "description": "A specific variation or style of a food dish, often named or associated with a particular region or characteristic.",
+      "examples": [
+        "pizza Margherita",
+        "pizza marinara",
+        "Chicago-style deep-dish pizza"
+      ],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Creation and Development",
+      "description": "Relations describing the origin, invention, or evolution of food dishes and related entities.",
+      "relations": [
+        {
+          "name": "originated_in",
+          "source": "FoodDish",
+          "target": "Location",
+          "description": "",
+          "detail": "describes the geographical origin or place of development of a food dish",
+          "properties": {}
+        },
+        {
+          "name": "develops",
+          "source": "Person",
+          "target": "FoodDish",
+          "description": "",
+          "detail": "indicates a person who invented or significantly developed a food dish",
+          "properties": {}
+        },
+        {
+          "name": "develops",
+          "source": "Organization",
+          "target": "FoodDish",
+          "description": "",
+          "detail": "describes an organization that developed or popularized a food dish",
+          "properties": {}
+        },
+        {
+          "name": "uses",
+          "source": "FoodDish",
+          "target": "Ingredient",
+          "description": "",
+          "detail": "specifies an ingredient used in a food dish",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "pizza",
+          "relation": "originated_in",
+          "tail": "Naples"
+        }
+      ]
+    },
+    {
+      "name": "Documentation and Description",
+      "description": "Relations concerning the recording, description, or mention of food dishes and their history.",
+      "relations": [
+        {
+          "name": "documented_in",
+          "source": "FoodDish",
+          "target": "Document",
+          "description": "",
+          "detail": "indicates a document where a food dish is mentioned or described",
+          "properties": {}
+        },
+        {
+          "name": "described_by",
+          "source": "Person",
+          "target": "FoodDish",
+          "description": "",
+          "detail": "identifies a person who described a food dish",
+          "properties": {}
+        },
+        {
+          "name": "published",
+          "source": "Person",
+          "target": "Document",
+          "description": "",
+          "detail": "indicates a person who published a document",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "pizza",
+          "relation": "documented_in",
+          "tail": "Etymological Dictionary of the Italian Language"
+        },
+        {
+          "head": "Alexandre Dumas",
+          "relation": "described_by",
+          "tail": "pizza"
+        },
+        {
+          "head": "Pellegrino Artusi",
+          "relation": "published",
+          "tail": "La scienza in cucina e l'arte di mangiar bene"
+        }
+      ]
+    },
+    {
+      "name": "Establishment and Operation",
+      "description": "Relations related to the founding, opening, or operation of organizations, particularly pizzerias.",
+      "relations": [
+        {
+          "name": "founded",
+          "source": "Person",
+          "target": "Organization",
+          "description": "",
+          "detail": "indicates a person who founded an organization",
+          "properties": {}
+        },
+        {
+          "name": "opened_in",
+          "source": "Organization",
+          "target": "Location",
+          "description": "",
+          "detail": "specifies the location where an organization opened",
+          "properties": {}
+        },
+        {
+          "name": "operated_by",
+          "source": "Organization",
+          "target": "Person",
+          "description": "",
+          "detail": "identifies a person who operated or ran an organization",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Gennaro Lombardi",
+          "relation": "founded",
+          "tail": "Lombardi's"
+        },
+        {
+          "head": "Lombardi's",
+          "relation": "opened_in",
+          "tail": "New York City"
+        },
+        {
+          "head": "Lombardi's",
+          "relation": "operated_by",
+          "tail": "George Lombardi"
+        }
+      ]
+    },
+    {
+      "name": "Recognition and Status",
+      "description": "Relations describing official recognition, awards, or cultural status of food dishes or practices.",
+      "relations": [
+        {
+          "name": "granted_status",
+          "source": "FoodDish",
+          "target": "Event",
+          "description": "",
+          "detail": "indicates a food dish receiving an official designation or status",
+          "properties": {}
+        },
+        {
+          "name": "recognized_by",
+          "source": "FoodDish",
+          "target": "Organization",
+          "description": "",
+          "detail": "identifies an organization that recognizes or certifies a food dish",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "pizza napoletana",
+          "relation": "granted_status",
+          "tail": "Protected Designation of Origin"
+        },
+        {
+          "head": "pizza napoletana",
+          "relation": "recognized_by",
+          "tail": "Associazione Verace Pizza Napoletana"
+        }
+      ]
+    },
+    {
+      "name": "Influence and Spread",
+      "description": "Relations detailing the expansion, introduction, or influence of food dishes or culinary practices.",
+      "relations": [
+        {
+          "name": "introduced_to",
+          "source": "FoodDish",
+          "target": "Location",
+          "description": "",
+          "detail": "describes a location where a food dish was introduced",
+          "properties": {}
+        },
+        {
+          "name": "spread_to",
+          "source": "FoodDish",
+          "target": "Location",
+          "description": "",
+          "detail": "indicates a location to which a food dish spread",
+          "properties": {}
+        },
+        {
+          "name": "influenced_by",
+          "source": "FoodDish",
+          "target": "FoodDish",
+          "description": "",
+          "detail": "describes one food dish being influenced by another",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "pizza",
+          "relation": "introduced_to",
+          "tail": "United States"
+        },
+        {
+          "head": "pizza",
+          "relation": "spread_to",
+          "tail": "Canada"
+        },
+        {
+          "head": "pizza",
+          "relation": "influenced_by",
+          "tail": "focaccia"
+        }
+      ]
+    },
+    {
+      "name": "Categorization and Characteristics",
+      "description": "Relations describing the classification, characteristics, or variations of food dishes.",
+      "relations": [
+        {
+          "name": "has_variant",
+          "source": "FoodDish",
+          "target": "DishVariant",
+          "description": "indicates a specific variation or style of a broader food dish",
+          "detail": "describes a specific variation or style of a broader food dish",
+          "properties": {}
+        },
+        {
+          "name": "is_style_of",
+          "source": "DishVariant",
+          "target": "Location",
+          "description": "associates a dish variant with a particular geographical style or origin",
+          "detail": "associates a dish variant with a particular geographical style or origin",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "pizza",
+          "relation": "has_variant",
+          "tail": "pizza Margherita"
+        },
+        {
+          "head": "Chicago-style deep-dish pizza",
+          "relation": "is_style_of",
+          "tail": "Chicago"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

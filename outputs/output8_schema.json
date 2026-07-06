@@ -1,0 +1,379 @@
+{
+  "entity_types": [
+    {
+      "name": "AnimalSpecies",
+      "description": "A classification of animals, often including common names and scientific binomials.",
+      "examples": [
+        "wolf",
+        "Canis lupus",
+        "coyote"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "TaxonomicRank",
+      "description": "A level in the hierarchical classification of organisms.",
+      "examples": [
+        "genus Canis",
+        "family Canidae",
+        "subspecies"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "GeographicRegion",
+      "description": "A defined area of land or water, often with shared characteristics.",
+      "examples": [
+        "Eurasia",
+        "North America",
+        "arctic region"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Organization",
+      "description": "A structured group of people with a particular purpose.",
+      "examples": [
+        "International Union for Conservation of Nature (IUCN)",
+        "IUCN/Species Survival Commission's Canid Specialist Group",
+        "U.S. Department of Agriculture"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Disease",
+      "description": "A disorder of structure or function in an animal, especially one that produces specific symptoms or that affects a specific location and is not simply a direct result of physical injury.",
+      "examples": [
+        "rabies",
+        "canine distemper",
+        "Lyme disease"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Parasite",
+      "description": "An organism that lives in or on an organism of another species (its host) and benefits by deriving nutrients at the other's expense.",
+      "examples": [
+        "mange mite",
+        "fleas",
+        "tapeworms"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "ConservationStatus",
+      "description": "An indicator of the likelihood of a species continuing to survive.",
+      "examples": [
+        "Least Concern",
+        "Endangered Species Act (ESA) of 1973",
+        "Appendix II"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "CulturalConcept",
+      "description": "An idea or belief that is shared by a group of people.",
+      "examples": [
+        "werewolf",
+        "The Boy Who Cried Wolf",
+        "Big Bad Wolf"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "CulturalWork",
+      "description": "A product of creative work, such as a book, film, or sculpture.",
+      "examples": [
+        "The Jungle Book",
+        "Never Cry Wolf",
+        "War and Peace"
+      ],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Taxonomic Classification",
+      "description": "Relations describing the hierarchical classification of animal species.",
+      "relations": [
+        {
+          "name": "is_a_member_of",
+          "source": "AnimalSpecies",
+          "target": "TaxonomicRank",
+          "description": "",
+          "detail": "Indicates that an animal species belongs to a particular taxonomic rank.",
+          "properties": {}
+        },
+        {
+          "name": "includes",
+          "source": "TaxonomicRank",
+          "target": "AnimalSpecies",
+          "description": "",
+          "detail": "Indicates that a taxonomic rank encompasses certain animal species.",
+          "properties": {}
+        },
+        {
+          "name": "has_subspecies",
+          "source": "AnimalSpecies",
+          "target": "AnimalSpecies",
+          "description": "",
+          "detail": "Indicates that an animal species has a recognized subspecies.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "wolf",
+          "relation": "is_a_member_of",
+          "tail": "genus Canis"
+        },
+        {
+          "head": "Canis lupus",
+          "relation": "has_subspecies",
+          "tail": "dog"
+        },
+        {
+          "head": "family Canidae",
+          "relation": "includes",
+          "tail": "wolf"
+        }
+      ]
+    },
+    {
+      "name": "Geographic Distribution",
+      "description": "Relations describing where animal species are found or where events related to them occur.",
+      "relations": [
+        {
+          "name": "native_to",
+          "source": "AnimalSpecies",
+          "target": "GeographicRegion",
+          "description": "",
+          "detail": "Indicates the native habitat of an animal species.",
+          "properties": {}
+        },
+        {
+          "name": "occurs_in",
+          "source": "AnimalSpecies",
+          "target": "GeographicRegion",
+          "description": "",
+          "detail": "Indicates a region where an animal species is found.",
+          "properties": {}
+        },
+        {
+          "name": "found_in",
+          "source": "AnimalSpecies",
+          "target": "GeographicRegion",
+          "description": "",
+          "detail": "Indicates a region where an animal species is present.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "wolf",
+          "relation": "native_to",
+          "tail": "Eurasia"
+        },
+        {
+          "head": "wolf",
+          "relation": "occurs_in",
+          "tail": "North America"
+        },
+        {
+          "head": "European wolves",
+          "relation": "found_in",
+          "tail": "Europe"
+        }
+      ]
+    },
+    {
+      "name": "Biological Interactions",
+      "description": "Relations describing how animal species interact with each other or with diseases/parasites.",
+      "relations": [
+        {
+          "name": "preys_on",
+          "source": "AnimalSpecies",
+          "target": "AnimalSpecies",
+          "description": "",
+          "detail": "Indicates that one animal species hunts and kills another for food.",
+          "properties": {}
+        },
+        {
+          "name": "infects",
+          "source": "Disease",
+          "target": "AnimalSpecies",
+          "description": "",
+          "detail": "Indicates that a disease can infect an animal species.",
+          "properties": {}
+        },
+        {
+          "name": "infested_with",
+          "source": "AnimalSpecies",
+          "target": "Parasite",
+          "description": "",
+          "detail": "Indicates that an animal species is commonly infested by a parasite.",
+          "properties": {}
+        },
+        {
+          "name": "can_produce_hybrids_with",
+          "source": "AnimalSpecies",
+          "target": "AnimalSpecies",
+          "description": "",
+          "detail": "Indicates that two animal species can interbreed to produce fertile hybrids.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "wolf",
+          "relation": "preys_on",
+          "tail": "moose"
+        },
+        {
+          "head": "rabies virus",
+          "relation": "infects",
+          "tail": "wolves"
+        },
+        {
+          "head": "wolves",
+          "relation": "infested_with",
+          "tail": "mange mite"
+        }
+      ]
+    },
+    {
+      "name": "Conservation and Policy",
+      "description": "Relations describing the conservation status of species and the organizations involved.",
+      "relations": [
+        {
+          "name": "assessed_by",
+          "source": "AnimalSpecies",
+          "target": "Organization",
+          "description": "",
+          "detail": "Indicates the organization that assessed the conservation status of a species.",
+          "properties": {}
+        },
+        {
+          "name": "has_status",
+          "source": "AnimalSpecies",
+          "target": "ConservationStatus",
+          "description": "",
+          "detail": "Indicates the conservation status assigned to an animal species.",
+          "properties": {}
+        },
+        {
+          "name": "listed_under",
+          "source": "AnimalSpecies",
+          "target": "ConservationStatus",
+          "description": "",
+          "detail": "Indicates the legal or international listing of a species for conservation.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "wolf",
+          "relation": "assessed_by",
+          "tail": "International Union for Conservation of Nature (IUCN)"
+        },
+        {
+          "head": "wolf",
+          "relation": "has_status",
+          "tail": "Least Concern"
+        },
+        {
+          "head": "species",
+          "relation": "listed_under",
+          "tail": "Appendix II"
+        }
+      ]
+    },
+    {
+      "name": "Cultural Representation",
+      "description": "Relations describing how animal species are represented in culture, folklore, and literature.",
+      "relations": [
+        {
+          "name": "associated_with",
+          "source": "AnimalSpecies",
+          "target": "CulturalConcept",
+          "description": "",
+          "detail": "Indicates a cultural concept or figure associated with an animal species.",
+          "properties": {}
+        },
+        {
+          "name": "features_in",
+          "source": "AnimalSpecies",
+          "target": "CulturalConcept",
+          "description": "",
+          "detail": "Indicates a cultural work or story in which an animal species is a character.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "wolves",
+          "relation": "associated_with",
+          "tail": "Apollo"
+        },
+        {
+          "head": "wolf",
+          "relation": "features_in",
+          "tail": "The Boy Who Cried Wolf"
+        }
+      ]
+    },
+    {
+      "name": "Creation and Authorship",
+      "description": "Relations describing the creation of cultural works and their creators.",
+      "relations": [
+        {
+          "name": "created_by",
+          "source": "CulturalWork",
+          "target": "Organization",
+          "description": "",
+          "detail": "Indicates the organization responsible for creating a cultural work.",
+          "properties": {}
+        },
+        {
+          "name": "authored_by",
+          "source": "CulturalWork",
+          "target": "AnimalSpecies",
+          "description": "",
+          "detail": "Indicates the author of a cultural work.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Never Cry Wolf",
+          "relation": "authored_by",
+          "tail": "Farley Mowat"
+        }
+      ]
+    },
+    {
+      "name": "Cultural Impact",
+      "description": "Relations describing the impact or influence of cultural works or concepts.",
+      "relations": [
+        {
+          "name": "influenced_by",
+          "source": "CulturalConcept",
+          "target": "CulturalWork",
+          "description": "",
+          "detail": "Indicates that a cultural concept was influenced by a cultural work.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "wolf's negative reputation",
+          "relation": "influenced_by",
+          "tail": "Little Red Riding Hood"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

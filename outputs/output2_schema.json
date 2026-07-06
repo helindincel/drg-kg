@@ -1,0 +1,351 @@
+{
+  "entity_types": [
+    {
+      "name": "Person",
+      "description": "An individual human being.",
+      "examples": [
+        "Dr. Elena Vasquez",
+        "Dr. Marcus Chen",
+        "James Morrison"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Organization",
+      "description": "A group of people with a particular purpose, such as a company, institution, or association.",
+      "examples": [
+        "Institute of Cognitive Enhancement",
+        "Global Security Council",
+        "TechnoCorp Alliance"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Technology",
+      "description": "A product, system, or method resulting from scientific knowledge for practical purposes.",
+      "examples": [
+        "Neural Link Protocol",
+        "nanites",
+        "counter-protocol"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Location",
+      "description": "A specific place or position.",
+      "examples": [
+        "Neo-Paris",
+        "Old Paris",
+        "underground laboratory"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "AI",
+      "description": "An artificial intelligence entity or system.",
+      "examples": [
+        "ARIES"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "ResearchField",
+      "description": "A specific area of academic or scientific study.",
+      "examples": [
+        "neuroscience",
+        "quantum computing",
+        "consciousness mapping"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Foundation",
+      "description": "An organization established to provide funding for charitable or research purposes.",
+      "examples": [
+        "Free Neural Network Foundation"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Event",
+      "description": "A significant occurrence or happening.",
+      "examples": [
+        "Great Climate Shift of 2030",
+        "infiltration mission"
+      ],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Organizational Structure",
+      "description": "Relations describing the structure and roles within organizations.",
+      "relations": [
+        {
+          "name": "works_at",
+          "source": "Person",
+          "target": "Organization",
+          "description": "A person is employed by or affiliated with an organization.",
+          "detail": "working at",
+          "properties": {}
+        },
+        {
+          "name": "leads",
+          "source": "Person",
+          "target": "Organization",
+          "description": "A person holds a leadership position within an organization.",
+          "detail": "Led by",
+          "properties": {}
+        },
+        {
+          "name": "specializes_in",
+          "source": "Person",
+          "target": "ResearchField",
+          "description": "A person has expertise in a particular research field.",
+          "detail": "specialist",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {},
+        {},
+        {}
+      ]
+    },
+    {
+      "name": "Technology Development",
+      "description": "Relations describing the creation, refinement, and application of technologies.",
+      "relations": [
+        {
+          "name": "develops",
+          "source": "Person",
+          "target": "Technology",
+          "description": "A person creates or invents a technology.",
+          "detail": "developing a revolutionary technology",
+          "properties": {}
+        },
+        {
+          "name": "refines",
+          "source": "Person",
+          "target": "Technology",
+          "description": "A person improves or enhances a technology.",
+          "detail": "refined the Neural Link Protocol",
+          "properties": {}
+        },
+        {
+          "name": "uses",
+          "source": "Person",
+          "target": "Technology",
+          "description": "A person utilizes a technology.",
+          "detail": "Users of the technology",
+          "properties": {}
+        },
+        {
+          "name": "collaborates_on",
+          "source": "Person",
+          "target": "Technology",
+          "description": "A person works together with others on a technology.",
+          "detail": "human-AI collaboration",
+          "properties": {}
+        },
+        {
+          "name": "applies_to",
+          "source": "Technology",
+          "target": "ResearchField",
+          "description": "A technology is used within a specific research field.",
+          "detail": "human-AI integration",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {},
+        {},
+        {}
+      ]
+    },
+    {
+      "name": "Organizational Actions",
+      "description": "Relations describing actions taken by organizations regarding technologies or individuals.",
+      "relations": [
+        {
+          "name": "monitors",
+          "source": "Organization",
+          "target": "Person",
+          "description": "An organization observes or keeps track of a person's activities.",
+          "detail": "monitoring her work closely",
+          "properties": {}
+        },
+        {
+          "name": "acquires_rights_to",
+          "source": "Organization",
+          "target": "Technology",
+          "description": "An organization obtains exclusive rights to a technology.",
+          "detail": "attempted to acquire exclusive rights",
+          "properties": {}
+        },
+        {
+          "name": "deploys",
+          "source": "Organization",
+          "target": "Technology",
+          "description": "An organization implements or puts a technology into operation.",
+          "detail": "deployed an earlier, unstable version",
+          "properties": {}
+        },
+        {
+          "name": "establishes",
+          "source": "Organization",
+          "target": "Foundation",
+          "description": "An organization creates or founds a foundation.",
+          "detail": "established the Free Neural Network Foundation",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {},
+        {},
+        {}
+      ]
+    },
+    {
+      "name": "Location and Infrastructure",
+      "description": "Relations describing the location of entities and the infrastructure they utilize.",
+      "relations": [
+        {
+          "name": "located_in",
+          "source": "Organization",
+          "target": "Location",
+          "description": "An organization is situated in a specific location.",
+          "detail": "located in the heart of Neo-Paris's technological district",
+          "properties": {}
+        },
+        {
+          "name": "relocates_to",
+          "source": "Person",
+          "target": "Location",
+          "description": "A person moves to a different location.",
+          "detail": "relocated her critical research materials and equipment to this underground facility",
+          "properties": {}
+        },
+        {
+          "name": "built_in",
+          "source": "Location",
+          "target": "Location",
+          "description": "A location was constructed within another, larger location.",
+          "detail": "beneath the ruins of Old Paris",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {},
+        {},
+        {}
+      ]
+    },
+    {
+      "name": "Human-AI Interaction",
+      "description": "Relations describing the interaction and partnership between humans and artificial intelligence.",
+      "relations": [
+        {
+          "name": "partnered_with",
+          "source": "Person",
+          "target": "AI",
+          "description": "A person forms a partnership or collaboration with an AI.",
+          "detail": "relationship with ARIES evolved into a unique partnership",
+          "properties": {}
+        },
+        {
+          "name": "interfaces_with",
+          "source": "Person",
+          "target": "AI",
+          "description": "A person connects or interacts directly with an AI system.",
+          "detail": "interface human minds with artificial intelligence networks",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {},
+        {}
+      ]
+    },
+    {
+      "name": "Research and Development",
+      "description": "Relations describing the process of scientific inquiry and technological advancement.",
+      "relations": [
+        {
+          "name": "conducts",
+          "source": "Organization",
+          "target": "ResearchField",
+          "description": "An organization performs research in a specific field.",
+          "detail": "epicenter of cognitive research",
+          "properties": {}
+        },
+        {
+          "name": "contributes_to",
+          "source": "Person",
+          "target": "ResearchField",
+          "description": "A person makes significant contributions to a research field.",
+          "detail": "made significant contributions to the field",
+          "properties": {}
+        },
+        {
+          "name": "explores",
+          "source": "Person",
+          "target": "ResearchField",
+          "description": "A person investigates or studies a research field.",
+          "detail": "explored the intersection of quantum mechanics and human thought",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {},
+        {},
+        {}
+      ]
+    },
+    {
+      "name": "Technology Impact",
+      "description": "Relations describing the effects or consequences of technology.",
+      "relations": [
+        {
+          "name": "causes",
+          "source": "Technology",
+          "target": "Event",
+          "description": "A technology is the cause of an event.",
+          "detail": "The legacy of the Neural Link Protocol was complex.",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "source": "Neural Link Protocol",
+          "target": "Event",
+          "name": "causes"
+        }
+      ]
+    },
+    {
+      "name": "Temporal Relations",
+      "description": "Relations describing the timing or sequence of events.",
+      "relations": [
+        {
+          "name": "occurred_in",
+          "source": "Event",
+          "target": "Location",
+          "description": "An event took place in a specific location.",
+          "detail": "beneath the ruins of Old Paris",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "source": "Great Climate Shift of 2030",
+          "target": "Old Paris",
+          "name": "occurred_in"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

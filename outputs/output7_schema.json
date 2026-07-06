@@ -1,0 +1,365 @@
+{
+  "entity_types": [
+    {
+      "name": "LiteraryWork",
+      "description": "A creative work of literature, such as a book, novella, or story.",
+      "examples": [
+        "The Little Prince",
+        "Wind, Sand and Stars",
+        "Lettre à un otage"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Person",
+      "description": "An individual human being.",
+      "examples": [
+        "Antoine de Saint-Exupéry",
+        "Léon Werth",
+        "Katherine Woods"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Organization",
+      "description": "A company, institution, or other organized group of people.",
+      "examples": [
+        "Reynal & Hitchcock",
+        "Gallimard",
+        "BBC"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Location",
+      "description": "A geographical place or address.",
+      "examples": [
+        "United States",
+        "France",
+        "Sahara desert"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Language",
+      "description": "A system of communication used by a particular country or community.",
+      "examples": [
+        "English",
+        "French",
+        "Spanish"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Award",
+      "description": "A prize or other mark of recognition given in honor of an achievement.",
+      "examples": [
+        "Grammy Award",
+        "Little Prince Literary Award"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "ArtForm",
+      "description": "A specific mode of artistic expression or representation.",
+      "examples": [
+        "audio recordings",
+        "radio plays",
+        "film"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Event",
+      "description": "A planned public or social occasion.",
+      "examples": [
+        "Little Prince Day",
+        "Morgan exhibitions",
+        "XIII Biannual Book Fair of Rio de Janeiro"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "CreativeWork",
+      "description": "A creative work that is not necessarily literary, such as a sculpture, painting, or film.",
+      "examples": [
+        "The Little Prince (film)",
+        "Da gloane Prinz",
+        "Hoshi no Ōjisama: Petit Prince"
+      ],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Literary Creation",
+      "description": "Relations describing the creation, publication, and translation of literary works.",
+      "relations": [
+        {
+          "name": "writes",
+          "source": "Person",
+          "target": "LiteraryWork",
+          "description": "",
+          "detail": "describes a person as the author of a literary work",
+          "properties": {}
+        },
+        {
+          "name": "illustrates",
+          "source": "Person",
+          "target": "LiteraryWork",
+          "description": "",
+          "detail": "describes a person as the illustrator of a literary work",
+          "properties": {}
+        },
+        {
+          "name": "publishes",
+          "source": "Organization",
+          "target": "LiteraryWork",
+          "description": "",
+          "detail": "describes an organization as the publisher of a literary work",
+          "properties": {}
+        },
+        {
+          "name": "translates_into",
+          "source": "LiteraryWork",
+          "target": "Language",
+          "description": "",
+          "detail": "describes a literary work being translated into a specific language",
+          "properties": {}
+        },
+        {
+          "name": "translated_by",
+          "source": "LiteraryWork",
+          "target": "Person",
+          "description": "",
+          "detail": "describes a person as the translator of a literary work",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Antoine de Saint-Exupéry",
+          "relation": "writes",
+          "tail": "The Little Prince"
+        },
+        {
+          "head": "Reynal & Hitchcock",
+          "relation": "publishes",
+          "tail": "The Little Prince"
+        },
+        {
+          "head": "The Little Prince",
+          "relation": "translates_into",
+          "tail": "English"
+        }
+      ]
+    },
+    {
+      "name": "Adaptation and Influence",
+      "description": "Relations describing how literary works are adapted into other forms or influence other creations.",
+      "relations": [
+        {
+          "name": "adapted_into",
+          "source": "LiteraryWork",
+          "target": "ArtForm",
+          "description": "",
+          "detail": "describes a literary work being adapted into a different art form",
+          "properties": {}
+        },
+        {
+          "name": "inspired",
+          "source": "LiteraryWork",
+          "target": "LiteraryWork",
+          "description": "",
+          "detail": "describes one literary work inspiring another",
+          "properties": {}
+        },
+        {
+          "name": "narrated_by",
+          "source": "ArtForm",
+          "target": "Person",
+          "description": "",
+          "detail": "describes an art form being narrated by a person",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "The Little Prince",
+          "relation": "adapted_into",
+          "tail": "film"
+        },
+        {
+          "head": "The Little Prince",
+          "relation": "inspired",
+          "tail": "Le petit prince retrouvé"
+        },
+        {
+          "head": "audio recordings",
+          "relation": "narrated_by",
+          "tail": "Richard Burton"
+        }
+      ]
+    },
+    {
+      "name": "Recognition and Commemoration",
+      "description": "Relations describing awards, honors, and commemorative actions related to literary works or individuals.",
+      "relations": [
+        {
+          "name": "receives",
+          "source": "Person",
+          "target": "Award",
+          "description": "",
+          "detail": "describes a person receiving an award",
+          "properties": {}
+        },
+        {
+          "name": "honors",
+          "source": "Event",
+          "target": "Person",
+          "description": "",
+          "detail": "describes an event honoring a person",
+          "properties": {}
+        },
+        {
+          "name": "dedicated_to",
+          "source": "LiteraryWork",
+          "target": "Person",
+          "description": "",
+          "detail": "describes a literary work being dedicated to a person",
+          "properties": {}
+        },
+        {
+          "name": "established_by",
+          "source": "Award",
+          "target": "Organization",
+          "description": "",
+          "detail": "describes an award being established by an organization",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Richard Burton",
+          "relation": "receives",
+          "tail": "Grammy Award"
+        },
+        {
+          "head": "Little Prince Day",
+          "relation": "honors",
+          "tail": "Antoine de Saint-Exupéry"
+        },
+        {
+          "head": "The Little Prince",
+          "relation": "dedicated_to",
+          "tail": "Léon Werth"
+        }
+      ]
+    },
+    {
+      "name": "Geographical Context",
+      "description": "Relations describing the geographical context of literary works, events, or individuals.",
+      "relations": [
+        {
+          "name": "located_in",
+          "source": "Organization",
+          "target": "Location",
+          "description": "",
+          "detail": "describes an organization being located in a specific geographical location",
+          "properties": {}
+        },
+        {
+          "name": "set_in",
+          "source": "LiteraryWork",
+          "target": "Location",
+          "description": "",
+          "detail": "describes a literary work being set in a specific geographical location",
+          "properties": {}
+        },
+        {
+          "name": "resides_in",
+          "source": "Person",
+          "target": "Location",
+          "description": "",
+          "detail": "describes a person residing in a specific geographical location",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Reynal & Hitchcock",
+          "relation": "located_in",
+          "tail": "United States"
+        },
+        {
+          "head": "The Little Prince",
+          "relation": "set_in",
+          "tail": "Sahara desert"
+        },
+        {
+          "head": "Antoine de Saint-Exupéry",
+          "relation": "resides_in",
+          "tail": "New York City"
+        }
+      ]
+    },
+    {
+      "name": "Creative Work Relationships",
+      "description": "Relations describing the creation, adaptation, and inspiration between various creative works.",
+      "relations": [
+        {
+          "name": "adapted_from",
+          "source": "CreativeWork",
+          "target": "LiteraryWork",
+          "description": "",
+          "detail": "describes a creative work being adapted from a literary work",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "The Little Prince (film)",
+          "relation": "adapted_from",
+          "tail": "The Little Prince"
+        }
+      ]
+    },
+    {
+      "name": "Personal Connections",
+      "description": "Relations describing personal relationships and influences between individuals.",
+      "relations": [
+        {
+          "name": "influenced",
+          "source": "Person",
+          "target": "Person",
+          "description": "",
+          "detail": "describes one person influencing another",
+          "properties": {}
+        },
+        {
+          "name": "modeled_after",
+          "source": "CreativeWork",
+          "target": "Person",
+          "description": "",
+          "detail": "describes a character or element in a creative work being modeled after a person",
+          "properties": {}
+        }
+      ],
+      "examples": [
+        {
+          "head": "Silvia Hamilton Reinhardt",
+          "relation": "influenced",
+          "tail": "Antoine de Saint-Exupéry"
+        },
+        {
+          "head": "the fox",
+          "relation": "modeled_after",
+          "tail": "Silvia Hamilton Reinhardt"
+        }
+      ]
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

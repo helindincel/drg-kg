@@ -1,0 +1,4087 @@
+{
+  "nodes": [
+    {
+      "id": "Microsoft Corporation",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            107
+          ],
+          "snippet": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Skype Technologies",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s7",
+          "source_span": [
+            984,
+            1225
+          ],
+          "snippet": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Microsoft Mobile",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s7",
+          "source_span": [
+            984,
+            1225
+          ],
+          "snippet": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Nokia",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s7",
+          "source_span": [
+            984,
+            1225
+          ],
+          "snippet": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "LinkedIn",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s8",
+          "source_span": [
+            1225,
+            1350
+          ],
+          "snippet": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Activision Blizzard",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s9",
+          "source_span": [
+            1350,
+            1543
+          ],
+          "snippet": "Under his direction, the company has expanded its video gaming business to support the Xbox brand, establishing the Microsoft Gaming division in 2022 and acquiring Activision Blizzard in 2023.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Under his direction, the company has expanded its video gaming business to support the Xbox brand, establishing the Microsoft Gaming division in 2022 and acquiring Activision Blizzard in 2023."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "IBM",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s10",
+          "source_span": [
+            1545,
+            1665
+          ],
+          "snippet": "Microsoft has been dominant in the IBM PC–compatible operating system and office software suite markets since the 1990s.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft has been dominant in the IBM PC–compatible operating system and office software suite markets since the 1990s."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Traf-O-Data",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s23",
+          "source_span": [
+            3263,
+            3378
+          ],
+          "snippet": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "ASCII Magazine",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s29",
+          "source_span": [
+            4119,
+            4261
+          ],
+          "snippet": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "ASCII Microsoft",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s29",
+          "source_span": [
+            4119,
+            4261
+          ],
+          "snippet": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Seattle Computer Products",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s33",
+          "source_span": [
+            4686,
+            4848
+          ],
+          "snippet": "For this deal, Microsoft purchased a CP/M clone called 86-DOS from Seattle Computer Products which it branded as MS-DOS, although IBM rebranded it to IBM PC DOS.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "For this deal, Microsoft purchased a CP/M clone called 86-DOS from Seattle Computer Products which it branded as MS-DOS, although IBM rebranded it to IBM PC DOS."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Federal Trade Commission",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s44",
+          "source_span": [
+            6030,
+            6225
+          ],
+          "snippet": "In 1990, the Federal Trade Commission examined Microsoft for possible collusion due to the partnership with IBM, marking the beginning of more than a decade of legal clashes with the government.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In 1990, the Federal Trade Commission examined Microsoft for possible collusion due to the partnership with IBM, marking the beginning of more than a decade of legal clashes with the government."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Department of Justice's Antitrust Division",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s51",
+          "source_span": [
+            6977,
+            7281
+          ],
+          "snippet": "On July 27, 1994, the Department of Justice's Antitrust Division filed a competitive impact statement stating that since 1988, Microsoft had increasingly induced OEMs to pay royalties under a per-processor license for microprocessors in their computers regardless of whether a Microsoft product was used.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "On July 27, 1994, the Department of Justice's Antitrust Division filed a competitive impact statement stating that since 1988, Microsoft had increasingly induced OEMs to pay royalties under a per-processor license for microprocessors in their computers regardless of whether a Microsoft product was used."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Netscape",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s54",
+          "source_span": [
+            7644,
+            7838
+          ],
+          "snippet": "With a few exceptions of new companies, like Netscape, Microsoft was the only major and established company that acted fast enough to be a part of the World Wide Web practically from the start.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "With a few exceptions of new companies, like Netscape, Microsoft was the only major and established company that acted fast enough to be a part of the World Wide Web practically from the start."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Borland",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7838,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "WordPerfect",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7838,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Novell",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7838,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Lotus",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7838,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "CompuServe",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s57",
+          "source_span": [
+            8208,
+            8343
+          ],
+          "snippet": ": 20 Windows 95 came bundled with the online service MSN, which was intended to be a competitor to services such as CompuServe and AOL.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": ": 20 Windows 95 came bundled with the online service MSN, which was intended to be a competitor to services such as CompuServe and AOL."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "General Electric's NBC unit",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s61",
+          "source_span": [
+            8765,
+            8893
+          ],
+          "snippet": "Branching out into new markets in 1996, Microsoft and General Electric's NBC unit created a new 24/7 cable news channel, MSNBC.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Branching out into new markets in 1996, Microsoft and General Electric's NBC unit created a new 24/7 cable news channel, MSNBC."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Justice Department",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s64",
+          "source_span": [
+            9033,
+            9255
+          ],
+          "snippet": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Federal District Court",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s64",
+          "source_span": [
+            9033,
+            9255
+          ],
+          "snippet": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Sony",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s71",
+          "source_span": [
+            10051,
+            10169
+          ],
+          "snippet": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Nintendo",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s71",
+          "source_span": [
+            10051,
+            10169
+          ],
+          "snippet": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "European Union",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s72",
+          "source_span": [
+            10169,
+            10510
+          ],
+          "snippet": "In March 2004 the European Union brought antitrust legal action against the company, citing it abused its dominance with the Windows OS, resulting in a judgment of €497 million ($613 million) and requiring Microsoft to produce new versions of Windows XP without Windows Media Player: Windows XP Home Edition N and Windows XP Professional N.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In March 2004 the European Union brought antitrust legal action against the company, citing it abused its dominance with the Windows OS, resulting in a judgment of €497 million ($613 million) and requiring Microsoft to produce new versions of Windows XP without Windows Media Player: Windows XP Home Edition N and Windows XP Professional N."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Apple",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s87",
+          "source_span": [
+            12611,
+            12837
+          ],
+          "snippet": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Google",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s87",
+          "source_span": [
+            12611,
+            12837
+          ],
+          "snippet": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "HTC",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s91",
+          "source_span": [
+            13343,
+            13522
+          ],
+          "snippet": "It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Open Networking Foundation",
+      "type": "Company",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s92",
+          "source_span": [
+            13522,
+            13614
+          ],
+          "snippet": "Microsoft is a founding member of the Open Networking Foundation started on March 23, 2011.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft is a founding member of the Open Networking Foundation started on March 23, 2011."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Bellevue, Washington",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s30",
+          "source_span": [
+            4261,
+            4336
+          ],
+          "snippet": "Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft moved its headquarters to Bellevue, Washington, in January 1979."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Albuquerque, New Mexico",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s26",
+          "source_span": [
+            3709,
+            3892
+          ],
+          "snippet": "Allen worked on a simulator for the Altair while Gates developed the interpreter, and it worked flawlessly when they demonstrated it to MITS in March 1975 in Albuquerque, New Mexico.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Allen worked on a simulator for the Altair while Gates developed the interpreter, and it worked flawlessly when they demonstrated it to MITS in March 1975 in Albuquerque, New Mexico."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Japan",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s29",
+          "source_span": [
+            4119,
+            4261
+          ],
+          "snippet": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "United States",
+      "type": "Location",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s87",
+          "source_span": [
+            12611,
+            12837
+          ],
+          "snippet": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Bill Gates",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            494,
+            697
+          ],
+          "snippet": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Paul Allen",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            494,
+            697
+          ],
+          "snippet": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Steve Ballmer",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s6",
+          "source_span": [
+            939,
+            984
+          ],
+          "snippet": "Steve Ballmer replaced Gates as CEO in 2000.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Steve Ballmer replaced Gates as CEO in 2000."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Satya Nadella",
+      "type": "Person",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s8",
+          "source_span": [
+            1225,
+            1350
+          ],
+          "snippet": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Altair 8800",
+      "type": "Hardware",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            494,
+            697
+          ],
+          "snippet": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "IntelliMouse",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s65",
+          "source_span": [
+            9266,
+            9416
+          ],
+          "snippet": "While primarily focused on software, Microsoft also produced a number of successful PC accessories, such as the IntelliMouse computer mice shown here.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "While primarily focused on software, Microsoft also produced a number of successful PC accessories, such as the IntelliMouse computer mice shown here."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Microsoft SQL Server",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s15",
+          "source_span": [
+            2252,
+            2421
+          ],
+          "snippet": "In the enterprise and development fields, Microsoft most notably provides the Azure cloud computing platform, Microsoft SQL Server database software, and Visual Studio.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In the enterprise and development fields, Microsoft most notably provides the Azure cloud computing platform, Microsoft SQL Server database software, and Visual Studio.",
+        "aliases": [
+          "Microsoft Excel"
+        ],
+        "entity_resolution": {
+          "canonical": "Microsoft SQL Server",
+          "aliases": [
+            "Microsoft Excel"
+          ]
+        }
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "PowerPoint",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s11",
+          "source_span": [
+            1665,
+            1934
+          ],
+          "snippet": "Its best-known software products are the Windows line of operating systems and the Microsoft Office and Microsoft 365 suite of productivity applications, which most notably include the Word word processor, Excel spreadsheet editor, and PowerPoint presentation program.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Its best-known software products are the Windows line of operating systems and the Microsoft Office and Microsoft 365 suite of productivity applications, which most notably include the Word word processor, Excel spreadsheet editor, and PowerPoint presentation program."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Bing",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s13",
+          "source_span": [
+            2077,
+            2199
+          ],
+          "snippet": "The company also provides a range of consumer Internet services such as Bing web search, the MSN web portal, the Outlook.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "The company also provides a range of consumer Internet services such as Bing web search, the MSN web portal, the Outlook."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "MSN",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s13",
+          "source_span": [
+            2077,
+            2199
+          ],
+          "snippet": "The company also provides a range of consumer Internet services such as Bing web search, the MSN web portal, the Outlook.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "The company also provides a range of consumer Internet services such as Bing web search, the MSN web portal, the Outlook."
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Outlook.com",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt"
+      },
+      "confidence": 0.85
+    },
+    {
+      "id": "Azure Services Platform",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s85",
+          "source_span": [
+            12233,
+            12353
+          ],
+          "snippet": "Azure Services Platform, the company's entry into the cloud computing market for Windows, launched on October 27, 2008.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Azure Services Platform, the company's entry into the cloud computing market for Windows, launched on October 27, 2008."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Visual Studio",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s15",
+          "source_span": [
+            2252,
+            2421
+          ],
+          "snippet": "In the enterprise and development fields, Microsoft most notably provides the Azure cloud computing platform, Microsoft SQL Server database software, and Visual Studio.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In the enterprise and development fields, Microsoft most notably provides the Azure cloud computing platform, Microsoft SQL Server database software, and Visual Studio."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Altair BASIC",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s27",
+          "source_span": [
+            3892,
+            3952
+          ],
+          "snippet": "MITS agreed to distribute it, marketing it as Altair BASIC.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "MITS agreed to distribute it, marketing it as Altair BASIC."
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "Zune",
+      "type": "Product",
+      "metadata": {
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s74",
+          "source_span": [
+            10619,
+            10815
+          ],
+          "snippet": "Increasingly present in the hardware business following Xbox, Microsoft 2006 released the Zune series of digital media players, a successor of its previous software platform Portable Media Center.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Increasingly present in the hardware business following Xbox, Microsoft 2006 released the Zune series of digital media players, a successor of its previous software platform Portable Media Center."
+      },
+      "confidence": 0.85
+    }
+  ],
+  "edges": [
+    {
+      "source": "Microsoft Corporation",
+      "target": "Bill Gates",
+      "relationship_type": "founded_by",
+      "relationship_detail": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "founded_by",
+          "Bill Gates"
+        ],
+        "relationship_description": "Company was founded by Person.",
+        "schema_detail": "Indicates the person or people who founded a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1975",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            494,
+            587
+          ],
+          "snippet": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1975",
+      "valid_from": "1975",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Paul Allen",
+      "relationship_type": "founded_by",
+      "relationship_detail": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "founded_by",
+          "Paul Allen"
+        ],
+        "relationship_description": "Company was founded by Person.",
+        "schema_detail": "Indicates the person or people who founded a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1975",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            494,
+            697
+          ],
+          "snippet": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1975",
+      "valid_from": "1975",
+      "confidence": 0.9
+    },
+    {
+      "source": "Paul Allen",
+      "target": "Microsoft Corporation",
+      "relationship_type": "resigned_from",
+      "relationship_detail": "Paul Allen resigned from Microsoft in 1983 after developing Hodgkin's lymphoma.",
+      "metadata": {
+        "triple": [
+          "Paul Allen",
+          "resigned_from",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Person resigned from Company.",
+        "schema_detail": "Indicates that a person resigned from their position at a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1983",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Paul Allen resigned from Microsoft in 1983 after developing Hodgkin's lymphoma.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s37",
+          "source_span": [
+            5285,
+            5364
+          ],
+          "snippet": "Paul Allen resigned from Microsoft in 1983 after developing Hodgkin's lymphoma.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1983",
+      "valid_from": "1983",
+      "confidence": 0.9
+    },
+    {
+      "source": "Steve Ballmer",
+      "target": "Bill Gates",
+      "relationship_type": "replaced_as_ceo",
+      "relationship_detail": "Steve Ballmer replaced Gates as CEO in 2000.",
+      "metadata": {
+        "triple": [
+          "Steve Ballmer",
+          "replaced_as_ceo",
+          "Bill Gates"
+        ],
+        "relationship_description": "Person (subject) replaced Person (object) as CEO.",
+        "schema_detail": "Indicates that one person replaced another as CEO.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2000",
+          "precision_from": "year",
+          "raw_text": "On January 13, 2000, Bill Gates handed over the CEO position to Steve Ballmer, an old college friend of Gates and employee of the company since 1980, while creating a new position for himself as Chief Software Architect.",
+          "precision": "year"
+        },
+        "evidence": "Steve Ballmer replaced Gates as CEO in 2000.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s6",
+          "source_span": [
+            940,
+            984
+          ],
+          "snippet": "Steve Ballmer replaced Gates as CEO in 2000.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2000",
+      "valid_from": "2000",
+      "confidence": 0.9
+    },
+    {
+      "source": "Steve Ballmer",
+      "target": "Microsoft Corporation",
+      "relationship_type": "employee_of",
+      "relationship_detail": "On January 13, 2000, Bill Gates handed over the CEO position to Steve Ballmer, an old college friend of Gates and employee of the company since 1980",
+      "metadata": {
+        "triple": [
+          "Steve Ballmer",
+          "employee_of",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Person is an employee of Company.",
+        "schema_detail": "Indicates a person is employed by a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1980",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "On January 13, 2000, Bill Gates handed over the CEO position to Steve Ballmer, an old college friend of Gates and employee of the company since 1980",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s68",
+          "source_span": [
+            9617,
+            9765
+          ],
+          "snippet": "On January 13, 2000, Bill Gates handed over the CEO position to Steve Ballmer, an old college friend of Gates and employee of the company since 1980",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1980",
+      "valid_from": "1980",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Satya Nadella",
+      "relationship_type": "has_ceo",
+      "relationship_detail": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "has_ceo",
+          "Satya Nadella"
+        ],
+        "relationship_description": "Company has Person as its CEO.",
+        "schema_detail": "Identifies the Chief Executive Officer of a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2014",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s8",
+          "source_span": [
+            1226,
+            1350
+          ],
+          "snippet": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2014",
+      "valid_from": "2014",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Skype Technologies",
+      "relationship_type": "acquired",
+      "relationship_detail": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "acquired",
+          "Skype Technologies"
+        ],
+        "relationship_description": "Company (subject) acquired Company (object).",
+        "schema_detail": "Indicates one company acquired another.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2011",
+          "valid_to": "2011",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington."
+        },
+        "evidence": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s7",
+          "source_span": [
+            985,
+            1080
+          ],
+          "snippet": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2011",
+      "valid_from": "2011",
+      "end_time": "2011",
+      "valid_to": "2011",
+      "confidence": 0.9
+    },
+    {
+      "source": "Bill Gates",
+      "target": "Altair 8800",
+      "relationship_type": "inspired_by",
+      "relationship_detail": "The January 1975 issue of Popular Electronics featured Micro Instrumentation and Telemetry Systems's (MITS) Altair 8800 microcomputer, which inspired Allen to suggest that they could program a BASIC interpreter for the device. Gates called MITS and claimed that he had a working interpreter, and MITS requested a demonstration.",
+      "metadata": {
+        "triple": [
+          "Bill Gates",
+          "inspired_by",
+          "Altair 8800"
+        ],
+        "relationship_description": "Person was inspired by Hardware.",
+        "schema_detail": "Indicates a person was inspired by a piece of hardware.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1975",
+          "valid_to": "1975",
+          "raw_text": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows."
+        },
+        "evidence": "The January 1975 issue of Popular Electronics featured Micro Instrumentation and Telemetry Systems's (MITS) Altair 8800 microcomputer, which inspired Allen to suggest that they could program a BASIC interpreter for the device. Gates called MITS and claimed that he had a working interpreter, and MITS requested a demonstration.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            494,
+            697
+          ],
+          "snippet": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1975",
+      "valid_from": "1975",
+      "end_time": "1975",
+      "valid_to": "1975",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Mobile",
+      "target": "Nokia",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "the formation of Microsoft Mobile through Nokia.",
+      "metadata": {
+        "triple": [
+          "Microsoft Mobile",
+          "formed_agreement_with",
+          "Nokia"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "the formation of Microsoft Mobile through Nokia.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s7",
+          "source_span": [
+            1177,
+            1225
+          ],
+          "snippet": "the formation of Microsoft Mobile through Nokia.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Bill Gates",
+      "target": "Microsoft Corporation",
+      "relationship_type": "employee_of",
+      "relationship_detail": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+      "metadata": {
+        "triple": [
+          "Bill Gates",
+          "employee_of",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Person is an employee of Company.",
+        "schema_detail": "Indicates a person is employed by a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1975",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s3",
+          "source_span": [
+            494,
+            697
+          ],
+          "snippet": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1975",
+      "valid_from": "1975",
+      "confidence": 0.9
+    },
+    {
+      "source": "Bill Gates",
+      "target": "Microsoft Corporation",
+      "relationship_type": "resigned_from",
+      "relationship_detail": "Gates retired from his role as Chief Software Architect on June 27, 2008, a decision announced in June 2006, while retaining other positions related to the company in addition to being an advisor for the company on key projects.",
+      "metadata": {
+        "triple": [
+          "Bill Gates",
+          "resigned_from",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Person resigned from Company.",
+        "schema_detail": "Indicates that a person resigned from their position at a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2008",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Gates retired from his role as Chief Software Architect on June 27, 2008, a decision announced in June 2006, while retaining other positions related to the company in addition to being an advisor for the company on key projects.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s84",
+          "source_span": [
+            12005,
+            12233
+          ],
+          "snippet": "Gates retired from his role as Chief Software Architect on June 27, 2008, a decision announced in June 2006, while retaining other positions related to the company in addition to being an advisor for the company on key projects.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2008",
+      "valid_from": "2008",
+      "confidence": 0.9
+    },
+    {
+      "source": "Nokia",
+      "target": "Microsoft Mobile",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "Microsoft Mobile through Nokia",
+      "metadata": {
+        "triple": [
+          "Nokia",
+          "partnered_with",
+          "Microsoft Mobile"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft Mobile through Nokia",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s7",
+          "source_span": [
+            1194,
+            1224
+          ],
+          "snippet": "Microsoft Mobile through Nokia",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "LinkedIn",
+      "relationship_type": "acquired",
+      "relationship_detail": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "acquired",
+          "LinkedIn"
+        ],
+        "relationship_description": "Company (subject) acquired Company (object).",
+        "schema_detail": "Indicates one company acquired another.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2016",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s8",
+          "source_span": [
+            1226,
+            1350
+          ],
+          "snippet": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2016",
+      "valid_from": "2016",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Activision Blizzard",
+      "relationship_type": "acquired",
+      "relationship_detail": "acquiring Activision Blizzard in 2023.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "acquired",
+          "Activision Blizzard"
+        ],
+        "relationship_description": "Company (subject) acquired Company (object).",
+        "schema_detail": "Indicates one company acquired another.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2023",
+          "valid_to": "2023",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington."
+        },
+        "evidence": "acquiring Activision Blizzard in 2023.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s9",
+          "source_span": [
+            1505,
+            1543
+          ],
+          "snippet": "acquiring Activision Blizzard in 2023.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2023",
+      "valid_from": "2023",
+      "end_time": "2023",
+      "valid_to": "2023",
+      "confidence": 0.9
+    },
+    {
+      "source": "IBM",
+      "target": "Microsoft Corporation",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "IBM awarded a contract to Microsoft in November 1980 to provide a version of the CP/M OS to be used in the IBM Personal Computer (IBM PC).",
+      "metadata": {
+        "triple": [
+          "IBM",
+          "partnered_with",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "November 1980",
+          "precision_from": "month",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "month"
+        },
+        "evidence": "IBM awarded a contract to Microsoft in November 1980 to provide a version of the CP/M OS to be used in the IBM Personal Computer (IBM PC).",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s32",
+          "source_span": [
+            4548,
+            4686
+          ],
+          "snippet": "IBM awarded a contract to Microsoft in November 1980 to provide a version of the CP/M OS to be used in the IBM Personal Computer (IBM PC).",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "November 1980",
+      "valid_from": "November 1980",
+      "confidence": 0.9
+    },
+    {
+      "source": "Traf-O-Data",
+      "target": "Bill Gates",
+      "relationship_type": "founded_by",
+      "relationship_detail": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+      "metadata": {
+        "triple": [
+          "Traf-O-Data",
+          "founded_by",
+          "Bill Gates"
+        ],
+        "relationship_description": "Company was founded by Person.",
+        "schema_detail": "Indicates the person or people who founded a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1972",
+          "precision_from": "year",
+          "raw_text": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "precision": "year"
+        },
+        "evidence": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s23",
+          "source_span": [
+            3264,
+            3378
+          ],
+          "snippet": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1972",
+      "valid_from": "1972",
+      "confidence": 0.9
+    },
+    {
+      "source": "Traf-O-Data",
+      "target": "Paul Allen",
+      "relationship_type": "founded_by",
+      "relationship_detail": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+      "metadata": {
+        "triple": [
+          "Traf-O-Data",
+          "founded_by",
+          "Paul Allen"
+        ],
+        "relationship_description": "Company was founded by Person.",
+        "schema_detail": "Indicates the person or people who founded a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1972",
+          "precision_from": "year",
+          "raw_text": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "precision": "year"
+        },
+        "evidence": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s23",
+          "source_span": [
+            3264,
+            3378
+          ],
+          "snippet": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1972",
+      "valid_from": "1972",
+      "confidence": 0.9
+    },
+    {
+      "source": "Traf-O-Data",
+      "target": "Steve Ballmer",
+      "relationship_type": "founded_by",
+      "relationship_detail": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+      "metadata": {
+        "triple": [
+          "Traf-O-Data",
+          "founded_by",
+          "Steve Ballmer"
+        ],
+        "relationship_description": "Company was founded by Person.",
+        "schema_detail": "Indicates the person or people who founded a company.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s23",
+          "source_span": [
+            3264,
+            3378
+          ],
+          "snippet": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Paul Allen",
+      "target": "Altair 8800",
+      "relationship_type": "inspired_by",
+      "relationship_detail": "The January 1975 issue of _Popular Electronics_ featured Micro Instrumentation and Telemetry Systems's (MITS) Altair 8800 microcomputer, which inspired Allen to suggest that they could program a BASIC interpreter for the device.",
+      "metadata": {
+        "triple": [
+          "Paul Allen",
+          "inspired_by",
+          "Altair 8800"
+        ],
+        "relationship_description": "Person was inspired by Hardware.",
+        "schema_detail": "Indicates a person was inspired by a piece of hardware.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "January 1975",
+          "precision_from": "month",
+          "raw_text": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "precision": "month"
+        },
+        "evidence": "The January 1975 issue of _Popular Electronics_ featured Micro Instrumentation and Telemetry Systems's (MITS) Altair 8800 microcomputer, which inspired Allen to suggest that they could program a BASIC interpreter for the device.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s24",
+          "source_span": [
+            3380,
+            3608
+          ],
+          "snippet": "The January 1975 issue of _Popular Electronics_ featured Micro Instrumentation and Telemetry Systems's (MITS) Altair 8800 microcomputer, which inspired Allen to suggest that they could program a BASIC interpreter for the device.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "January 1975",
+      "valid_from": "January 1975",
+      "confidence": 0.9
+    },
+    {
+      "source": "ASCII Microsoft",
+      "target": "ASCII Magazine",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+      "metadata": {
+        "triple": [
+          "ASCII Microsoft",
+          "formed_agreement_with",
+          "ASCII Magazine"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1977",
+          "precision_from": "year",
+          "raw_text": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "precision": "year"
+        },
+        "evidence": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s29",
+          "source_span": [
+            4120,
+            4261
+          ],
+          "snippet": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1977",
+      "valid_from": "1977",
+      "confidence": 0.9
+    },
+    {
+      "source": "WordPerfect",
+      "target": "IBM",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+      "metadata": {
+        "triple": [
+          "WordPerfect",
+          "partnered_with",
+          "IBM"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7839,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Satya Nadella",
+      "target": "Steve Ballmer",
+      "relationship_type": "replaced_as_ceo",
+      "relationship_detail": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+      "metadata": {
+        "triple": [
+          "Satya Nadella",
+          "replaced_as_ceo",
+          "Steve Ballmer"
+        ],
+        "relationship_description": "Person (subject) replaced Person (object) as CEO.",
+        "schema_detail": "Indicates that one person replaced another as CEO.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2014",
+          "precision_from": "year",
+          "raw_text": "Steve Ballmer replaced Gates as CEO in 2000.",
+          "precision": "year"
+        },
+        "evidence": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s8",
+          "source_span": [
+            1226,
+            1350
+          ],
+          "snippet": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2014",
+      "valid_from": "2014",
+      "confidence": 0.9
+    },
+    {
+      "source": "Apple",
+      "target": "Google",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States.",
+      "metadata": {
+        "triple": [
+          "Apple",
+          "partnered_with",
+          "Google"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s87",
+          "source_span": [
+            12611,
+            12837
+          ],
+          "snippet": "As the smartphone industry boomed in the late 2000s, Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Bellevue, Washington",
+      "relationship_type": "headquartered_in",
+      "relationship_detail": "Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "headquartered_in",
+          "Bellevue, Washington"
+        ],
+        "relationship_description": "Company is headquartered in Location.",
+        "schema_detail": "Specifies the primary location of a company's headquarters.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "January 1979",
+          "precision_from": "month",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "month"
+        },
+        "evidence": "Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s30",
+          "source_span": [
+            4262,
+            4336
+          ],
+          "snippet": "Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "January 1979",
+      "valid_from": "January 1979",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Albuquerque, New Mexico",
+      "relationship_type": "moved_headquarters_to",
+      "relationship_detail": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software. In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft. Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "moved_headquarters_to",
+          "Albuquerque, New Mexico"
+        ],
+        "relationship_description": "Company moved its headquarters to Location.",
+        "schema_detail": "Indicates a change in the company's headquarters location.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "January 1979",
+          "precision_from": "month",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "month"
+        },
+        "evidence": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software. In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft. Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s28",
+          "source_span": [
+            3967,
+            4336
+          ],
+          "snippet": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software. In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft. Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "January 1979",
+      "valid_from": "January 1979",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "ASCII Magazine",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "ASCII Magazine"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1977",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s29",
+          "source_span": [
+            4120,
+            4261
+          ],
+          "snippet": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1977",
+      "valid_from": "1977",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Nokia",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "Microsoft implemented a new strategy for the software industry, providing a consistent user experience across all smartphones using the Windows Phone OS. It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "partnered_with",
+          "Nokia"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2011",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Microsoft implemented a new strategy for the software industry, providing a consistent user experience across all smartphones using the Windows Phone OS. It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s90",
+          "source_span": [
+            13190,
+            13522
+          ],
+          "snippet": "Microsoft implemented a new strategy for the software industry, providing a consistent user experience across all smartphones using the Windows Phone OS. It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2011",
+      "valid_from": "2011",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "HTC",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "Microsoft implemented a new strategy for the software industry, providing a consistent user experience across all smartphones using the Windows Phone OS. It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "partnered_with",
+          "HTC"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft implemented a new strategy for the software industry, providing a consistent user experience across all smartphones using the Windows Phone OS. It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s90",
+          "source_span": [
+            13190,
+            13522
+          ],
+          "snippet": "Microsoft implemented a new strategy for the software industry, providing a consistent user experience across all smartphones using the Windows Phone OS. It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Justice Department",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "faced_legal_action_from",
+          "Justice Department"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "October 1997",
+          "precision_from": "month",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "month"
+        },
+        "evidence": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s64",
+          "source_span": [
+            9034,
+            9255
+          ],
+          "snippet": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "October 1997",
+      "valid_from": "October 1997",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "European Union",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "The European Union imposed another fine of €899 million ($1.4 billion) for Microsoft's lack of compliance with the March 2004 judgment on February 27, 2008",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "faced_legal_action_from",
+          "European Union"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "February 27, 2008",
+          "precision_from": "day",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "day"
+        },
+        "evidence": "The European Union imposed another fine of €899 million ($1.4 billion) for Microsoft's lack of compliance with the March 2004 judgment on February 27, 2008",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s81",
+          "source_span": [
+            11608,
+            11763
+          ],
+          "snippet": "The European Union imposed another fine of €899 million ($1.4 billion) for Microsoft's lack of compliance with the March 2004 judgment on February 27, 2008",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "February 27, 2008",
+      "valid_from": "February 27, 2008",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "United States",
+      "relationship_type": "headquartered_in",
+      "relationship_detail": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "headquartered_in",
+          "United States"
+        ],
+        "relationship_description": "Company is headquartered in Location.",
+        "schema_detail": "Specifies the primary location of a company's headquarters.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            107
+          ],
+          "snippet": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Mobile",
+      "target": "Bellevue, Washington",
+      "relationship_type": "moved_headquarters_to",
+      "relationship_detail": "Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+      "metadata": {
+        "triple": [
+          "Microsoft Mobile",
+          "moved_headquarters_to",
+          "Bellevue, Washington"
+        ],
+        "relationship_description": "Company moved its headquarters to Location.",
+        "schema_detail": "Indicates a change in the company's headquarters location.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "January 1979",
+          "precision_from": "month",
+          "raw_text": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia.",
+          "precision": "month"
+        },
+        "evidence": "Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s30",
+          "source_span": [
+            4262,
+            4336
+          ],
+          "snippet": "Microsoft moved its headquarters to Bellevue, Washington, in January 1979.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "January 1979",
+      "valid_from": "January 1979",
+      "confidence": 0.8
+    },
+    {
+      "source": "Microsoft Mobile",
+      "target": "Albuquerque, New Mexico",
+      "relationship_type": "moved_headquarters_to",
+      "relationship_detail": "Allen worked on a simulator for the Altair while Gates developed the interpreter, and it worked flawlessly when they demonstrated it to MITS in March 1975 in Albuquerque, New Mexico.",
+      "metadata": {
+        "triple": [
+          "Microsoft Mobile",
+          "moved_headquarters_to",
+          "Albuquerque, New Mexico"
+        ],
+        "relationship_description": "Company moved its headquarters to Location.",
+        "schema_detail": "Indicates a change in the company's headquarters location.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "March 1975",
+          "precision_from": "month",
+          "raw_text": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia.",
+          "precision": "month"
+        },
+        "evidence": "Allen worked on a simulator for the Altair while Gates developed the interpreter, and it worked flawlessly when they demonstrated it to MITS in March 1975 in Albuquerque, New Mexico.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s26",
+          "source_span": [
+            3710,
+            3892
+          ],
+          "snippet": "Allen worked on a simulator for the Altair while Gates developed the interpreter, and it worked flawlessly when they demonstrated it to MITS in March 1975 in Albuquerque, New Mexico.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "March 1975",
+      "valid_from": "March 1975",
+      "confidence": 0.8
+    },
+    {
+      "source": "Microsoft Mobile",
+      "target": "Nokia",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone",
+      "metadata": {
+        "triple": [
+          "Microsoft Mobile",
+          "partnered_with",
+          "Nokia"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2011",
+          "precision_from": "year",
+          "raw_text": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia.",
+          "precision": "year"
+        },
+        "evidence": "It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s91",
+          "source_span": [
+            13344,
+            13460
+          ],
+          "snippet": "It launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2011",
+      "valid_from": "2011",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Mobile",
+      "target": "HTC",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "but remained partners with long-time Windows Mobile OEM HTC.",
+      "metadata": {
+        "triple": [
+          "Microsoft Mobile",
+          "partnered_with",
+          "HTC"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "but remained partners with long-time Windows Mobile OEM HTC.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s91",
+          "source_span": [
+            13462,
+            13522
+          ],
+          "snippet": "but remained partners with long-time Windows Mobile OEM HTC.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Mobile",
+      "target": "Open Networking Foundation",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "Microsoft is a founding member of the Open Networking Foundation started on March 23, 2011.",
+      "metadata": {
+        "triple": [
+          "Microsoft Mobile",
+          "formed_agreement_with",
+          "Open Networking Foundation"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "March 23, 2011",
+          "precision_from": "day",
+          "raw_text": "He oversaw the then-largest of Microsoft's corporate acquisitions in Skype Technologies in 2011, an increased focus on hardware that led to its first in-house PC line—the Surface—in 2012, and the formation of Microsoft Mobile through Nokia.",
+          "precision": "day"
+        },
+        "evidence": "Microsoft is a founding member of the Open Networking Foundation started on March 23, 2011.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s92",
+          "source_span": [
+            13523,
+            13614
+          ],
+          "snippet": "Microsoft is a founding member of the Open Networking Foundation started on March 23, 2011.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "March 23, 2011",
+      "valid_from": "March 23, 2011",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Mobile",
+      "target": "United States",
+      "relationship_type": "headquartered_in",
+      "relationship_detail": "falling behind Apple and Google-sponsored Android in the United States",
+      "metadata": {
+        "triple": [
+          "Microsoft Mobile",
+          "headquartered_in",
+          "United States"
+        ],
+        "relationship_description": "Company is headquartered in Location.",
+        "schema_detail": "Specifies the primary location of a company's headquarters.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "falling behind Apple and Google-sponsored Android in the United States",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s87",
+          "source_span": [
+            12766,
+            12836
+          ],
+          "snippet": "falling behind Apple and Google-sponsored Android in the United States",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "PowerPoint",
+      "relationship_type": "produces",
+      "relationship_detail": "and PowerPoint presentation program",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "produces",
+          "PowerPoint"
+        ],
+        "relationship_description": "Company produces Product.",
+        "schema_detail": "Indicates a company produces a specific product.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "and PowerPoint presentation program",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s11",
+          "source_span": [
+            1898,
+            1933
+          ],
+          "snippet": "and PowerPoint presentation program",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Bing",
+      "relationship_type": "provides",
+      "relationship_detail": "The company also provides a range of consumer Internet services such as Bing web search",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "provides",
+          "Bing"
+        ],
+        "relationship_description": "Company provides Product (service/platform).",
+        "schema_detail": "Indicates a company provides a service or platform.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "The company also provides a range of consumer Internet services such as Bing web search",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s13",
+          "source_span": [
+            2078,
+            2165
+          ],
+          "snippet": "The company also provides a range of consumer Internet services such as Bing web search",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "MSN",
+      "relationship_type": "provides",
+      "relationship_detail": "the MSN web portal",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "provides",
+          "MSN"
+        ],
+        "relationship_description": "Company provides Product (service/platform).",
+        "schema_detail": "Indicates a company provides a service or platform.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "the MSN web portal",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s13",
+          "source_span": [
+            2167,
+            2185
+          ],
+          "snippet": "the MSN web portal",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Outlook.com",
+      "relationship_type": "provides",
+      "relationship_detail": "the Outlook.com (Hotmail) email service",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "provides",
+          "Outlook.com"
+        ],
+        "relationship_description": "Company provides Product (service/platform).",
+        "schema_detail": "Indicates a company provides a service or platform.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "the Outlook.com (Hotmail) email service",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s13",
+          "source_span": [
+            2187,
+            2226
+          ],
+          "snippet": "the Outlook.com (Hotmail) email service",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Microsoft SQL Server",
+      "relationship_type": "provides",
+      "relationship_detail": "Microsoft SQL Server database software",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "provides",
+          "Microsoft SQL Server"
+        ],
+        "relationship_description": "Company provides Product (service/platform).",
+        "schema_detail": "Indicates a company provides a service or platform.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft SQL Server database software",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s15",
+          "source_span": [
+            2363,
+            2401
+          ],
+          "snippet": "Microsoft SQL Server database software",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Visual Studio",
+      "relationship_type": "provides",
+      "relationship_detail": "and Visual Studio",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "provides",
+          "Visual Studio"
+        ],
+        "relationship_description": "Company provides Product (service/platform).",
+        "schema_detail": "Indicates a company provides a service or platform.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "and Visual Studio",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s15",
+          "source_span": [
+            2403,
+            2420
+          ],
+          "snippet": "and Visual Studio",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Steve Ballmer",
+      "relationship_type": "has_ceo",
+      "relationship_detail": "Steve Ballmer replaced Gates as CEO in 2000.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "has_ceo",
+          "Steve Ballmer"
+        ],
+        "relationship_description": "Company has Person as its CEO.",
+        "schema_detail": "Identifies the Chief Executive Officer of a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2000",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Steve Ballmer replaced Gates as CEO in 2000.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s6",
+          "source_span": [
+            940,
+            984
+          ],
+          "snippet": "Steve Ballmer replaced Gates as CEO in 2000.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2000",
+      "valid_from": "2000",
+      "confidence": 0.9
+    },
+    {
+      "source": "Paul Allen",
+      "target": "Microsoft Corporation",
+      "relationship_type": "employee_of",
+      "relationship_detail": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software.",
+      "metadata": {
+        "triple": [
+          "Paul Allen",
+          "employee_of",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Person is an employee of Company.",
+        "schema_detail": "Indicates a person is employed by a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1975-04-04",
+          "valid_to": "1983",
+          "precision_from": "day",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "day"
+        },
+        "evidence": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s28",
+          "source_span": [
+            3967,
+            4119
+          ],
+          "snippet": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1975-04-04",
+      "valid_from": "1975-04-04",
+      "end_time": "1983",
+      "valid_to": "1983",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "IBM",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "despite having begun jointly developing OS/2 with IBM that August.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "partnered_with",
+          "IBM"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1985-08",
+          "precision_from": "month",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "month"
+        },
+        "evidence": "despite having begun jointly developing OS/2 with IBM that August.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s41",
+          "source_span": [
+            5560,
+            5626
+          ],
+          "snippet": "despite having begun jointly developing OS/2 with IBM that August.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1985-08",
+      "valid_from": "1985-08",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Zune",
+      "relationship_type": "released",
+      "relationship_detail": "Microsoft 2006 released the Zune series of digital media players",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "released",
+          "Zune"
+        ],
+        "relationship_description": "Company released Product.",
+        "schema_detail": "Indicates a company released a specific product.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2006",
+          "valid_to": "2006",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Microsoft 2006 released the Zune series of digital media players",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s74",
+          "source_span": [
+            10681,
+            10745
+          ],
+          "snippet": "Microsoft 2006 released the Zune series of digital media players",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2006",
+      "valid_from": "2006",
+      "end_time": "2006",
+      "valid_to": "2006",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Azure Services Platform",
+      "relationship_type": "developed",
+      "relationship_detail": "Azure Services Platform, the company's entry into the cloud computing market for Windows, launched on October 27, 2008.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "developed",
+          "Azure Services Platform"
+        ],
+        "relationship_description": "Company developed Product.",
+        "schema_detail": "Indicates a company developed a specific product.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2008-10-27",
+          "precision_from": "day",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "day"
+        },
+        "evidence": "Azure Services Platform, the company's entry into the cloud computing market for Windows, launched on October 27, 2008.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s85",
+          "source_span": [
+            12234,
+            12353
+          ],
+          "snippet": "Azure Services Platform, the company's entry into the cloud computing market for Windows, launched on October 27, 2008.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2008-10-27",
+      "valid_from": "2008-10-27",
+      "confidence": 0.9
+    },
+    {
+      "source": "Nokia",
+      "target": "Microsoft Corporation",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "Microsoft is a founding member of the Open Networking Foundation started on March 23, 2011. This nonprofit organization is focused on providing support for a cloud computing initiative called Software-Defined Networking. Microsoft launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+      "metadata": {
+        "triple": [
+          "Nokia",
+          "partnered_with",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2011",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Microsoft is a founding member of the Open Networking Foundation started on March 23, 2011. This nonprofit organization is focused on providing support for a cloud computing initiative called Software-Defined Networking. Microsoft launched an alliance with Nokia in 2011 and Microsoft worked closely with the company to co-develop Windows Phone, but remained partners with long-time Windows Mobile OEM HTC.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            107
+          ],
+          "snippet": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2011",
+      "valid_from": "2011",
+      "confidence": 0.9
+    },
+    {
+      "source": "Satya Nadella",
+      "target": "Microsoft Corporation",
+      "relationship_type": "employee_of",
+      "relationship_detail": "Since Satya Nadella became CEO in 2014",
+      "metadata": {
+        "triple": [
+          "Satya Nadella",
+          "employee_of",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Person is an employee of Company.",
+        "schema_detail": "Indicates a person is employed by a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2014",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Since Satya Nadella became CEO in 2014",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s8",
+          "source_span": [
+            1226,
+            1264
+          ],
+          "snippet": "Since Satya Nadella became CEO in 2014",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2014",
+      "valid_from": "2014",
+      "confidence": 1.0
+    },
+    {
+      "source": "Traf-O-Data",
+      "target": "Satya Nadella",
+      "relationship_type": "founded_by",
+      "relationship_detail": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+      "metadata": {
+        "triple": [
+          "Traf-O-Data",
+          "founded_by",
+          "Satya Nadella"
+        ],
+        "relationship_description": "Company was founded by Person.",
+        "schema_detail": "Indicates the person or people who founded a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1972",
+          "precision_from": "year",
+          "raw_text": "Since Satya Nadella became CEO in 2014, the company has changed focus towards cloud computing and acquired LinkedIn in 2016.",
+          "precision": "year"
+        },
+        "evidence": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s23",
+          "source_span": [
+            3264,
+            3378
+          ],
+          "snippet": "In 1972, they founded Traf-O-Data, which sold a rudimentary computer to track and analyze automobile traffic data.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1972",
+      "valid_from": "1972",
+      "confidence": 0.8
+    },
+    {
+      "source": "ASCII Microsoft",
+      "target": "Japan",
+      "relationship_type": "headquartered_in",
+      "relationship_detail": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+      "metadata": {
+        "triple": [
+          "ASCII Microsoft",
+          "headquartered_in",
+          "Japan"
+        ],
+        "relationship_description": "Company is headquartered in Location.",
+        "schema_detail": "Specifies the primary location of a company's headquarters.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1977",
+          "precision_from": "year",
+          "raw_text": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "precision": "year"
+        },
+        "evidence": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s29",
+          "source_span": [
+            4120,
+            4261
+          ],
+          "snippet": "In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1977",
+      "valid_from": "1977",
+      "confidence": 0.9
+    },
+    {
+      "source": "Bill Gates",
+      "target": "ASCII Microsoft",
+      "relationship_type": "employee_of",
+      "relationship_detail": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software. In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+      "metadata": {
+        "triple": [
+          "Bill Gates",
+          "employee_of",
+          "ASCII Microsoft"
+        ],
+        "relationship_description": "Person is an employee of Company.",
+        "schema_detail": "Indicates a person is employed by a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1977",
+          "precision_from": "year",
+          "raw_text": "Founded in 1975 by Bill Gates and Paul Allen to market BASIC interpreters for the Altair 8800, Microsoft rose to dominate the PC operating system market with MS-DOS in the mid-1980s, followed by Windows.",
+          "precision": "year"
+        },
+        "evidence": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software. In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s28",
+          "source_span": [
+            3967,
+            4261
+          ],
+          "snippet": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO, and Allen suggested the name \"Micro-Soft\", short for micro-computer software. In August 1977, the company formed an agreement with ASCII Magazine in Japan, resulting in its first international office of ASCII Microsoft.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1977",
+      "valid_from": "1977",
+      "confidence": 0.8
+    },
+    {
+      "source": "Department of Justice's Antitrust Division",
+      "target": "Microsoft Corporation",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "On July 27, 1994, the Department of Justice's Antitrust Division filed a competitive impact statement stating that since 1988, Microsoft had increasingly induced OEMs to pay royalties under a per-processor license for microprocessors in their computers regardless of whether a Microsoft product was used.",
+      "metadata": {
+        "triple": [
+          "Department of Justice's Antitrust Division",
+          "faced_legal_action_from",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "July 27, 1994",
+          "precision_from": "day",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "day"
+        },
+        "evidence": "On July 27, 1994, the Department of Justice's Antitrust Division filed a competitive impact statement stating that since 1988, Microsoft had increasingly induced OEMs to pay royalties under a per-processor license for microprocessors in their computers regardless of whether a Microsoft product was used.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s51",
+          "source_span": [
+            6977,
+            7281
+          ],
+          "snippet": "On July 27, 1994, the Department of Justice's Antitrust Division filed a competitive impact statement stating that since 1988, Microsoft had increasingly induced OEMs to pay royalties under a per-processor license for microprocessors in their computers regardless of whether a Microsoft product was used.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "July 27, 1994",
+      "valid_from": "July 27, 1994",
+      "confidence": 0.9
+    },
+    {
+      "source": "Netscape",
+      "target": "Microsoft Corporation",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "With a few exceptions of new companies, like Netscape, Microsoft was the only major and established company that acted fast enough to be a part of the World Wide Web practically from the start.",
+      "metadata": {
+        "triple": [
+          "Netscape",
+          "formed_agreement_with",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "With a few exceptions of new companies, like Netscape, Microsoft was the only major and established company that acted fast enough to be a part of the World Wide Web practically from the start.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s54",
+          "source_span": [
+            7645,
+            7838
+          ],
+          "snippet": "With a few exceptions of new companies, like Netscape, Microsoft was the only major and established company that acted fast enough to be a part of the World Wide Web practically from the start.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Borland",
+      "target": "Microsoft Corporation",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "Other companies like Borland, WordPerfect, Novell",
+      "metadata": {
+        "triple": [
+          "Borland",
+          "formed_agreement_with",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7839,
+            7888
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "WordPerfect",
+      "target": "Microsoft Corporation",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+      "metadata": {
+        "triple": [
+          "WordPerfect",
+          "faced_legal_action_from",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7839,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Novell",
+      "target": "IBM",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+      "metadata": {
+        "triple": [
+          "Novell",
+          "partnered_with",
+          "IBM"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7839,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Novell",
+      "target": "Microsoft Corporation",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+      "metadata": {
+        "triple": [
+          "Novell",
+          "formed_agreement_with",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7839,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Lotus",
+      "target": "Microsoft Corporation",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+      "metadata": {
+        "triple": [
+          "Lotus",
+          "faced_legal_action_from",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s55",
+          "source_span": [
+            7839,
+            7992
+          ],
+          "snippet": "Other companies like Borland, WordPerfect, Novell, IBM and Lotus, being much slower to adapt to the new situation, would give Microsoft market dominance.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "CompuServe",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "partnered_with",
+          "CompuServe"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s0",
+          "source_span": [
+            0,
+            107
+          ],
+          "snippet": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ],
+        "evidence": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington."
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Bill Gates",
+      "relationship_type": "has_ceo",
+      "relationship_detail": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "has_ceo",
+          "Bill Gates"
+        ],
+        "relationship_description": "Company has Person as its CEO.",
+        "schema_detail": "Identifies the Chief Executive Officer of a company.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1975",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s28",
+          "source_span": [
+            3967,
+            4040
+          ],
+          "snippet": "Gates and Allen established Microsoft on April 4, 1975, with Gates as CEO",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1975",
+      "valid_from": "1975",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Department of Justice's Antitrust Division",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "On July 27, 1994, the Department of Justice's Antitrust Division filed a competitive impact statement",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "faced_legal_action_from",
+          "Department of Justice's Antitrust Division"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1994-07-27",
+          "precision_from": "day",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "day"
+        },
+        "evidence": "On July 27, 1994, the Department of Justice's Antitrust Division filed a competitive impact statement",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s51",
+          "source_span": [
+            6977,
+            7078
+          ],
+          "snippet": "On July 27, 1994, the Department of Justice's Antitrust Division filed a competitive impact statement",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1994-07-27",
+      "valid_from": "1994-07-27",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "IBM",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "after signing a pivotal contract with IBM",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "IBM"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1981-10-19",
+          "precision_from": "day",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "day"
+        },
+        "evidence": "after signing a pivotal contract with IBM",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "source_span": [
+            3009,
+            3050
+          ],
+          "snippet": "after signing a pivotal contract with IBM",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1981-10-19",
+      "valid_from": "1981-10-19",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "General Electric's NBC unit",
+      "relationship_type": "partnered_with",
+      "relationship_detail": "Microsoft and General Electric's NBC unit created a new 24/7 cable news channel, MSNBC.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "partnered_with",
+          "General Electric's NBC unit"
+        ],
+        "relationship_description": "Company (subject) partnered with Company (object).",
+        "schema_detail": "Indicates two companies entered into a partnership.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1996",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "Microsoft and General Electric's NBC unit created a new 24/7 cable news channel, MSNBC.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s61",
+          "source_span": [
+            8806,
+            8893
+          ],
+          "snippet": "Microsoft and General Electric's NBC unit created a new 24/7 cable news channel, MSNBC.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1996",
+      "valid_from": "1996",
+      "confidence": 0.9
+    },
+    {
+      "source": "Federal District Court",
+      "target": "Microsoft Corporation",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+      "metadata": {
+        "triple": [
+          "Federal District Court",
+          "formed_agreement_with",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1994",
+          "valid_to": "1997",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s64",
+          "source_span": [
+            9034,
+            9255
+          ],
+          "snippet": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1994",
+      "valid_from": "1994",
+      "end_time": "1997",
+      "valid_to": "1997",
+      "confidence": 0.9
+    },
+    {
+      "source": "Federal District Court",
+      "target": "Justice Department",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+      "metadata": {
+        "triple": [
+          "Federal District Court",
+          "faced_legal_action_from",
+          "Justice Department"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1997-10-01",
+          "valid_to": "1997-10-31",
+          "precision_from": "month",
+          "raw_text": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+          "precision": "month"
+        },
+        "evidence": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s64",
+          "source_span": [
+            9034,
+            9255
+          ],
+          "snippet": "In October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994 and asked the court to stop the bundling of Internet Explorer with Windows.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1997-10-01",
+      "valid_from": "1997-10-01",
+      "end_time": "1997-10-31",
+      "valid_to": "1997-10-31",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Sony",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "faced_legal_action_from",
+          "Sony"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s71",
+          "source_span": [
+            10052,
+            10169
+          ],
+          "snippet": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Nintendo",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo.",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "faced_legal_action_from",
+          "Nintendo"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s71",
+          "source_span": [
+            10052,
+            10169
+          ],
+          "snippet": "The company released the Xbox later that year, entering the video game console market dominated by Sony and Nintendo.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Altair BASIC",
+      "relationship_type": "developed",
+      "relationship_detail": "MITS agreed to distribute it, marketing it as Altair BASIC",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "developed",
+          "Altair BASIC"
+        ],
+        "relationship_description": "Company developed Product.",
+        "schema_detail": "Indicates a company developed a specific product.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "MITS agreed to distribute it, marketing it as Altair BASIC",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s27",
+          "source_span": [
+            3893,
+            3951
+          ],
+          "snippet": "MITS agreed to distribute it, marketing it as Altair BASIC",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Federal Trade Commission",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "In 1990, the Federal Trade Commission examined Microsoft for possible collusion due to the partnership with IBM",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "faced_legal_action_from",
+          "Federal Trade Commission"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1990",
+          "precision_from": "year",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "year"
+        },
+        "evidence": "In 1990, the Federal Trade Commission examined Microsoft for possible collusion due to the partnership with IBM",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s44",
+          "source_span": [
+            6031,
+            6142
+          ],
+          "snippet": "In 1990, the Federal Trade Commission examined Microsoft for possible collusion due to the partnership with IBM",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1990",
+      "valid_from": "1990",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Justice Department",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "Justice Department"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "1997-10",
+          "precision_from": "month",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "month"
+        },
+        "evidence": "October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s64",
+          "source_span": [
+            9037,
+            9179
+          ],
+          "snippet": "October 1997, the Justice Department filed a motion in the Federal District Court, stating that Microsoft violated an agreement signed in 1994",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "1997-10",
+      "valid_from": "1997-10",
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "European Union",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "In March 20",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "European Union"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "In March 20",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s72",
+          "source_span": [
+            10170,
+            10181
+          ],
+          "snippet": "In March 20",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Sony",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "entering the video game console market dominated by Sony and Nintendo",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "Sony"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "entering the video game console market dominated by Sony and Nintendo",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s71",
+          "source_span": [
+            10099,
+            10168
+          ],
+          "snippet": "entering the video game console market dominated by Sony and Nintendo",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Nintendo",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "entering the video game console market dominated by Sony and Nintendo",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "Nintendo"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "entering the video game console market dominated by Sony and Nintendo",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s71",
+          "source_span": [
+            10099,
+            10168
+          ],
+          "snippet": "entering the video game console market dominated by Sony and Nintendo",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Apple",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "Apple"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s87",
+          "source_span": [
+            12664,
+            12836
+          ],
+          "snippet": "Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Google",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "Google"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s87",
+          "source_span": [
+            12664,
+            12836
+          ],
+          "snippet": "Microsoft had struggled to keep up with its rivals in providing a modern smartphone operating system, falling behind Apple and Google-sponsored Android in the United States",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "Seattle Computer Products",
+      "relationship_type": "formed_agreement_with",
+      "relationship_detail": "Microsoft purchased a CP/M clone called 86-DOS from Seattle Computer Products",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "formed_agreement_with",
+          "Seattle Computer Products"
+        ],
+        "relationship_description": "Company (subject) formed an agreement with Company (object).",
+        "schema_detail": "Indicates two companies formed an agreement.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft purchased a CP/M clone called 86-DOS from Seattle Computer Products",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s33",
+          "source_span": [
+            4702,
+            4779
+          ],
+          "snippet": "Microsoft purchased a CP/M clone called 86-DOS from Seattle Computer Products",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.9
+    },
+    {
+      "source": "Microsoft Corporation",
+      "target": "IntelliMouse",
+      "relationship_type": "produces",
+      "relationship_detail": "Microsoft also produced a number of successful PC accessories, such as the IntelliMouse computer mice",
+      "metadata": {
+        "triple": [
+          "Microsoft Corporation",
+          "produces",
+          "IntelliMouse"
+        ],
+        "relationship_description": "Company produces Product.",
+        "schema_detail": "Indicates a company produces a specific product.",
+        "source_ref": "inputs/input5.txt",
+        "evidence": "Microsoft also produced a number of successful PC accessories, such as the IntelliMouse computer mice",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s65",
+          "source_span": [
+            9303,
+            9404
+          ],
+          "snippet": "Microsoft also produced a number of successful PC accessories, such as the IntelliMouse computer mice",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "source": "European Union",
+      "target": "Microsoft Corporation",
+      "relationship_type": "faced_legal_action_from",
+      "relationship_detail": "In March 2004 the European Union brought antitrust legal action against the company, citing it abused its dominance with the Windows OS, resulting in a judgment of €497 million ($613 million) and requiring Microsoft to produce new versions of Windows XP without Windows Media Player: Windows XP Home Edition N and Windows XP Professional N.",
+      "metadata": {
+        "triple": [
+          "European Union",
+          "faced_legal_action_from",
+          "Microsoft Corporation"
+        ],
+        "relationship_description": "Company (subject) faced legal action from Company (object).",
+        "schema_detail": "Indicates a company faced legal action from another entity.",
+        "source_ref": "inputs/input5.txt",
+        "temporal": {
+          "valid_from": "2004-03-01",
+          "valid_to": "2004-03-31",
+          "precision_from": "month",
+          "raw_text": "Microsoft Corporation is an American multinational technology company headquartered in Redmond, Washington.",
+          "precision": "month"
+        },
+        "evidence": "In March 2004 the European Union brought antitrust legal action against the company, citing it abused its dominance with the Windows OS, resulting in a judgment of €497 million ($613 million) and requiring Microsoft to produce new versions of Windows XP without Windows Media Player: Windows XP Home Edition N and Windows XP Professional N.",
+        "provenance": {
+          "document_id": "inputs/input5.txt",
+          "sentence_id": "s72",
+          "source_span": [
+            10170,
+            10510
+          ],
+          "snippet": "In March 2004 the European Union brought antitrust legal action against the company, citing it abused its dominance with the Windows OS, resulting in a judgment of €497 million ($613 million) and requiring Microsoft to produce new versions of Windows XP without Windows Media Player: Windows XP Home Edition N and Windows XP Professional N.",
+          "extracted_at": "2026-07-02T13:10:09+00:00",
+          "extractor_version": "0.1.1.dev0"
+        },
+        "source_documents": [
+          "inputs/input5.txt"
+        ]
+      },
+      "start_time": "2004-03-01",
+      "valid_from": "2004-03-01",
+      "end_time": "2004-03-31",
+      "valid_to": "2004-03-31",
+      "confidence": 0.9
+    }
+  ],
+  "clusters": [],
+  "metadata": {
+    "entity_resolution": {
+      "aliases": {
+        "Microsoft SQL Server": [
+          "Microsoft Excel"
+        ]
+      },
+      "merged_nodes": 0
+    },
+    "build": {
+      "pruned_isolated_nodes": 66
+    }
+  }
+}
