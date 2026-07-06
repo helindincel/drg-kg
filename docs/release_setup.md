@@ -102,3 +102,15 @@ Manual dry-run (no tag):
 - [ ] Smoke: `pip install drg-kg` from PyPI
 - [ ] Smoke: `pip install "drg-kg[extract]"` (DSPy + tiktoken)
 - [ ] Update README PyPI badges if not already present
+
+## 7. Workflow stuck on "Waiting"?
+
+If the Release workflow shows **Waiting** after you push a tag, GitHub
+Environments (`testpypi`, `pypi`) likely require manual approval:
+
+1. Open **Actions → Release →** the waiting run.
+2. Approve the **testpypi** deployment (for `v0.1.1rc1` or any tag).
+3. After TestPyPI smoke passes, approve **pypi** (for final `v0.1.1` only).
+
+Without `TEST_PYPI_API_TOKEN` / `PYPI_API_TOKEN` secrets, the publish jobs
+fail at upload time — configure secrets in section 2 first.
