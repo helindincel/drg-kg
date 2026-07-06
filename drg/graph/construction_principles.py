@@ -167,4 +167,8 @@ If (2) is yes and (3) is no, do not create the edge.
 Prefer semantic precision over graph density.
 """.strip()
 
-__all__ = ["KG_CONSTRUCTION_PRINCIPLES", "RELATION_PREFLIGHT_CHECKLIST", "SCHEMA_GENERATION_PRINCIPLES"]
+__all__ = [
+    "KG_CONSTRUCTION_PRINCIPLES",
+    "RELATION_PREFLIGHT_CHECKLIST",
+    "SCHEMA_GENERATION_PRINCIPLES",
+]

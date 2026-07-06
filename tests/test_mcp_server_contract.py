@@ -104,7 +104,10 @@ def test_drg_extract_with_mocked_extraction(monkeypatch):
     monkeypatch.setattr(
         mcp_server,
         "extract_typed",
-        lambda text, schema: ([("Apple", "Company"), ("iPhone", "Product")], [("Apple", "produces", "iPhone")]),
+        lambda text, schema: (
+            [("Apple", "Company"), ("iPhone", "Product")],
+            [("Apple", "produces", "iPhone")],
+        ),
     )
     result = mcp_server.drg_extract("Apple produces iPhone.", "demo")
     assert result["counts"]["entities"] == 2

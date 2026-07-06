@@ -331,10 +331,7 @@ def test_build_enhanced_kg_prefers_enriched_evidence_and_span_alignment():
 
 
 def test_extract_evidence_snippet_prefers_relation_aligned_sentence():
-    text = (
-        "Apple and iPhone were discussed in a market context. "
-        "Apple released the iPhone in 2007."
-    )
+    text = "Apple and iPhone were discussed in a market context. Apple released the iPhone in 2007."
     snippet = extract_evidence_snippet(
         text,
         "Apple",

@@ -285,11 +285,7 @@ def test_merge_additional_relation_groups_allows_same_name_different_endpoints()
         ],
         max_relations=4,
     )
-    keys = {
-        (rel.name, rel.src, rel.dst)
-        for rg in merged.relation_groups
-        for rel in rg.relations
-    }
+    keys = {(rel.name, rel.src, rel.dst) for rg in merged.relation_groups for rel in rg.relations}
     assert ("develops", "Organization", "Product") in keys
     assert ("develops", "Person", "Product") in keys
 

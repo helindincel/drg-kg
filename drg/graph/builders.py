@@ -75,7 +75,11 @@ def extract_evidence_snippet(
             if not sentence:
                 continue
             sent_l = sentence.lower()
-            if s.lower() in sent_l and t.lower() in sent_l and any(rt in sent_l for rt in relation_terms):
+            if (
+                s.lower() in sent_l
+                and t.lower() in sent_l
+                and any(rt in sent_l for rt in relation_terms)
+            ):
                 sentence = re.sub(r"\s+", " ", sentence).strip()
                 if len(sentence) <= max_chars:
                     return sentence
@@ -252,7 +256,9 @@ def _filter_extractions_for_schema(
         if triple in seen:
             continue
         s, r, o = triple
-        if _is_valid_schema_triple(schema, source=s, relation=r, target=o, entity_type_map=entity_type_map):
+        if _is_valid_schema_triple(
+            schema, source=s, relation=r, target=o, entity_type_map=entity_type_map
+        ):
             filtered_triples.append(triple)
             seen.add(triple)
 
@@ -298,7 +304,7 @@ def _filter_redundant_relations(
     groups: dict[tuple[str, ...], list[tuple[str, str, str]]] = {}
     passthrough: list[tuple[str, str, str]] = []
     for triple in triples:
-        s, r, o = triple
+        s, _r, o = triple
         evidence = _normalize_evidence_text(enriched_by_triple.get(triple, {}).get("evidence"))
         if not evidence:
             passthrough.append(triple)
@@ -576,7 +582,9 @@ def build_enhanced_kg(
         aliases = entity_aliases.get(name) if entity_aliases else None
         if aliases:
             node_metadata = dict(node_metadata)
-            node_metadata["aliases"] = sorted({str(a) for a in aliases if str(a).strip()}, key=str.lower)
+            node_metadata["aliases"] = sorted(
+                {str(a) for a in aliases if str(a).strip()}, key=str.lower
+            )
         kg.add_node(
             KGNode(
                 id=name,
@@ -730,7 +738,9 @@ def build_enhanced_kg(
                 edge_provenance = find_text_provenance(
                     source_text,
                     (s, o),
-                    document_id=md.get("source_ref") if isinstance(md.get("source_ref"), str) else document_id,
+                    document_id=md.get("source_ref")
+                    if isinstance(md.get("source_ref"), str)
+                    else document_id,
                     extractor_version=extractor_version,
                     preferred_snippet=evidence,
                 )

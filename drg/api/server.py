@@ -500,9 +500,9 @@ def _available_schema_files() -> list[dict[str, Any]]:
                     "name": path.name,
                     "source": directory.name,
                     "size_bytes": stat.st_size,
-                    "updated_at": datetime.fromtimestamp(
-                        stat.st_mtime, tz=timezone.utc
-                    ).replace(microsecond=0).isoformat(),
+                    "updated_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
+                    .replace(microsecond=0)
+                    .isoformat(),
                 }
             )
     records.sort(key=lambda item: (item["source"], item["name"]))

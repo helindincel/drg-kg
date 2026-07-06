@@ -136,9 +136,7 @@ def main():
     print(f"DRG API Server Example - {dataset_label.upper()}")
     print("=" * 70)
     print(f"📌 Dataset seçimi: {dataset_label}")
-    print(
-        f"   (Değiştirmek için: export DRG_EXAMPLE=1 veya python {sys.argv[0]} 2)"
-    )
+    print(f"   (Değiştirmek için: export DRG_EXAMPLE=1 veya python {sys.argv[0]} 2)")
 
     def _try_load_kg_file(path: Path) -> EnhancedKG | None:
         """Load a KG JSON file into EnhancedKG.
@@ -214,7 +212,7 @@ def main():
 
     # Backward compatibility: legacy numbered example outputs (e.g. outputs/example2.json)
     if kg is None:
-        m = re.match(r"^example_(\d+)$", example_name)
+        m = re.match(r"^example_(\d+)$", dataset_arg)
         if m:
             legacy_path = Path(f"outputs/example{m.group(1)}.json")
             kg = _try_load_kg_file(legacy_path)

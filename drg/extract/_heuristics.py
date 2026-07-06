@@ -113,7 +113,11 @@ def _find_evidence_window(
             if not sent:
                 continue
             sent_l = sent.lower()
-            if a.lower() in sent_l and b.lower() in sent_l and any(c in sent_l for c in relation_cues):
+            if (
+                a.lower() in sent_l
+                and b.lower() in sent_l
+                and any(c in sent_l for c in relation_cues)
+            ):
                 return sent
 
     # Prefer the sentence containing the closest pair to limit negation bleed

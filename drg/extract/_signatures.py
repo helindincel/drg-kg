@@ -116,7 +116,8 @@ def _create_entity_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
     entity_types_list = _entity_schema_for(schema)
 
     class EntityExtraction(dspy.Signature):
-        """Extract named entities from the text that match the provided schema.
+        (
+            """Extract named entities from the text that match the provided schema.
 
         For each entity found:
         - Set name to the canonical real-world form used in the text (not pronouns
@@ -136,7 +137,9 @@ def _create_entity_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
           that participate in extractable relations.
         Only extract entities whose type matches one of the provided entity types.
 
-        """ + KG_CONSTRUCTION_PRINCIPLES
+        """
+            + KG_CONSTRUCTION_PRINCIPLES
+        )
 
         text: str = dspy.InputField(desc="Input text to analyze")
         entity_types: list[dict] = dspy.InputField(
@@ -174,7 +177,8 @@ def _create_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
     relation_schema = _relation_schema_for(schema)
 
     class RelationExtraction(dspy.Signature):
-        """Extract relationships between the provided entities that are explicitly supported by the text.
+        (
+            """Extract relationships between the provided entities that are explicitly supported by the text.
 
         Rules:
         - Only assert relations whose name appears in relation_schema.
@@ -195,7 +199,11 @@ def _create_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
         - Set temporal.start/end (ISO 8601 or year) when the relation is time-bounded.
         - Do NOT infer relations unsupported by the text.
 
-        """ + RELATION_PREFLIGHT_CHECKLIST + "\n\n" + KG_CONSTRUCTION_PRINCIPLES
+        """
+            + RELATION_PREFLIGHT_CHECKLIST
+            + "\n\n"
+            + KG_CONSTRUCTION_PRINCIPLES
+        )
 
         text: str = dspy.InputField(desc="Input text (current chunk)")
         entities: list[dict] = dspy.InputField(desc="Available entity mentions with name and type")
@@ -226,7 +234,8 @@ def _create_document_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -
     relation_schema = _relation_schema_for(schema)
 
     class DocumentRelationExtraction(dspy.Signature):
-        """Extract relationships between canonical entities across all document chunks.
+        (
+            """Extract relationships between canonical entities across all document chunks.
 
         Rules:
         - Only assert relations whose name appears in relation_schema.
@@ -240,7 +249,11 @@ def _create_document_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -
           facts describe the same occurrence.
         - Set temporal.start/end when the relation is time-bounded.
 
-        """ + RELATION_PREFLIGHT_CHECKLIST + "\n\n" + KG_CONSTRUCTION_PRINCIPLES
+        """
+            + RELATION_PREFLIGHT_CHECKLIST
+            + "\n\n"
+            + KG_CONSTRUCTION_PRINCIPLES
+        )
 
         document_chunks: list[dict] = dspy.InputField(
             desc="Document chunks, each with chunk_id and text"
@@ -269,7 +282,8 @@ def _create_implicit_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -
     relation_schema = _relation_schema_for(schema)
 
     class ImplicitRelationExtraction(dspy.Signature):
-        """Infer implicit relationships licensed by the text and existing graph.
+        (
+            """Infer implicit relationships licensed by the text and existing graph.
 
         Rules:
         - Only assert relations whose name appears in relation_schema.
@@ -280,7 +294,11 @@ def _create_implicit_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -
         - Do NOT add edges solely to reduce orphans or increase connectivity.
         - Set confidence, evidence, is_negated, and temporal as appropriate.
 
-        """ + RELATION_PREFLIGHT_CHECKLIST + "\n\n" + KG_CONSTRUCTION_PRINCIPLES
+        """
+            + RELATION_PREFLIGHT_CHECKLIST
+            + "\n\n"
+            + KG_CONSTRUCTION_PRINCIPLES
+        )
 
         text: str = dspy.InputField(desc="Input text")
         entities: list[dict] = dspy.InputField(desc="Canonical entity mentions with name and type")

@@ -31,6 +31,7 @@ from ..schema import DRGSchema, EnhancedDRGSchema
 from ..utils.llm_throttle import throttle_llm_calls
 from ..utils.logging import get_logger, with_context
 from ..utils.strict import is_strict
+from ._adapters import _maybe_json_adapter_context, run_predict
 from ._chunk_context import (
     _build_cross_chunk_context_snippets,
     _select_anchor_entities,
@@ -48,7 +49,7 @@ from ._schema_gen import (
     _sample_text_for_schema_generation,  # noqa: F401 — imported for test access
     generate_schema_from_text,
 )
-from ._schema_sanitizer import SchemaSanitizer, SanitizationReport
+from ._schema_sanitizer import SanitizationReport, SchemaSanitizer
 from ._signatures import (
     _create_coreference_signature,
     _create_document_relation_signature,
@@ -82,15 +83,13 @@ except ImportError:
 
 __all__ = [
     "EntityList",
-    # Types
     "ExtractionResult",
-    # Public API
     "KGExtractor",
     "RelationList",
     "SanitizationReport",
-    "SchemaSanitizer",
     "SchemaGeneration",
     "SchemaOutput",
+    "SchemaSanitizer",
     "create_kgedge_from_triple",
     "extract_from_chunks",
     "extract_from_chunks_async",
@@ -137,9 +136,6 @@ def _maybe_lm_context(lm: Any | None):
         "falling back to globally configured LM."
     )
     return contextlib.nullcontext()
-
-
-from ._adapters import _maybe_json_adapter_context, run_predict
 
 
 def _should_return_dspy_prediction() -> bool:
@@ -205,7 +201,9 @@ def _guard_lm_or_mock_empty(*, lm: Any | None, return_enriched: bool, operation:
     if _require_lm():
         raise LLMConfigError(message)
 
-    logger.warning("No DSPy LM configured for %s; returning empty extraction (mock mode).", operation)
+    logger.warning(
+        "No DSPy LM configured for %s; returning empty extraction (mock mode).", operation
+    )
     return _empty_extraction_result(return_enriched)
 
 

@@ -53,7 +53,7 @@ import logging
 import os
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, ClassVar
 
 from ..schema import EnhancedDRGSchema, EntityType, Relation, RelationGroup
 
@@ -70,6 +70,7 @@ def _env_flag(name: str, default: bool) -> bool:
     if raw is None:
         return default
     return raw.strip().lower() not in ("0", "false", "no", "off", "")
+
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -265,18 +266,56 @@ _RELATION_GROUP_CANONICAL: dict[str, str] = {
 #: trailing token so ``organization_monitors_person`` becomes ``monitors``.
 _ENDPOINT_ROLE_TOKENS: frozenset[str] = frozenset(
     {
-        "organization", "organisation", "org", "company", "companies",
-        "corporation", "corp", "firm", "business", "institution",
-        "person", "people", "individual", "user", "human", "employee",
-        "founder", "team",
-        "product", "products", "software", "hardware", "operatingsystem",
-        "os", "application", "app", "platform", "device",
-        "technology", "technologies",
-        "concept", "idea", "field", "topic", "discipline",
-        "location", "place", "region", "country", "city",
-        "event", "milestone", "incident",
-        "government", "governmentbody", "agency", "authority",
-        "fundinground", "legalcase", "regulation",
+        "organization",
+        "organisation",
+        "org",
+        "company",
+        "companies",
+        "corporation",
+        "corp",
+        "firm",
+        "business",
+        "institution",
+        "person",
+        "people",
+        "individual",
+        "user",
+        "human",
+        "employee",
+        "founder",
+        "team",
+        "product",
+        "products",
+        "software",
+        "hardware",
+        "operatingsystem",
+        "os",
+        "application",
+        "app",
+        "platform",
+        "device",
+        "technology",
+        "technologies",
+        "concept",
+        "idea",
+        "field",
+        "topic",
+        "discipline",
+        "location",
+        "place",
+        "region",
+        "country",
+        "city",
+        "event",
+        "milestone",
+        "incident",
+        "government",
+        "governmentbody",
+        "agency",
+        "authority",
+        "fundinground",
+        "legalcase",
+        "regulation",
     }
 )
 
@@ -330,44 +369,117 @@ _ROLE_KEYWORDS: list[tuple[tuple[str, ...], str]] = [
     # ACTOR — anything that can act, own, decide, be blamed
     (
         (
-            "company", "corporation", "organization", "organisation",
-            "institution", "government", "agency", "authority", "body",
-            "ministry", "department", "firm", "entity", "party",
-            "person", "individual", "human", "employee", "staff",
-            "user", "founder", "ceo", "executive", "leader",
-            "director", "manager", "officer", "team", "group", "committee",
+            "company",
+            "corporation",
+            "organization",
+            "organisation",
+            "institution",
+            "government",
+            "agency",
+            "authority",
+            "body",
+            "ministry",
+            "department",
+            "firm",
+            "entity",
+            "party",
+            "person",
+            "individual",
+            "human",
+            "employee",
+            "staff",
+            "user",
+            "founder",
+            "ceo",
+            "executive",
+            "leader",
+            "director",
+            "manager",
+            "officer",
+            "team",
+            "group",
+            "committee",
         ),
         SemanticRole.ACTOR,
     ),
     # ARTIFACT — created / manufactured objects
     (
         (
-            "product", "hardware", "software", "operatingsystem",
-            "softwaresuite", "device", "tool", "system", "platform",
-            "application", "service", "framework",
-            "library", "module", "component", "infrastructure",
-            "feature", "interface", "protocol", "format",
-            "standard", "specification", "document", "report",
-            "publication", "asset", "resource",
+            "product",
+            "hardware",
+            "software",
+            "operatingsystem",
+            "softwaresuite",
+            "device",
+            "tool",
+            "system",
+            "platform",
+            "application",
+            "service",
+            "framework",
+            "library",
+            "module",
+            "component",
+            "infrastructure",
+            "feature",
+            "interface",
+            "protocol",
+            "format",
+            "standard",
+            "specification",
+            "document",
+            "report",
+            "publication",
+            "asset",
+            "resource",
         ),
         SemanticRole.ARTIFACT,
     ),
     # PLACE — geographical / physical locations
     (
         (
-            "location", "place", "region", "country", "city", "state",
-            "area", "territory", "site", "address", "venue", "building",
-            "campus", "headquarters", "office", "facility",
+            "location",
+            "place",
+            "region",
+            "country",
+            "city",
+            "state",
+            "area",
+            "territory",
+            "site",
+            "address",
+            "venue",
+            "building",
+            "campus",
+            "headquarters",
+            "office",
+            "facility",
         ),
         SemanticRole.PLACE,
     ),
     # OCCURRENCE — events, processes, transactions
     (
         (
-            "event", "incident", "transaction", "process", "action",
-            "activity", "occurrence", "episode", "milestone", "meeting",
-            "conference", "acquisition", "merger", "deal", "agreement",
-            "phase", "stage", "period", "lawsuit", "trial",
+            "event",
+            "incident",
+            "transaction",
+            "process",
+            "action",
+            "activity",
+            "occurrence",
+            "episode",
+            "milestone",
+            "meeting",
+            "conference",
+            "acquisition",
+            "merger",
+            "deal",
+            "agreement",
+            "phase",
+            "stage",
+            "period",
+            "lawsuit",
+            "trial",
         ),
         SemanticRole.OCCURRENCE,
     ),
@@ -495,8 +607,7 @@ _SEMANTIC_RULES: list[_SemanticRule] = [
         valid_source_roles=_ACTOR_OR_UNKNOWN,
         valid_target_roles=_ACTOR_OR_UNKNOWN,
         reason=(
-            "Employment relations must connect actors — "
-            "a person cannot be employed by an artifact."
+            "Employment relations must connect actors — a person cannot be employed by an artifact."
         ),
     ),
     # ── Date hack: temporal relations must not target OCCURRENCE ──────────────
@@ -611,7 +722,9 @@ _DOCUMENT_SPECIFIC_PATTERNS: list[tuple[re.Pattern, str]] = [  # type: ignore[ty
         "model rankings as entity properties (e.g. rank, market_cap).",
     ),
     (
-        re.compile(r"largest_by_|most_valuable|most_profitable|most_powerful|most_influential", re.I),
+        re.compile(
+            r"largest_by_|most_valuable|most_profitable|most_powerful|most_influential", re.I
+        ),
         "Superlative/ranking relations encode a snapshot ranking, not a reusable schema interaction.",
     ),
     # ── Single-event corporate narrative ─────────────────────────────────────
@@ -651,8 +764,7 @@ _DOCUMENT_SPECIFIC_PATTERNS: list[tuple[re.Pattern, str]] = [  # type: ignore[ty
     # synonyms add noise without adding information.
     (
         re.compile(r"^launched$", re.I),
-        "'launched' is a near-synonym of 'released'; "
-        "use 'released' to keep the schema compact.",
+        "'launched' is a near-synonym of 'released'; use 'released' to keep the schema compact.",
     ),
     (
         re.compile(r"^(announced|unveiled|introduced)$", re.I),
@@ -723,7 +835,9 @@ _DOCUMENT_SPECIFIC_PATTERNS: list[tuple[re.Pattern, str]] = [  # type: ignore[ty
     # "used_in_operation: Product → Location" describes a single narrative
     # deployment (e.g. a product used in one military/government operation).
     (
-        re.compile(r"used_in_operation|used_in_military|deployed_in_operation|used_in_conflict", re.I),
+        re.compile(
+            r"used_in_operation|used_in_military|deployed_in_operation|used_in_conflict", re.I
+        ),
         "Operation-usage relations describe a single narrative deployment; "
         "model usage context as a property or remove.",
     ),
@@ -798,8 +912,7 @@ class SanitizationReport:
             parts.append(f"{len(self.removed_relations)} relation(s) removed")
         if self.removed_groups:
             parts.append(
-                f"{len(self.removed_groups)} group(s) removed "
-                f"({', '.join(self.removed_groups)})"
+                f"{len(self.removed_groups)} group(s) removed ({', '.join(self.removed_groups)})"
             )
         if self.removed_examples:
             parts.append(f"{len(self.removed_examples)} example(s) removed")
@@ -880,9 +993,7 @@ class SchemaSanitizer:
     # Public API
     # ------------------------------------------------------------------
 
-    def sanitize(
-        self, schema: EnhancedDRGSchema
-    ) -> tuple[EnhancedDRGSchema, SanitizationReport]:
+    def sanitize(self, schema: EnhancedDRGSchema) -> tuple[EnhancedDRGSchema, SanitizationReport]:
         """Run all sanitization passes and return the cleaned schema + report.
 
         Passes are applied in a fixed order so that later passes operate on
@@ -1080,8 +1191,7 @@ class SchemaSanitizer:
                 canon = self._endpoint_free_name(canon)
                 if canon != norm:
                     logger.info(
-                        "SchemaSanitizer [P0a]: canonicalizing relation %r -> %r"
-                        " in group %r.",
+                        "SchemaSanitizer [P0a]: canonicalizing relation %r -> %r in group %r.",
                         rel.name,
                         canon,
                         rg.name,
@@ -1221,9 +1331,7 @@ class SchemaSanitizer:
                 rels.append(rel)
             new_groups.append(self._rebuild_group(rg, rels))
 
-        return self._rebuild(
-            schema, entity_types=new_entity_types, relation_groups=new_groups
-        )
+        return self._rebuild(schema, entity_types=new_entity_types, relation_groups=new_groups)
 
     # ------------------------------------------------------------------
     # Pass 0c — merge fragmented relation groups
@@ -1457,8 +1565,7 @@ class SchemaSanitizer:
                 )
                 if key in seen_keys:
                     logger.info(
-                        "SchemaSanitizer [P3]: dropping duplicate relation %r "
-                        "(%s→%s) in group %r.",
+                        "SchemaSanitizer [P3]: dropping duplicate relation %r (%s→%s) in group %r.",
                         rel.name,
                         rel.src,
                         rel.dst,
@@ -1518,8 +1625,7 @@ class SchemaSanitizer:
 
                 if key in seen_keys:
                     logger.info(
-                        "SchemaSanitizer [P4]: dropping forward duplicate %r in group %r"
-                        " (key=%s).",
+                        "SchemaSanitizer [P4]: dropping forward duplicate %r in group %r (key=%s).",
                         rel.name,
                         rg.name,
                         key,
@@ -1673,9 +1779,7 @@ class SchemaSanitizer:
                 return value
         return ""
 
-    def _build_instance_type_index(
-        self, schema: EnhancedDRGSchema
-    ) -> dict[str, set[str]]:
+    def _build_instance_type_index(self, schema: EnhancedDRGSchema) -> dict[str, set[str]]:
         """Map each entity-type example instance (lowercased) to its type name(s).
 
         Built from the ``examples`` field of every entity type, e.g.
@@ -1964,28 +2068,53 @@ class SchemaSanitizer:
     # type becomes an endpoint — rescuing it from P7 deletion.
     # swap_endpoints=False → src unchanged, dst = orphan_type
     # swap_endpoints=True  → src = orphan_type, dst unchanged
-    _ORPHAN_RESCUE_RULES: list = [
+    _ORPHAN_RESCUE_RULES: ClassVar[list] = [
         (
             __import__("re").compile(r"legalcase|lawsuit|litigation", __import__("re").I),
             [
-                (__import__("re").compile(r"^sued_by$|^filed_against$|^litigated_against$", __import__("re").I),
-                 "filed_against", False),
-                (__import__("re").compile(r"^settled_with$|^reached_settlement$", __import__("re").I),
-                 "settled_case", False),
+                (
+                    __import__("re").compile(
+                        r"^sued_by$|^filed_against$|^litigated_against$", __import__("re").I
+                    ),
+                    "filed_against",
+                    False,
+                ),
+                (
+                    __import__("re").compile(
+                        r"^settled_with$|^reached_settlement$", __import__("re").I
+                    ),
+                    "settled_case",
+                    False,
+                ),
             ],
         ),
         (
-            __import__("re").compile(r"^regulation$|^policy$|^legislation$|^directive$", __import__("re").I),
+            __import__("re").compile(
+                r"^regulation$|^policy$|^legislation$|^directive$", __import__("re").I
+            ),
             [
-                (__import__("re").compile(r"^designated_as$|^regulated_by$|^subject_to_regulation$", __import__("re").I),
-                 "subject_to", False),
+                (
+                    __import__("re").compile(
+                        r"^designated_as$|^regulated_by$|^subject_to_regulation$",
+                        __import__("re").I,
+                    ),
+                    "subject_to",
+                    False,
+                ),
             ],
         ),
         (
-            __import__("re").compile(r"fundinground|funding_round|investment_round", __import__("re").I),
+            __import__("re").compile(
+                r"fundinground|funding_round|investment_round", __import__("re").I
+            ),
             [
-                (__import__("re").compile(r"^had_valuation_of$|^valued_at$|^raised_in_round$", __import__("re").I),
-                 "raised_in", False),
+                (
+                    __import__("re").compile(
+                        r"^had_valuation_of$|^valued_at$|^raised_in_round$", __import__("re").I
+                    ),
+                    "raised_in",
+                    False,
+                ),
             ],
         ),
     ]

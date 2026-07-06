@@ -70,7 +70,9 @@ class TestRelationNameCanonicalization:
                     description="a",
                     relations=[
                         Relation("partnered_with", "Organization", "Organization", description="1"),
-                        Relation("formed_agreement_with", "Organization", "Organization", description="2"),
+                        Relation(
+                            "formed_agreement_with", "Organization", "Organization", description="2"
+                        ),
                     ],
                 )
             ],
@@ -89,7 +91,9 @@ class TestRelationNameCanonicalization:
                     name="A",
                     description="a",
                     relations=[
-                        Relation("has_headquarters_in", "Organization", "Location", description="hq"),
+                        Relation(
+                            "has_headquarters_in", "Organization", "Location", description="hq"
+                        ),
                     ],
                 )
             ],
@@ -177,9 +181,24 @@ class TestEndpointFreeRelationNames:
                     name="A",
                     description="a",
                     relations=[
-                        Relation("organization_monitors_person", "Organization", "Person", description="1"),
-                        Relation("organization_monitors_technology", "Organization", "Technology", description="2"),
-                        Relation("organization_monitors_concept", "Organization", "Concept", description="3"),
+                        Relation(
+                            "organization_monitors_person",
+                            "Organization",
+                            "Person",
+                            description="1",
+                        ),
+                        Relation(
+                            "organization_monitors_technology",
+                            "Organization",
+                            "Technology",
+                            description="2",
+                        ),
+                        Relation(
+                            "organization_monitors_concept",
+                            "Organization",
+                            "Concept",
+                            description="3",
+                        ),
                     ],
                 )
             ],
@@ -301,7 +320,9 @@ class TestEntityTypeCanonicalization:
                     description="a",
                     relations=[
                         Relation("develops_product", "Organization", "Product", description="d"),
-                        Relation("develops_os", "Organization", "OperatingSystem", description="d2"),
+                        Relation(
+                            "develops_os", "Organization", "OperatingSystem", description="d2"
+                        ),
                         Relation("makes_hw", "Organization", "Hardware", description="d3"),
                     ],
                 )
@@ -326,7 +347,9 @@ class TestEntityTypeCanonicalization:
                     description="a",
                     relations=[
                         Relation("develops_product", "Organization", "Product", description="d"),
-                        Relation("develops_os", "Organization", "OperatingSystem", description="d2"),
+                        Relation(
+                            "develops_os", "Organization", "OperatingSystem", description="d2"
+                        ),
                     ],
                 )
             ],
@@ -340,7 +363,9 @@ class TestEntityTypeCanonicalization:
             [
                 EntityType(name="Organization", description="orgs"),
                 EntityType(name="Hardware", description="hardware desc", examples=["Xbox"]),
-                EntityType(name="Product", description="the real product desc", examples=["Windows"]),
+                EntityType(
+                    name="Product", description="the real product desc", examples=["Windows"]
+                ),
             ],
             [
                 RelationGroup(
@@ -379,7 +404,9 @@ class TestRelationGroupMerge:
                 RelationGroup(
                     name="Product Development",
                     description="dev",
-                    relations=[Relation("develops_product", "Organization", "Product", description="d")],
+                    relations=[
+                        Relation("develops_product", "Organization", "Product", description="d")
+                    ],
                 ),
                 RelationGroup(
                     name="Product Usage",
@@ -403,7 +430,9 @@ class TestRelationGroupMerge:
                 RelationGroup(
                     name="Product Development",
                     description="dev",
-                    relations=[Relation("develops_product", "Organization", "Product", description="d")],
+                    relations=[
+                        Relation("develops_product", "Organization", "Product", description="d")
+                    ],
                 ),
                 RelationGroup(
                     name="Product Usage",

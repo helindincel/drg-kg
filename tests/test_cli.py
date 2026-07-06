@@ -62,9 +62,7 @@ class TestCreateDefaultSchema:
 
 class TestResolveDefaultSchema:
     def test_uses_env_schema_when_present(self, monkeypatch):
-        schema_path = (
-            "/Users/helindincel/Desktop/Github/drg-kg/schemas/global_default_schema.json"
-        )
+        schema_path = "/Users/helindincel/Desktop/Github/drg-kg/schemas/global_default_schema.json"
         monkeypatch.setenv("DRG_DEFAULT_SCHEMA", schema_path)
         schema = cli_mod._resolve_default_schema()
         relation_names = {

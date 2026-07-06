@@ -104,6 +104,8 @@ def test_path_bridge_rule_connects_cross_document_hops():
     )
     inferred = PathBridgeRule().apply(kg)
     assert any(
-        edge.relationship_type == "connected_via" and edge.source == "Alice" and edge.target == "Widget"
+        edge.relationship_type == "connected_via"
+        and edge.source == "Alice"
+        and edge.target == "Widget"
         for edge in inferred
     )

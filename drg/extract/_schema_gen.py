@@ -18,6 +18,10 @@ from unittest.mock import Mock as _Mock
 import dspy
 
 from ..errors import SchemaGenerationError
+from ..schema import EnhancedDRGSchema, EntityType, Relation, RelationGroup
+from ..utils.llm_throttle import throttle_llm_calls
+from ._adapters import _maybe_json_adapter_context, run_predict
+from ._parsing import _parse_json_output
 from ._schema_prompts import (
     SCHEMA_COVERAGE_AUDIT_INSTRUCTIONS,
     SCHEMA_GENERATION_INSTRUCTIONS,
@@ -26,17 +30,13 @@ from ._schema_prompts import (
     SCHEMA_RETRY_GUIDANCE_TEMPLATE,
     SCHEMA_REVIEW_INSTRUCTIONS,
 )
-from ..schema import EnhancedDRGSchema, EntityType, Relation, RelationGroup
-from ..utils.llm_throttle import throttle_llm_calls
-from ._parsing import _parse_json_output
 from ._schema_sanitizer import SchemaSanitizer
 from ._types import SchemaEntityType, SchemaOutput, SchemaRelationGroup
-
-from ._adapters import _maybe_json_adapter_context, run_predict
 
 _sanitizer = SchemaSanitizer()
 
 logger = logging.getLogger(__name__)
+
 
 def _schema_output_limits() -> dict[str, int]:
     """Configurable ontology size budget for declarative schema generation."""
@@ -179,9 +179,7 @@ class SchemaGeneration(dspy.Signature):
     interaction_families: str = dspy.InputField(
         desc="Semantic interaction families to survey when discovering relations."
     )
-    generation_instructions: str = dspy.InputField(
-        desc="Full ontology design rules for this pass."
-    )
+    generation_instructions: str = dspy.InputField(desc="Full ontology design rules for this pass.")
     retry_guidance: str = dspy.InputField(
         desc="Empty on first attempt; corrective guidance after a failed attempt."
     )
@@ -470,9 +468,7 @@ def _merge_coverage_extensions(
     existing_type_names = {et.name for et in entity_types}
     lower_to_canonical = {et.name.lower(): et.name for et in entity_types}
     existing_relations = {
-        _relation_key(rel.name, rel.src, rel.dst)
-        for rg in relation_groups
-        for rel in rg.relations
+        _relation_key(rel.name, rel.src, rel.dst) for rg in relation_groups for rel in rg.relations
     }
 
     entity_slots = max(0, limits["max_entity_types"] - len(entity_types))
@@ -554,8 +550,11 @@ def _merge_coverage_extensions(
             continue
         relation_groups.append(
             RelationGroup(
-                name=str(group_data.get("name", "coverage_extensions")).strip() or "coverage_extensions",
-                description=str(group_data.get("description", "Relations added by coverage audit.")),
+                name=str(group_data.get("name", "coverage_extensions")).strip()
+                or "coverage_extensions",
+                description=str(
+                    group_data.get("description", "Relations added by coverage audit.")
+                ),
                 relations=new_relations,
                 examples=(
                     group_data.get("examples", [])
@@ -648,9 +647,7 @@ def _maybe_review_schema(
 
     # Parse the corrected schema — fall back to the draft if parsing fails.
     entity_types_raw = _coerce_model_list(getattr(review_result, "entity_types", None))
-    relation_groups_raw = _coerce_model_list(
-        getattr(review_result, "relation_groups", None)
-    )
+    relation_groups_raw = _coerce_model_list(getattr(review_result, "relation_groups", None))
     if not entity_types_raw and not relation_groups_raw:
         logger.debug("Schema review pass returned empty result; keeping draft.")
         return schema
@@ -674,16 +671,8 @@ def _maybe_review_schema(
     new_et = {et.name for et in reviewed.entity_types}
     added_et = new_et - orig_et
     removed_et = orig_et - new_et
-    orig_rel = {
-        rel.name
-        for rg in schema.relation_groups
-        for rel in rg.relations
-    }
-    new_rel = {
-        rel.name
-        for rg in reviewed.relation_groups
-        for rel in rg.relations
-    }
+    orig_rel = {rel.name for rg in schema.relation_groups for rel in rg.relations}
+    new_rel = {rel.name for rg in reviewed.relation_groups for rel in rg.relations}
     added_rel = new_rel - orig_rel
     removed_rel = orig_rel - new_rel
 
@@ -868,6 +857,7 @@ def _align_slice_to_boundaries(text: str, start: int, end: int) -> tuple[int, in
 
     end = max(start + 1, min(end, len(text)))
     return start, end
+
 
 def _schema_from_payload(schema_data: dict[str, Any]) -> EnhancedDRGSchema:
     """Parse schema payload, including legacy compatibility conversion."""

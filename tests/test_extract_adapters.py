@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from drg.extract._adapters import (
     _salvage_wrapped_field,
     _use_json_adapter,
@@ -24,11 +22,11 @@ def test_use_json_adapter_honors_force_flag(monkeypatch):
 
 def test_salvage_singleton_relation():
     error = Exception(
-        'Adapter JSONAdapter failed to parse the LM response.\n\n'
+        "Adapter JSONAdapter failed to parse the LM response.\n\n"
         'LM Response: {"source": "A", "relation": "knows", "target": "B", '
         '"confidence": 1.0, "evidence": "A knows B", "is_negated": false, '
         '"temporal": null}\n\n'
-        'Expected to find output fields in the LM response: [relations]'
+        "Expected to find output fields in the LM response: [relations]"
     )
     salvaged = _salvage_wrapped_field(error, "relations")
     assert isinstance(salvaged, list)
@@ -38,7 +36,7 @@ def test_salvage_singleton_relation():
 def test_salvage_wrapped_entities_list():
     error = Exception(
         'LM Response: {"entities": [{"name": "Marie", "type": "Person"}]} '
-        'Expected to find output fields in the LM response: [entities]'
+        "Expected to find output fields in the LM response: [entities]"
     )
     salvaged = _salvage_wrapped_field(error, "entities")
     assert salvaged == [{"name": "Marie", "type": "Person"}]
@@ -49,7 +47,7 @@ def test_run_predict_salvages_on_failure():
         def __call__(self, **_kwargs):
             raise RuntimeError(
                 'LM Response: {"source": "A", "relation": "knows", "target": "B"} '
-                'Expected to find output fields in the LM response: [relations]'
+                "Expected to find output fields in the LM response: [relations]"
             )
 
     result = run_predict(_BrokenPredictor(), salvage_fields=("relations",))
