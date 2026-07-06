@@ -390,9 +390,88 @@ class EnhancedDRGSchema:
         if not relation_groups:
             raise SchemaError("EnhancedDRGSchema parsing produced empty relation_groups")
 
+        entity_type_map = {et.name: et for et in entity_types}
+
+        entity_groups: list[EntityGroup] = []
+        raw_entity_groups = schema_data.get("entity_groups", [])
+        if isinstance(raw_entity_groups, list):
+            for eg in raw_entity_groups:
+                if not isinstance(eg, dict):
+                    continue
+                eg_name = eg.get("name")
+                if not isinstance(eg_name, str) or not eg_name.strip():
+                    continue
+                eg_desc = eg.get("description", "")
+                if not isinstance(eg_desc, str):
+                    eg_desc = ""
+
+                raw_group_types = eg.get("entity_types", [])
+                if not isinstance(raw_group_types, list):
+                    continue
+
+                group_entity_types: list[EntityType] = []
+                for raw_et in raw_group_types:
+                    if isinstance(raw_et, str):
+                        entity_type = entity_type_map.get(raw_et.strip())
+                    elif isinstance(raw_et, dict):
+                        et_name = raw_et.get("name")
+                        entity_type = (
+                            entity_type_map.get(et_name.strip())
+                            if isinstance(et_name, str)
+                            else None
+                        )
+                    else:
+                        entity_type = None
+                    if entity_type is not None and entity_type not in group_entity_types:
+                        group_entity_types.append(entity_type)
+
+                if not group_entity_types:
+                    continue
+
+                examples = eg.get("examples", [])
+                if not isinstance(examples, list):
+                    examples = []
+                entity_groups.append(
+                    EntityGroup(
+                        name=eg_name.strip(),
+                        description=eg_desc.strip() or "Auto-generated entity group",
+                        entity_types=group_entity_types,
+                        examples=examples,
+                    )
+                )
+
+        property_groups: list[PropertyGroup] = []
+        raw_property_groups = schema_data.get("property_groups", [])
+        if isinstance(raw_property_groups, list):
+            for pg in raw_property_groups:
+                if not isinstance(pg, dict):
+                    continue
+                pg_name = pg.get("name")
+                if not isinstance(pg_name, str) or not pg_name.strip():
+                    continue
+                pg_desc = pg.get("description", "")
+                if not isinstance(pg_desc, str):
+                    pg_desc = ""
+                properties = pg.get("properties", {})
+                if not isinstance(properties, dict) or not properties:
+                    continue
+                examples = pg.get("examples", [])
+                if not isinstance(examples, list):
+                    examples = []
+                property_groups.append(
+                    PropertyGroup(
+                        name=pg_name.strip(),
+                        description=pg_desc.strip() or "Auto-generated property group",
+                        properties=properties,
+                        examples=examples,
+                    )
+                )
+
         return cls(
             entity_types=entity_types,
             relation_groups=relation_groups,
+            entity_groups=entity_groups,
+            property_groups=property_groups,
             auto_discovery=bool(schema_data.get("auto_discovery", False)),
         )
 

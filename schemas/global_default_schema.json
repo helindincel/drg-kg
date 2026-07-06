@@ -1,0 +1,192 @@
+{
+  "entity_types": [
+    {
+      "name": "Company",
+      "description": "Commercial organizations producing vehicles, energy, or software.",
+      "examples": ["Tesla Inc.", "SolarCity", "Lotus"],
+      "properties": {}
+    },
+    {
+      "name": "Person",
+      "description": "Named individuals involved in leadership, founding, or engineering roles.",
+      "examples": ["Elon Musk", "Martin Eberhard", "Marc Tarpenning", "Nikola Tesla"],
+      "properties": {}
+    },
+    {
+      "name": "Product",
+      "description": "Vehicles, hardware, or branded offerings sold by companies.",
+      "examples": [
+        "Roadster",
+        "Model S",
+        "Model 3",
+        "Model Y",
+        "Cybertruck",
+        "Tesla Semi",
+        "Powerwall",
+        "Solar Roof",
+        "Megapack"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Technology",
+      "description": "Technical systems, software capabilities, or platforms.",
+      "examples": ["Autopilot", "Full Self-Driving (FSD)", "over-the-air updates"],
+      "properties": {}
+    },
+    {
+      "name": "Location",
+      "description": "Cities, regions, or places where operations or headquarters are located.",
+      "examples": ["Austin, Texas", "Nevada", "Shanghai", "Berlin", "Texas"],
+      "properties": {}
+    },
+    {
+      "name": "Facility",
+      "description": "Major industrial or operational sites.",
+      "examples": [
+        "Gigafactory Nevada",
+        "Shanghai Gigafactory",
+        "Berlin Gigafactory",
+        "Gigafactory Texas"
+      ],
+      "properties": {}
+    },
+    {
+      "name": "Service",
+      "description": "Services or network-level capabilities offered to customers.",
+      "examples": ["Supercharger network"],
+      "properties": {}
+    }
+  ],
+  "relation_groups": [
+    {
+      "name": "Leadership and Corporate Structure",
+      "description": "Founding, executive leadership, naming, and organization-person links.",
+      "relations": [
+        {
+          "name": "founded",
+          "source": "Person",
+          "target": "Company",
+          "description": "A person founded a company.",
+          "detail": "Martin Eberhard founded Tesla Inc."
+        },
+        {
+          "name": "joined_company",
+          "source": "Person",
+          "target": "Company",
+          "description": "A person joined a company in a role.",
+          "detail": "Elon Musk joined Tesla in 2004."
+        },
+        {
+          "name": "ceo_of",
+          "source": "Person",
+          "target": "Company",
+          "description": "A person serves or served as CEO of a company.",
+          "detail": "Elon Musk became CEO of Tesla in 2008."
+        },
+        {
+          "name": "headquartered_in",
+          "source": "Company",
+          "target": "Location",
+          "description": "A company is headquartered in a location.",
+          "detail": "Tesla is headquartered in Austin, Texas."
+        },
+        {
+          "name": "named_after",
+          "source": "Company",
+          "target": "Person",
+          "description": "A company is named after a person.",
+          "detail": "Tesla is named after Nikola Tesla."
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Products and Technology",
+      "description": "How companies build products and technical capabilities.",
+      "relations": [
+        {
+          "name": "introduced",
+          "source": "Company",
+          "target": "Product",
+          "description": "A company introduced or launched a product.",
+          "detail": "Tesla introduced Model S in 2012."
+        },
+        {
+          "name": "manufactures",
+          "source": "Company",
+          "target": "Product",
+          "description": "A company manufactures a product.",
+          "detail": "Tesla manufactures Model Y."
+        },
+        {
+          "name": "produces",
+          "source": "Company",
+          "target": "Product",
+          "description": "A company produces a product.",
+          "detail": "Tesla produces Powerwall."
+        },
+        {
+          "name": "developed",
+          "source": "Company",
+          "target": "Technology",
+          "description": "A company developed a technology capability.",
+          "detail": "Tesla developed Full Self-Driving capability."
+        },
+        {
+          "name": "uses_technology",
+          "source": "Product",
+          "target": "Technology",
+          "description": "A product uses or provides a technology.",
+          "detail": "Tesla vehicles use Autopilot."
+        },
+        {
+          "name": "shares_platform",
+          "source": "Product",
+          "target": "Product",
+          "description": "A product shares components or platform architecture with another product.",
+          "detail": "Model Y shares platform components with Model 3."
+        },
+        {
+          "name": "offers_service",
+          "source": "Company",
+          "target": "Service",
+          "description": "A company offers a customer-facing service or network.",
+          "detail": "Tesla offers the Supercharger network."
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Operations and Expansion",
+      "description": "Facilities, geography, and corporate expansion.",
+      "relations": [
+        {
+          "name": "operates_facility",
+          "source": "Company",
+          "target": "Facility",
+          "description": "A company operates a facility.",
+          "detail": "Tesla operates Gigafactory Nevada."
+        },
+        {
+          "name": "located_in",
+          "source": "Facility",
+          "target": "Location",
+          "description": "A facility is located in a location.",
+          "detail": "Gigafactory Texas is located in Texas."
+        },
+        {
+          "name": "acquired",
+          "source": "Company",
+          "target": "Company",
+          "description": "A company acquired another company.",
+          "detail": "Tesla acquired SolarCity in 2016."
+        }
+      ],
+      "examples": []
+    }
+  ],
+  "entity_groups": [],
+  "property_groups": [],
+  "auto_discovery": false
+}

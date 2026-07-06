@@ -210,6 +210,7 @@ def test_build_enhanced_kg_with_entities_only_creates_nodes_no_edges():
     kg = build_enhanced_kg(
         entities_typed=[("Apple", "Company"), ("iPhone", "Product")],
         triples=[],
+        prune_isolated_nodes=False,
     )
     assert set(kg.nodes.keys()) == {"Apple", "iPhone"}
     assert kg.nodes["Apple"].type == "Company"
@@ -299,6 +300,52 @@ def test_build_enhanced_kg_populates_evidence_when_source_text_given():
     assert edge.relationship_detail == edge.metadata["evidence"]
 
 
+def test_build_enhanced_kg_prefers_enriched_evidence_and_span_alignment():
+    text = (
+        "Apple announced updates today. "
+        "Apple released the iPhone in 2007 and changed the smartphone market."
+    )
+    enriched = [
+        {
+            "relation": ("Apple", "released", "iPhone"),
+            "evidence": "Apple released the iPhone in 2007 and changed the smartphone market.",
+            "confidence": 0.9,
+            "is_negated": False,
+            "temporal": {"start": "2007", "precision": "year"},
+        }
+    ]
+    kg = build_enhanced_kg(
+        entities_typed=[("Apple", "Company"), ("iPhone", "Product")],
+        triples=[("Apple", "released", "iPhone")],
+        source_text=text,
+        enriched_relations=enriched,
+    )
+    edge = kg.edges[0]
+    assert edge.relationship_detail == enriched[0]["evidence"]
+    assert edge.metadata["evidence"] == enriched[0]["evidence"]
+    prov = edge.metadata.get("provenance", {})
+    span = prov.get("source_span")
+    assert isinstance(span, list) and len(span) == 2
+    extracted = text[span[0] : span[1]]
+    assert "released the iPhone" in extracted
+
+
+def test_extract_evidence_snippet_prefers_relation_aligned_sentence():
+    text = (
+        "Apple and iPhone were discussed in a market context. "
+        "Apple released the iPhone in 2007."
+    )
+    snippet = extract_evidence_snippet(
+        text,
+        "Apple",
+        "iPhone",
+        relation="released",
+        max_chars=200,
+    )
+    assert snippet is not None
+    assert "released the iPhone" in snippet
+
+
 def test_build_enhanced_kg_skips_evidence_when_terms_absent_from_text():
     text = "This text talks about something entirely different."
     kg = build_enhanced_kg(
@@ -379,3 +426,93 @@ def test_build_enhanced_kg_falls_back_when_env_vars_are_garbage(monkeypatch, env
         triples=[("A", "rel", "B")],
     )
     assert len(kg.edges) == 1
+
+
+def test_build_enhanced_kg_filters_invalid_schema_relations():
+    schema = EnhancedDRGSchema(
+        entity_types=[
+            EntityType(name="Organization", description="org"),
+            EntityType(name="Person", description="person"),
+        ],
+        relation_groups=[
+            RelationGroup(
+                name="org",
+                description="org relations",
+                relations=[
+                    Relation(
+                        "founded_by",
+                        "Organization",
+                        "Person",
+                        description="founder",
+                    )
+                ],
+            )
+        ],
+    )
+    kg = build_enhanced_kg(
+        entities_typed=[
+            ("Anthropic, PBC", "Organization"),
+            ("Concord", "Organization"),
+            ("Dario Amodei", "Person"),
+        ],
+        triples=[
+            ("Anthropic, PBC", "founded_by", "Dario Amodei"),
+            ("Anthropic, PBC", "sued_by", "Concord"),
+        ],
+        schema=schema,
+    )
+    assert len(kg.edges) == 1
+    assert kg.edges[0].relationship_type == "founded_by"
+
+
+def test_build_enhanced_kg_applies_name_mapping_and_aliases():
+    kg = build_enhanced_kg(
+        entities_typed=[
+            ("Pentagon", "Organization"),
+            ("Anthropic, PBC", "Organization"),
+        ],
+        triples=[("Pentagon", "partnered_with", "Anthropic, PBC")],
+        name_mapping={"Pentagon": "Department of Defense"},
+        entity_aliases={"Department of Defense": ["Pentagon", "DoD"]},
+    )
+    assert "Pentagon" not in kg.nodes
+    assert "Department of Defense" in kg.nodes
+    assert kg.edges[0].source == "Department of Defense"
+    assert kg.nodes["Department of Defense"].metadata["aliases"] == ["DoD", "Pentagon"]
+
+
+def test_build_enhanced_kg_prunes_isolated_nodes_by_default():
+    kg = build_enhanced_kg(
+        entities_typed=[
+            ("Apple", "Company"),
+            ("iPhone", "Product"),
+            ("Orphan", "Company"),
+        ],
+        triples=[("Apple", "produces", "iPhone")],
+    )
+    assert set(kg.nodes.keys()) == {"Apple", "iPhone"}
+    assert kg.metadata.get("build", {}).get("pruned_isolated_nodes") == 1
+
+
+def test_filter_redundant_relations_keeps_highest_confidence_duplicate():
+    from drg.graph.builders import _filter_redundant_relations
+
+    triples = [
+        ("Anthropic, PBC", "partnered_with", "Google"),
+        ("Anthropic, PBC", "invested_in", "Google"),
+    ]
+    enriched = [
+        {
+            "relation": ("Anthropic, PBC", "partnered_with", "Google"),
+            "confidence": 0.6,
+            "evidence": "An October cloud partnership with Google",
+        },
+        {
+            "relation": ("Anthropic, PBC", "invested_in", "Google"),
+            "confidence": 0.9,
+            "evidence": "An October cloud partnership with Google",
+        },
+    ]
+    kept, kept_enriched = _filter_redundant_relations(triples, enriched)
+    assert kept == [("Anthropic, PBC", "invested_in", "Google")]
+    assert len(kept_enriched) == 1

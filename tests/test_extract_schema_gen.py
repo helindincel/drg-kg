@@ -12,7 +12,7 @@ Split into two test classes:
 from __future__ import annotations
 
 import json
-import pathlib
+import os
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -20,10 +20,11 @@ import pytest
 
 from drg.errors import SchemaGenerationError
 from drg.extract._schema_gen import (
+    _merge_additional_relation_groups,
     _sample_text_for_schema_generation,
     generate_schema_from_text,
 )
-from drg.schema import EnhancedDRGSchema
+from drg.schema import EnhancedDRGSchema, EntityType, Relation, RelationGroup
 
 
 class TestSampleTextForSchemaGeneration:
@@ -81,31 +82,102 @@ class TestSampleTextForSchemaGeneration:
         monkeypatch.setenv("DRG_SCHEMA_MAX_SAMPLE_CHARS", "50000")
         text = "y" * 200_000
         result = _sample_text_for_schema_generation(text)
-        # 10% coverage of 200k chars = ~20k, well under the 50k cap.
         assert len(result) < len(text)
+
+    def test_truncates_on_sentence_boundary(self):
+        text = "First sentence here. " + ("word " * 200) + "Final sentence ends."
+        from drg.extract._schema_gen import _truncate_text_at_boundary
+
+        truncated = _truncate_text_at_boundary(text, 30)
+        assert truncated == "First sentence here."
+        assert len(truncated) <= 30
+
+
+def test_schema_max_tokens_defaults_and_retry_bump(monkeypatch):
+    monkeypatch.delenv("DRG_SCHEMA_MAX_TOKENS", raising=False)
+    monkeypatch.setenv("DRG_MAX_TOKENS", "4096")
+    from drg.extract._schema_gen import _schema_max_tokens
+
+    assert _schema_max_tokens() == 8192
+    assert _schema_max_tokens(attempt_idx=2) == 12288
+
+
+def test_generate_schema_from_text_does_not_mutate_drg_max_tokens(monkeypatch):
+    monkeypatch.setenv("DRG_MAX_TOKENS", "4096")
+    monkeypatch.setenv("DRG_SCHEMA_COVERAGE_PASS", "0")
+    from drg.extract._schema_gen import generate_schema_from_text
+
+    with _patched_dspy(payload=_VALID_SCHEMA_PAYLOAD):
+        generate_schema_from_text("Alice works at ACME.")
+    assert os.getenv("DRG_MAX_TOKENS") == "4096"
+
+
+def test_schema_output_limits_defaults(monkeypatch):
+    monkeypatch.delenv("DRG_SCHEMA_MAX_ENTITY_TYPES", raising=False)
+    monkeypatch.delenv("DRG_SCHEMA_MAX_RELATION_GROUPS", raising=False)
+    monkeypatch.delenv("DRG_SCHEMA_MAX_RELATIONS", raising=False)
+    from drg.extract._schema_gen import _schema_output_limits
+
+    limits = _schema_output_limits()
+    assert limits["max_entity_types"] == 10
+    assert limits["max_relation_groups"] == 6
+    assert limits["max_relations"] == 32
+
+
+def test_construction_principles_emphasize_density_over_count():
+    from drg.graph.construction_principles import (
+        KG_CONSTRUCTION_PRINCIPLES,
+        SCHEMA_GENERATION_PRINCIPLES,
+    )
+
+    assert "Information density" in KG_CONSTRUCTION_PRINCIPLES
+    assert "shortcut" in KG_CONSTRUCTION_PRINCIPLES.lower()
+    assert "reusable semantics" in SCHEMA_GENERATION_PRINCIPLES
+    assert "canonical relation" in SCHEMA_GENERATION_PRINCIPLES.lower()
+
+    from drg.graph.construction_principles import RELATION_PREFLIGHT_CHECKLIST
+
+    assert "unique semantic fact" in RELATION_PREFLIGHT_CHECKLIST
+    assert "semantic precision" in RELATION_PREFLIGHT_CHECKLIST
 
 
 def test_schema_generation_prompt_preserves_semantic_quality_goals():
-    prompt = (
-        pathlib.Path(__file__).parent.parent / "drg" / "extract" / "_schema_gen.py"
-    ).read_text()
+    from drg.extract._schema_prompts import (
+        SCHEMA_CORE_RULES,
+        SCHEMA_COVERAGE_AUDIT_INSTRUCTIONS,
+        SCHEMA_GENERATION_INSTRUCTIONS,
+        SCHEMA_REVIEW_INSTRUCTIONS,
+    )
 
-    assert "reusable semantic roles" in prompt
-    assert "Semantic completeness and recall" in prompt
-    assert "Extractability" in prompt
-    assert "Canonical representation" in prompt
-    assert "single canonical representation" in prompt
-    assert "reliably extractable" in prompt
-    assert "Relation source and target" in prompt
-    assert "primitive value types" in prompt
-    assert "recurring semantic interactions" in prompt
-    assert "significant events as first-class entity types" in prompt
-    assert "reusable relation properties" in prompt
-    assert "Temporal modeling" in prompt
-    assert "internally validate" in prompt
-    assert "smallest ontology" in prompt
-    assert "hard-coded" in prompt
-    assert "domain rules" in prompt
+    for prompt in (
+        SCHEMA_CORE_RULES,
+        SCHEMA_GENERATION_INSTRUCTIONS,
+        SCHEMA_REVIEW_INSTRUCTIONS,
+        SCHEMA_COVERAGE_AUDIT_INSTRUCTIONS,
+    ):
+        assert "ontology_budget" in prompt or "Obey ontology_budget" in prompt
+        assert "domain-agnostic" in prompt
+
+    assert "LegalCase" in SCHEMA_CORE_RULES
+    assert "interaction_families" in SCHEMA_CORE_RULES
+    assert "detail" in SCHEMA_CORE_RULES
+    assert "Post-processing removes" in SCHEMA_CORE_RULES
+
+    assert SCHEMA_CORE_RULES in SCHEMA_GENERATION_INSTRUCTIONS
+    assert SCHEMA_CORE_RULES in SCHEMA_REVIEW_INSTRUCTIONS
+    assert SCHEMA_CORE_RULES in SCHEMA_COVERAGE_AUDIT_INSTRUCTIONS
+    assert "additional_entity_budget" in SCHEMA_COVERAGE_AUDIT_INSTRUCTIONS
+    assert "synonyms" in SCHEMA_COVERAGE_AUDIT_INSTRUCTIONS
+
+    combined = "\n".join(
+        (
+            SCHEMA_GENERATION_INSTRUCTIONS,
+            SCHEMA_REVIEW_INSTRUCTIONS,
+            SCHEMA_COVERAGE_AUDIT_INSTRUCTIONS,
+        )
+    )
+    assert combined.count(SCHEMA_CORE_RULES) == 3
+    assert "SCHEMA_GENERATION_PRINCIPLES" not in combined
 
 
 class _StubPrediction:
@@ -116,12 +188,110 @@ class _StubPrediction:
         *,
         entity_types=None,
         relation_groups=None,
+        additional_relation_groups=None,
         generated_schema: str | None = None,
     ):
         self.entity_types = entity_types
         self.relation_groups = relation_groups
+        self.additional_relation_groups = additional_relation_groups
         if generated_schema is not None:
             self.generated_schema = generated_schema
+
+
+def test_merge_additional_relation_groups_dedupes_and_respects_budget():
+    base = EnhancedDRGSchema(
+        entity_types=[
+            EntityType(name="Organization", description="Orgs"),
+            EntityType(name="Product", description="Products"),
+        ],
+        relation_groups=[
+            RelationGroup(
+                name="core",
+                description="Core",
+                relations=[
+                    Relation("develops", "Organization", "Product", description="builds"),
+                ],
+            )
+        ],
+    )
+    merged = _merge_additional_relation_groups(
+        base,
+        [
+            {
+                "name": "extensions",
+                "description": "More",
+                "relations": [
+                    {
+                        "name": "develops",
+                        "source": "Organization",
+                        "target": "Product",
+                        "description": "duplicate",
+                    },
+                    {
+                        "name": "acquired",
+                        "source": "Organization",
+                        "target": "Organization",
+                        "description": "bought",
+                        "detail": "Anthropic acquired Bun.",
+                    },
+                    {
+                        "name": "released",
+                        "source": "Organization",
+                        "target": "Product",
+                        "description": "launched",
+                        "detail": "Anthropic released Claude 4.",
+                    },
+                ],
+            }
+        ],
+        max_relations=2,
+    )
+    names = {rel.name for rg in merged.relation_groups for rel in rg.relations}
+    assert names == {"develops", "acquired"}
+
+
+def test_merge_additional_relation_groups_allows_same_name_different_endpoints():
+    base = EnhancedDRGSchema(
+        entity_types=[
+            EntityType(name="Organization", description="Orgs"),
+            EntityType(name="Product", description="Products"),
+            EntityType(name="Person", description="People"),
+        ],
+        relation_groups=[
+            RelationGroup(
+                name="core",
+                description="Core",
+                relations=[
+                    Relation("develops", "Organization", "Product", description="builds"),
+                ],
+            )
+        ],
+    )
+    merged = _merge_additional_relation_groups(
+        base,
+        [
+            {
+                "name": "extensions",
+                "description": "More",
+                "relations": [
+                    {
+                        "name": "develops",
+                        "source": "Person",
+                        "target": "Product",
+                        "description": "person-authored product",
+                    },
+                ],
+            }
+        ],
+        max_relations=4,
+    )
+    keys = {
+        (rel.name, rel.src, rel.dst)
+        for rg in merged.relation_groups
+        for rel in rg.relations
+    }
+    assert ("develops", "Organization", "Product") in keys
+    assert ("develops", "Person", "Product") in keys
 
 
 _VALID_SCHEMA_PAYLOAD = {
@@ -160,7 +330,7 @@ def _patched_dspy(
     """
 
     def _make_predictor(*_args, **_kwargs):
-        def _call(*, text):
+        def _call(**kwargs):
             if raise_on_call is not None:
                 raise raise_on_call
             if legacy_schema_str is not None:
@@ -184,12 +354,18 @@ def _patched_dspy(
 
 
 class TestGenerateSchemaFromText:
+    @pytest.fixture(autouse=True)
+    def _disable_coverage_pass(self, monkeypatch):
+        monkeypatch.setenv("DRG_SCHEMA_COVERAGE_PASS", "0")
+
     def test_happy_path_returns_enhanced_schema(self):
         with _patched_dspy(payload=_VALID_SCHEMA_PAYLOAD):
             schema = generate_schema_from_text("Alice works at ACME.")
         assert isinstance(schema, EnhancedDRGSchema)
         assert any(et.name == "Person" for et in schema.entity_types)
-        assert any(et.name == "Company" for et in schema.entity_types)
+        # "Company" is canonicalized to "Organization" by the sanitizer.
+        assert any(et.name == "Organization" for et in schema.entity_types)
+        assert not any(et.name == "Company" for et in schema.entity_types)
         all_relations = {r.name for rg in schema.relation_groups for r in rg.relations}
         assert "works_at" in all_relations
         assert "employs" not in all_relations
@@ -258,3 +434,54 @@ class TestGenerateSchemaFromText:
     def test_unrecognized_shape_raises(self):
         with _patched_dspy(payload={"foo": "bar"}), pytest.raises(SchemaGenerationError):
             generate_schema_from_text("Sample text.")
+
+    def test_coverage_pass_merges_additional_relations(self, monkeypatch):
+        monkeypatch.setenv("DRG_SCHEMA_COVERAGE_PASS", "1")
+
+        coverage_payload = {
+            "additional_relation_groups": [
+                {
+                    "name": "coverage",
+                    "description": "Gap fill",
+                    "relations": [
+                        {
+                            "name": "acquired",
+                            # The coverage LLM sees the already-sanitized schema,
+                            # where "Company" has been canonicalized to "Organization".
+                            "source": "Organization",
+                            "target": "Organization",
+                            "description": "One company acquired another",
+                            "detail": "Anthropic acquired Bun.",
+                        }
+                    ],
+                }
+            ]
+        }
+
+        call_count = {"n": 0}
+
+        def _make_predictor(*_args, **_kwargs):
+            def _call(**kwargs):
+                call_count["n"] += 1
+                if call_count["n"] == 1:
+                    return _StubPrediction(
+                        entity_types=_VALID_SCHEMA_PAYLOAD["entity_types"],
+                        relation_groups=_VALID_SCHEMA_PAYLOAD["relation_groups"],
+                    )
+                return _StubPrediction(**coverage_payload)
+
+            return _call
+
+        fake_dspy = SimpleNamespace(
+            Predict=_make_predictor,
+            ChainOfThought=_make_predictor,
+            Signature=type("Signature", (), {}),
+            InputField=lambda **_: None,
+            OutputField=lambda **_: None,
+        )
+        with patch("drg.extract._schema_gen.dspy", fake_dspy):
+            schema = generate_schema_from_text("Anthropic acquired Bun.")
+        all_relations = {r.name for rg in schema.relation_groups for r in rg.relations}
+        assert "works_at" in all_relations
+        assert "acquired" in all_relations
+        assert call_count["n"] == 2

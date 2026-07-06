@@ -458,6 +458,57 @@ def _ontology_projection_from_graph(kg: EnhancedKG) -> dict[str, Any]:
     }
 
 
+def _schema_search_dirs() -> list[Path]:
+    """Return directories to scan for schema JSON files."""
+    override = os.getenv("DRG_SCHEMA_DIRS", "").strip()
+    if override:
+        dirs = [Path(part.strip()) for part in override.split(",") if part.strip()]
+    else:
+        cwd = Path.cwd()
+        dirs = [cwd / "schemas", cwd / "outputs"]
+    return [d.resolve() for d in dirs if d.exists() and d.is_dir()]
+
+
+def _is_schema_filename(name: str) -> bool:
+    lower = name.lower()
+    if lower == "global_default_schema.json":
+        return True
+    return lower.endswith(".json") and "schema" in lower
+
+
+def _available_schema_files() -> list[dict[str, Any]]:
+    """List schema files from configured schema directories."""
+    records: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for directory in _schema_search_dirs():
+        for path in sorted(directory.glob("*.json")):
+            if not _is_schema_filename(path.name):
+                continue
+            resolved = path.resolve()
+            try:
+                rel = resolved.relative_to(Path.cwd().resolve())
+                schema_id = rel.as_posix()
+            except Exception:
+                schema_id = resolved.as_posix()
+            if schema_id in seen_ids:
+                continue
+            seen_ids.add(schema_id)
+            stat = resolved.stat()
+            records.append(
+                {
+                    "id": schema_id,
+                    "name": path.name,
+                    "source": directory.name,
+                    "size_bytes": stat.st_size,
+                    "updated_at": datetime.fromtimestamp(
+                        stat.st_mtime, tz=timezone.utc
+                    ).replace(microsecond=0).isoformat(),
+                }
+            )
+    records.sort(key=lambda item: (item["source"], item["name"]))
+    return records
+
+
 def create_app(
     kg: EnhancedKG | None = None,
     neo4j_config: Neo4jConfig | None = None,
@@ -613,6 +664,54 @@ def create_app(
         ensure_clusters(kg)
 
         return _graph_statistics_payload(kg)
+
+    @app.get("/api/schema/current")
+    async def get_current_schema_projection():
+        """Return schema projection from the currently loaded KG."""
+        kg = app.state.kg
+        if kg is None:
+            raise HTTPException(status_code=404, detail="Knowledge graph not loaded")
+        projection = _ontology_projection_from_graph(kg)
+        return {
+            "source": "loaded_graph_projection",
+            "schema": projection,
+            "counts": {
+                "entity_types": len(projection.get("entity_types", [])),
+                "relation_groups": len(projection.get("relation_groups", [])),
+                "relations": sum(
+                    len(group.get("relations", []))
+                    for group in projection.get("relation_groups", [])
+                ),
+            },
+        }
+
+    @app.get("/api/schemas")
+    async def list_schema_files():
+        """List available schema JSON files for UI browsing."""
+        return {"schemas": _available_schema_files()}
+
+    @app.get("/api/schemas/content")
+    async def get_schema_file_content(schema_id: str = Query(..., min_length=1)):
+        """Return a schema file payload by identifier from `/api/schemas`."""
+        available = {item["id"]: item for item in _available_schema_files()}
+        item = available.get(schema_id)
+        if item is None:
+            raise HTTPException(status_code=404, detail=f"Schema not found: {schema_id}")
+        path = Path(schema_id)
+        if not path.is_absolute():
+            path = (Path.cwd() / path).resolve()
+        if not path.exists():
+            raise HTTPException(status_code=404, detail=f"Schema file missing: {schema_id}")
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid schema JSON: {e}") from e
+        return {
+            "schema_id": schema_id,
+            "name": item["name"],
+            "source": item["source"],
+            "schema": payload,
+        }
 
     @app.get("/api/evaluation/summary")
     async def get_evaluation_summary():

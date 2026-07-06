@@ -50,6 +50,26 @@ def create_default_schema():
     )
 
 
+def _resolve_default_schema():
+    """Resolve default schema for extraction.
+
+    Priority:
+    1) `DRG_DEFAULT_SCHEMA` env var, if provided and valid.
+    2) Built-in lightweight fallback schema (`create_default_schema`).
+    """
+    schema_path = os.getenv("DRG_DEFAULT_SCHEMA")
+    if schema_path:
+        try:
+            return load_schema_from_json(schema_path)
+        except Exception as e:
+            print(
+                f"Warning: Failed to load DRG_DEFAULT_SCHEMA='{schema_path}': {e}. "
+                "Falling back to built-in default schema.",
+                file=sys.stderr,
+            )
+    return create_default_schema()
+
+
 def main():
     # Load local .env if present (keeps API keys out of code)
     load_dotenv(".env", override=False)
@@ -369,7 +389,7 @@ def _handle_extract(args):
             print(f"Error: Failed to load schema: {e}", file=sys.stderr)
             sys.exit(1)
     else:
-        schema = create_default_schema()
+        schema = _resolve_default_schema()
 
     if args.no_hub_validation:
         os.environ["DRG_VALIDATE_HUB_DOMINANCE"] = "0"
@@ -422,6 +442,8 @@ def _handle_extract(args):
         if args.auto_schema:
             if not os.getenv("DRG_MAX_TOKENS"):
                 os.environ["DRG_MAX_TOKENS"] = "4096"
+            if not os.getenv("DRG_SCHEMA_MAX_TOKENS"):
+                os.environ["DRG_SCHEMA_MAX_TOKENS"] = "8192"
             schema = generate_schema_from_text(text)
 
         if args.auto_schema:

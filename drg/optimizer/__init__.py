@@ -19,11 +19,12 @@ Quick start::
 """
 
 from .metrics import EntityExtractionMetric, RelationExtractionMetric, weighted_f1_metric
-from .optimizer import KGOptimizerConfig, optimize_extractor
+from .optimizer import KGOptimizerConfig, PipelineStage, optimize_extractor
 
 __all__ = [
     "EntityExtractionMetric",
     "KGOptimizerConfig",
+    "PipelineStage",
     "RelationExtractionMetric",
     "optimize_extractor",
     "weighted_f1_metric",

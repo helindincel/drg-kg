@@ -6,7 +6,7 @@ name: Release
 #     up from the tag, so the published version is exactly the tag minus
 #     the leading `v`.
 #   - Manual dispatch (workflow_dispatch) for dry-runs against TestPyPI or
-#     explicit PyPI publishes from release tags.
+#     explicit PyPI publishes from final release tags.
 #
 # Secrets required (Settings -> Secrets and variables -> Actions):
 #   - PYPI_API_TOKEN       : a project-scoped token from pypi.org
@@ -65,6 +65,55 @@ jobs:
         # which TestPyPI/PyPI would otherwise reject silently.
         run: python -m twine check dist/*
 
+      - name: Verify distribution contents
+        run: |
+          python - <<'PY'
+          import tarfile
+          import zipfile
+          from pathlib import Path
+
+          dist = Path("dist")
+          wheel = next(dist.glob("*.whl"))
+          sdist = next(dist.glob("*.tar.gz"))
+
+          wheel_names = set(zipfile.ZipFile(wheel).namelist())
+          with tarfile.open(sdist) as archive:
+              sdist_names = {name.split("/", 1)[1] for name in archive.getnames() if "/" in name}
+
+          required = {
+              "drg/py.typed",
+              "drg/api/templates/index.html",
+              "LICENSE",
+              "README.md",
+              "pyproject.toml",
+          }
+          forbidden_prefixes = (
+              ".github/",
+              "docs/",
+              "examples/",
+              "inputs/",
+              "outputs/",
+              "reports/",
+              "scripts/",
+              "tests/",
+          )
+
+          missing_from_wheel = required & {"drg/py.typed", "drg/api/templates/index.html"} - wheel_names
+          missing_from_sdist = required - sdist_names
+          forbidden_in_sdist = sorted(
+              name for name in sdist_names if name.startswith(forbidden_prefixes)
+          )
+
+          if missing_from_wheel:
+              raise SystemExit(f"wheel missing required files: {sorted(missing_from_wheel)}")
+          if missing_from_sdist:
+              raise SystemExit(f"sdist missing required files: {sorted(missing_from_sdist)}")
+          if forbidden_in_sdist:
+              raise SystemExit(f"sdist contains non-release files: {forbidden_in_sdist[:20]}")
+
+          print("distribution contents ok")
+          PY
+
       - name: Show resolved version
         run: |
           ls -la dist/
@@ -108,14 +157,18 @@ jobs:
     name: Publish to PyPI
     needs: [build, publish-testpypi]
     runs-on: ubuntu-latest
-    # Publish only from release tags (final, alpha, beta, rc) after TestPyPI
-    # succeeds. Manual PyPI dispatch is allowed only when the selected ref is a
-    # tag, so branch/dev versions cannot be uploaded accidentally.
+    # Publish only from final release tags (`vX.Y.Z`) after TestPyPI succeeds.
+    # Prerelease tags (`a`, `b`, `rc`) are intentionally limited to TestPyPI.
+    # Manual PyPI dispatch is allowed only when the selected ref is a final tag,
+    # so branch/dev/prerelease versions cannot be uploaded accidentally.
     if: |
       always() &&
       needs.build.result == 'success' &&
       needs.publish-testpypi.result == 'success' &&
       startsWith(github.ref, 'refs/tags/v') &&
+      !contains(github.ref_name, 'a') &&
+      !contains(github.ref_name, 'b') &&
+      !contains(github.ref_name, 'rc') &&
       (
         github.event_name == 'push' ||
         (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'pypi')

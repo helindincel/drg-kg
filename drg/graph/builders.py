@@ -18,16 +18,13 @@ from ..schema import DRGSchema, EnhancedDRGSchema
 from .kg_core import EnhancedKG, KGEdge, KGNode
 from .provenance import attach_provenance, find_text_provenance
 
-# Forward import only used for type hints; real import is local to avoid cycles.
-if False:  # pragma: no cover - typing only
-    pass
-
 
 def extract_evidence_snippet(
     full_text: str,
     source: str,
     target: str,
     *,
+    relation: str | None = None,
     max_chars: int = 240,
     max_pair_distance: int = 2500,
 ) -> str | None:
@@ -45,6 +42,44 @@ def extract_evidence_snippet(
 
     def _pattern(x: str) -> re.Pattern[str]:
         return re.compile(rf"(?<!\w){re.escape(x)}(?!\w)", re.IGNORECASE)
+
+    def _relation_terms(rel: str | None) -> list[str]:
+        if not rel:
+            return []
+        rel_norm = rel.strip().replace("-", "_").lower()
+        if not rel_norm:
+            return []
+        parts = [p for p in re.split(r"[_\W]+", rel_norm) if p]
+        terms: list[str] = []
+        if len(parts) > 1:
+            terms.append(" ".join(parts))
+        for p in parts:
+            if len(p) >= 3:
+                terms.append(p)
+        seen: set[str] = set()
+        out: list[str] = []
+        for term in terms:
+            if term in seen:
+                continue
+            seen.add(term)
+            out.append(term)
+        return out
+
+    relation_terms = _relation_terms(relation)
+
+    # Prefer a sentence that explicitly contains source + target + relation cue.
+    if relation_terms:
+        sentence_pattern = re.compile(r"[^.!?\n]+(?:[.!?]|$)")
+        for m in sentence_pattern.finditer(full_text):
+            sentence = m.group(0).strip()
+            if not sentence:
+                continue
+            sent_l = sentence.lower()
+            if s.lower() in sent_l and t.lower() in sent_l and any(rt in sent_l for rt in relation_terms):
+                sentence = re.sub(r"\s+", " ", sentence).strip()
+                if len(sentence) <= max_chars:
+                    return sentence
+                return sentence[:max_chars].rstrip() + " …"
 
     ps = _pattern(s)
     pt = _pattern(t)
@@ -171,6 +206,210 @@ def _relation_docs_from_schema(
     return None, None
 
 
+def _is_valid_schema_triple(
+    schema: DRGSchema | EnhancedDRGSchema,
+    *,
+    source: str,
+    relation: str,
+    target: str,
+    entity_type_map: dict[str, str],
+) -> bool:
+    """Return True when a triple conforms to the schema ontology."""
+    src_type = entity_type_map.get(source)
+    dst_type = entity_type_map.get(target)
+    if not (src_type and dst_type):
+        return False
+    if isinstance(schema, EnhancedDRGSchema):
+        return schema.is_valid_relation(relation, src_type, dst_type)
+    for rel in schema.relations:
+        if rel.name == relation and rel.src == src_type and rel.dst == dst_type:
+            return True
+    return False
+
+
+def _filter_extractions_for_schema(
+    *,
+    schema: DRGSchema | EnhancedDRGSchema | None,
+    entities_typed: list[tuple[str, str]],
+    triples: list[tuple[str, str, str]],
+    enriched_relations: list[dict[str, Any]] | None = None,
+) -> tuple[list[tuple[str, str]], list[tuple[str, str, str]], list[dict[str, Any]] | None]:
+    """Drop entities and triples that violate the provided schema."""
+    if schema is None:
+        return entities_typed, triples, enriched_relations
+
+    if isinstance(schema, EnhancedDRGSchema):
+        allowed_types = {et.name for et in schema.entity_types}
+    else:
+        allowed_types = {e.name for e in schema.entities}
+
+    filtered_entities = [(name, etype) for name, etype in entities_typed if etype in allowed_types]
+    entity_type_map = dict(filtered_entities)
+
+    filtered_triples: list[tuple[str, str, str]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for triple in triples:
+        if triple in seen:
+            continue
+        s, r, o = triple
+        if _is_valid_schema_triple(schema, source=s, relation=r, target=o, entity_type_map=entity_type_map):
+            filtered_triples.append(triple)
+            seen.add(triple)
+
+    filtered_enriched: list[dict[str, Any]] | None = None
+    if enriched_relations is not None:
+        valid_set = set(filtered_triples)
+        filtered_enriched = [
+            item
+            for item in enriched_relations
+            if isinstance(item.get("relation"), (list, tuple))
+            and tuple(item["relation"]) in valid_set
+        ]
+
+    return filtered_entities, filtered_triples, filtered_enriched
+
+
+def _normalize_evidence_text(evidence: str | None) -> str:
+    if not evidence or not isinstance(evidence, str):
+        return ""
+    return re.sub(r"\s+", " ", evidence.strip().lower())
+
+
+def _filter_redundant_relations(
+    triples: list[tuple[str, str, str]],
+    enriched_relations: list[dict[str, Any]] | None = None,
+) -> tuple[list[tuple[str, str, str]], list[dict[str, Any]] | None]:
+    """Drop parallel edges that restate the same fact with identical evidence.
+
+    When multiple relations share the same unordered endpoint pair and the
+    same normalized evidence span, keep the highest-confidence triple.
+    """
+    if not triples:
+        return triples, enriched_relations
+
+    enriched_by_triple: dict[tuple[str, str, str], dict[str, Any]] = {}
+    if enriched_relations:
+        for item in enriched_relations:
+            rel = item.get("relation")
+            if isinstance(rel, (list, tuple)) and len(rel) >= 3:
+                enriched_by_triple[(str(rel[0]), str(rel[1]), str(rel[2]))] = item
+
+    # Group by (sorted endpoints, evidence); triples without evidence are kept as-is.
+    groups: dict[tuple[str, ...], list[tuple[str, str, str]]] = {}
+    passthrough: list[tuple[str, str, str]] = []
+    for triple in triples:
+        s, r, o = triple
+        evidence = _normalize_evidence_text(enriched_by_triple.get(triple, {}).get("evidence"))
+        if not evidence:
+            passthrough.append(triple)
+            continue
+        key = (s.lower(), o.lower()) if s.lower() <= o.lower() else (o.lower(), s.lower())
+        group_key = (*key, evidence)
+        groups.setdefault(group_key, []).append(triple)
+
+    kept: list[tuple[str, str, str]] = list(passthrough)
+    for group in groups.values():
+        if len(group) == 1:
+            kept.append(group[0])
+            continue
+        best = max(
+            group,
+            key=lambda t: float(enriched_by_triple.get(t, {}).get("confidence") or 0.0),
+        )
+        kept.append(best)
+
+    kept_set = set(kept)
+    kept_triples = [t for t in triples if t in kept_set]
+
+    filtered_enriched: list[dict[str, Any]] | None = None
+    if enriched_relations is not None:
+        filtered_enriched = [
+            item
+            for item in enriched_relations
+            if isinstance(item.get("relation"), (list, tuple))
+            and tuple(item["relation"]) in kept_set
+        ]
+
+    return kept_triples, filtered_enriched
+
+
+def _apply_name_mapping_to_extractions(
+    *,
+    entities_typed: list[tuple[str, str]],
+    triples: list[tuple[str, str, str]],
+    enriched_relations: list[dict[str, Any]] | None,
+    name_mapping: dict[str, str],
+) -> tuple[list[tuple[str, str]], list[tuple[str, str, str]], list[dict[str, Any]] | None]:
+    """Rewrite extraction outputs to canonical entity ids before graph build."""
+    if not name_mapping:
+        return entities_typed, triples, enriched_relations
+
+    remapped_entities: list[tuple[str, str]] = []
+    seen_entities: set[tuple[str, str]] = set()
+    for name, etype in entities_typed:
+        canonical = name_mapping.get(name, name)
+        key = (canonical, etype)
+        if key not in seen_entities:
+            remapped_entities.append(key)
+            seen_entities.add(key)
+
+    remapped_triples: list[tuple[str, str, str]] = []
+    seen_triples: set[tuple[str, str, str]] = set()
+    for s, r, o in triples:
+        triple = (name_mapping.get(s, s), r, name_mapping.get(o, o))
+        if triple[0] == triple[2] or triple in seen_triples:
+            continue
+        remapped_triples.append(triple)
+        seen_triples.add(triple)
+
+    remapped_enriched: list[dict[str, Any]] | None = None
+    if enriched_relations is not None:
+        remapped_enriched = []
+        for item in enriched_relations:
+            rel = item.get("relation")
+            if not isinstance(rel, (list, tuple)) or len(rel) < 3:
+                continue
+            mapped = (
+                name_mapping.get(str(rel[0]), str(rel[0])),
+                str(rel[1]),
+                name_mapping.get(str(rel[2]), str(rel[2])),
+            )
+            if mapped[0] == mapped[2]:
+                continue
+            remapped_item = dict(item)
+            remapped_item["relation"] = mapped
+            remapped_enriched.append(remapped_item)
+
+    return remapped_entities, remapped_triples, remapped_enriched
+
+
+def _prune_isolated_nodes(kg: EnhancedKG) -> int:
+    """Remove nodes that participate in no edges (in-place).
+
+    Improves information density by dropping extracted mentions that never
+    licensed a relation. Returns the number of nodes removed.
+    """
+    if not kg.edges:
+        return 0
+
+    connected: set[str] = set()
+    for edge in kg.edges:
+        connected.add(edge.source)
+        connected.add(edge.target)
+
+    removed = 0
+    for node_id in list(kg.nodes.keys()):
+        if node_id not in connected:
+            del kg.nodes[node_id]
+            removed += 1
+
+    if removed and kg.clusters:
+        for cluster in kg.clusters.values():
+            cluster.node_ids = {nid for nid in cluster.node_ids if nid in kg.nodes}
+
+    return removed
+
+
 def build_enhanced_kg(
     *,
     entities_typed: list[tuple[str, str]],
@@ -184,6 +423,11 @@ def build_enhanced_kg(
     entity_properties: dict[str, dict[str, Any]] | None = None,
     document_id: str | None = None,
     events: list[Any] | None = None,
+    name_mapping: dict[str, str] | None = None,
+    entity_aliases: dict[str, list[str]] | None = None,
+    filter_against_schema: bool = True,
+    prune_isolated_nodes: bool = True,
+    filter_redundant_relations: bool = True,
 ) -> EnhancedKG:
     """Build EnhancedKG from typed entities and triples.
 
@@ -225,12 +469,45 @@ def build_enhanced_kg(
             inference rules like
             :class:`drg.reasoning.PathBridgeRule`. Default ``None``
             preserves the legacy behaviour exactly.
+        name_mapping: Optional ``original_name -> canonical_name`` map from
+            entity resolution. Endpoints are rewritten before nodes/edges are
+            created and the mapping is applied again on the assembled graph.
+        entity_aliases: Optional ``canonical_name -> [alias, ...]`` map stored
+            on node metadata for search and explainability.
+        filter_against_schema: When ``True`` (default) and ``schema`` is set,
+            drop entities whose types and triples whose relation endpoints are
+            not valid under the schema before building the graph.
+        prune_isolated_nodes: When ``True`` (default), remove nodes that do not
+            participate in any edge after the graph is assembled. This favors
+            information density over raw entity recall.
+        filter_redundant_relations: When ``True`` (default), drop parallel edges
+            that share the same endpoint pair and evidence span, keeping the
+            highest-confidence relation.
 
     Returns:
         EnhancedKG. Nodes/edges carry ``confidence`` attributes when a
         strategy was applied (or explicit overrides were provided);
         otherwise both attributes are ``None`` (legacy behaviour).
     """
+    if name_mapping:
+        entities_typed, triples, enriched_relations = _apply_name_mapping_to_extractions(
+            entities_typed=entities_typed,
+            triples=triples,
+            enriched_relations=enriched_relations,
+            name_mapping=name_mapping,
+        )
+
+    if filter_against_schema and schema is not None:
+        entities_typed, triples, enriched_relations = _filter_extractions_for_schema(
+            schema=schema,
+            entities_typed=entities_typed,
+            triples=triples,
+            enriched_relations=enriched_relations,
+        )
+
+    if filter_redundant_relations:
+        triples, enriched_relations = _filter_redundant_relations(triples, enriched_relations)
+
     kg = EnhancedKG()
     entity_type_map = dict(entities_typed)
     entity_properties_map = {
@@ -296,6 +573,10 @@ def build_enhanced_kg(
                 extractor_version=extractor_version,
             ),
         )
+        aliases = entity_aliases.get(name) if entity_aliases else None
+        if aliases:
+            node_metadata = dict(node_metadata)
+            node_metadata["aliases"] = sorted({str(a) for a in aliases if str(a).strip()}, key=str.lower)
         kg.add_node(
             KGNode(
                 id=name,
@@ -384,16 +665,6 @@ def build_enhanced_kg(
             md["source_ref"] = document_id
 
         evidence = None
-        if source_text:
-            evidence = extract_evidence_snippet(
-                source_text,
-                s,
-                o,
-                max_chars=evidence_max_chars,
-                max_pair_distance=evidence_max_pair_distance,
-            )
-            if evidence:
-                md["evidence"] = evidence
 
         # Always ensure a usable description field exists (sample-format alignment).
         if "relationship_description" not in md:
@@ -437,6 +708,33 @@ def build_enhanced_kg(
                     extractor_version=extractor_version,
                 )
 
+        if source_text:
+            enriched_evidence = None
+            if enriched_item:
+                raw_evidence = enriched_item.get("evidence")
+                if isinstance(raw_evidence, str) and raw_evidence.strip():
+                    enriched_evidence = raw_evidence.strip()
+
+            evidence = enriched_evidence or evidence
+            if evidence is None:
+                evidence = extract_evidence_snippet(
+                    source_text,
+                    s,
+                    o,
+                    relation=r,
+                    max_chars=evidence_max_chars,
+                    max_pair_distance=evidence_max_pair_distance,
+                )
+            if evidence:
+                md["evidence"] = evidence
+                edge_provenance = find_text_provenance(
+                    source_text,
+                    (s, o),
+                    document_id=md.get("source_ref") if isinstance(md.get("source_ref"), str) else document_id,
+                    extractor_version=extractor_version,
+                    preferred_snippet=evidence,
+                )
+
         md = attach_provenance(md, edge_provenance)
 
         kg.add_edge(
@@ -444,7 +742,7 @@ def build_enhanced_kg(
                 source=s,
                 target=o,
                 relationship_type=r,
-                relationship_detail=evidence or f"{s} {r} {o}",
+                relationship_detail=md.get("evidence") or f"{s} {r} {o}",
                 metadata=md,
                 start_time=start_time,
                 end_time=end_time,
@@ -481,5 +779,17 @@ def build_enhanced_kg(
                         )
                     )
                 kg.add_edge(role_edge)
+
+    if name_mapping:
+        kg.canonicalize_entities(name_mapping)
+
+    if prune_isolated_nodes:
+        pruned = _prune_isolated_nodes(kg)
+        if pruned:
+            meta = dict(kg.metadata)
+            build_meta = dict(meta.get("build", {}) or {})
+            build_meta["pruned_isolated_nodes"] = pruned
+            meta["build"] = build_meta
+            kg.metadata = meta
 
     return kg

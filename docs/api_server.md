@@ -32,15 +32,16 @@ pip install -e ".[api,extract]"
 ## 2. Çalıştırma
 
 ```bash
-# Varsayılan örnek (1example) — inputs/1example_text.txt
+# Varsayılan örnek (input2) — outputs/output2_kg.json
 python examples/api_server_example.py
 
 # Belirli bir örnek
-python examples/api_server_example.py 3
-python examples/api_server_example.py 4
+python examples/api_server_example.py 1
+python examples/api_server_example.py 2
 
 # Env ile
-DRG_EXAMPLE=3example python examples/api_server_example.py
+DRG_EXAMPLE=1 python examples/api_server_example.py
+DRG_EXAMPLE=2 python examples/api_server_example.py
 ```
 
 API key gerektiren LLM tabanlı pipeline'ı çalıştırmadan UI'ı denemek istersen,

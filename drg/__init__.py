@@ -66,6 +66,8 @@ from .schema import (
 
 __all__ = [
     "KG",
+    "CalibratedConfidenceStrategy",
+    "CalibrationPoint",
     "ConfidenceScore",
     "ConfidenceStrategy",
     "DRGSchema",
@@ -120,6 +122,8 @@ def __getattr__(name: str):
     # Lazy loading mapping: name -> module_path
     lazy_imports = {
         # Confidence framework (lightweight, no heavy deps)
+        "CalibratedConfidenceStrategy": ".confidence",
+        "CalibrationPoint": ".confidence",
         "ConfidenceScore": ".confidence",
         "ConfidenceStrategy": ".confidence",
         "DefaultConfidenceStrategy": ".confidence",

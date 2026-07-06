@@ -4,21 +4,25 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-DRG is a **Knowledge Graph Lifecycle Framework**: a schema-driven Python
-library for turning unstructured text into queryable, explainable Knowledge
-Graphs and managing what happens after the first extraction. It uses
-declarative schemas and DSPy-backed extraction to produce graph objects that
-can be validated, merged, versioned, diffed, queried, evaluated, served through
-an API, or exported to Neo4j.
+DRG is a **schema-driven Knowledge Graph extraction framework**. It turns
+unstructured text into explainable Knowledge Graph artifacts by combining
+declarative schemas with DSPy-backed extraction.
+
+The core promise is extraction: define or infer a domain schema, extract typed
+entities and relations, and build an `EnhancedKG` that can be inspected,
+validated, queried deterministically, versioned, evaluated, or exported. DRG is
+not a GraphRAG framework, not a RAG framework, and not a retrieval or chat
+application stack. Query, API, MCP, Neo4j, optimizer, and evaluation modules are
+supporting layers around extracted graphs.
 
 Turkish documentation is available in [`README.tr.md`](README.tr.md).
 
 ## Alpha Status
 
-DRG is currently an alpha-stage project. Core concepts are stable enough to
-experiment with, but public APIs, JSON shapes, CLI flags, and optional
-integration surfaces may change before `v1.0`. Pin versions for serious
-experiments and review [`CHANGELOG.md`](CHANGELOG.md) before upgrading.
+DRG is currently an alpha-stage project. The primary extraction APIs are now
+treated as stable for the alpha series, while JSON shapes, CLI flags, and
+optional integration surfaces may still change before `v1.0`. Pin versions for
+serious experiments and review [`CHANGELOG.md`](CHANGELOG.md) before upgrading.
 
 ## Why DRG?
 
@@ -57,8 +61,8 @@ DRG's core abstraction is not just "KG output." It is the lifecycle around a KG:
 
 DRG is:
 
-- A Knowledge Graph lifecycle framework.
-- A schema-first Knowledge Graph extraction library.
+- A Knowledge Graph extraction framework.
+- A schema-first library for extracting typed entities and relations from text.
 - A graph construction and enrichment toolkit for text-derived entities and
   relations.
 - A deterministic query, evaluation, versioning, provenance, and export layer
@@ -69,9 +73,13 @@ DRG is:
 DRG is not:
 
 - A general LLM application framework.
+- A GraphRAG framework.
+- A RAG framework.
 - A chatbot framework.
 - A database or search backend.
 - A retrieval framework.
+- A vector or hybrid search layer; embeddings are optional helper signals for
+  entity resolution/export, not a serving index.
 - A replacement for Neo4j, NetworkX, LangChain, LlamaIndex, or DSPy.
 - A hosted product or fully stable production platform yet.
 
@@ -121,6 +129,20 @@ CLI / FastAPI UI / MCP / Neo4j Export / JSON
 | Integration | MCP server | Available | Exposes KG operations to MCP-compatible clients. |
 | Quality | Evaluation framework | Available | Extraction, graph-query, structural, and performance metrics. |
 
+## Experimental Features
+
+The following modules are useful for research and integration experiments, but
+are not part of the frozen core extraction API yet:
+
+- Optimizer integration: DSPy optimizer workflows are experimental and may
+  change as training-data and metric conventions settle.
+- Confidence calibration: confidence strategies and calibrated scores are
+  heuristic/experimental unless you fit them on your own labelled data.
+- Long-document optimization: chunking, cross-chunk relation recovery, and
+  windowed relation extraction are evolving.
+- API/UI/MCP integration details: documented commands and endpoints are intended
+  to work, but internal response shapes and UI implementation details may change.
+
 ## Use Cases
 
 - News analysis: extract people, companies, events, acquisitions, conflicts,
@@ -138,7 +160,7 @@ CLI / FastAPI UI / MCP / Neo4j Export / JSON
 
 `v0.2` targets:
 
-- Stabilize the top-level Python API and CLI contracts used in the examples.
+- Keep the top-level Python extraction API stable across the alpha series.
 - Expand no-key and mocked demos so new users can evaluate DRG quickly.
 - Improve evaluation coverage for extraction, temporal metadata, and graph queries.
 - Tighten optional integration tests for API, MCP, Neo4j, and benchmark flows.
@@ -166,11 +188,11 @@ DRG builds around ideas from several ecosystems:
 
 ## Install
 
-DRG supports Python 3.10, 3.11, and 3.12.
+DRG supports Python 3.10, 3.11, 3.12, and 3.13.
 
 ```bash
-# Source checkout, full local demo stack
-pip install -e ".[all]"
+# Source checkout, minimal graph/query usage
+pip install -e .
 
 # Development tooling
 pip install -e ".[dev]"
@@ -194,16 +216,20 @@ pip install "drg-kg[extract]"  # DSPy extraction only
 For the complete first-run guide, see
 [`docs/getting_started.md`](docs/getting_started.md).
 
+The first runnable example needs no API key and no LLM:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[all]"
+pip install -e .
 drg --help
+python examples/query_layer_example.py
 ```
 
 Live extraction needs a model provider:
 
 ```bash
+pip install -e ".[extract]"
 cp .env.example .env
 
 export DRG_MODEL=openai/gpt-4o-mini
@@ -217,6 +243,11 @@ export GEMINI_API_KEY=...
 export DRG_MODEL=ollama_chat/llama3
 export DRG_BASE_URL=http://localhost:11434
 ```
+
+Production extraction should fail fast when no LM is configured. Set
+`DRG_REQUIRE_LM=1` or `DRG_STRICT=1` to turn missing-LM mock mode into an
+`LLMConfigError`; without those flags the Python API keeps returning empty
+extractions for tests and offline examples.
 
 Run a story-oriented CLI extraction:
 
@@ -293,6 +324,19 @@ To try a deterministic repository demo without setting an API key:
 python examples/query_layer_example.py
 ```
 
+## Public API Stability
+
+The preferred Python API names are now treated as frozen for the alpha series:
+`extract_typed()`, `extract_from_chunks()`, `extract_typed_async()`,
+`extract_from_chunks_async()`, and the backward-compatible `extract_triples()`
+wrapper. Their documented names and core return behavior should not change
+without a changelog entry and migration note.
+
+Schema types such as `DRGSchema`, `EnhancedDRGSchema`, `EntityType`, `Relation`,
+and the `build_enhanced_kg()` builder are also part of the documented user
+surface. Deep imports from optimizer, API, MCP, UI, and prompt internals remain
+experimental. See [`docs/public_api.md`](docs/public_api.md).
+
 ## Example Gallery
 
 | Example | What it demonstrates |
@@ -310,6 +354,9 @@ python examples/query_layer_example.py
 | [`examples/evaluation_framework_example.py`](examples/evaluation_framework_example.py) | Evaluation metrics and report generation. |
 | [`examples/mcp_demo.py`](examples/mcp_demo.py) | MCP integration flow. |
 | [`examples/optimizer_demo.py`](examples/optimizer_demo.py) | DSPy optimizer experiments around extraction. |
+
+Input -> output artifact walkthrough (Turkish):
+[`docs/input_output_examples.tr.md`](docs/input_output_examples.tr.md).
 
 ## CLI
 
@@ -379,10 +426,24 @@ drg/
 - Installation and configuration: [`docs/setup.md`](docs/setup.md)
 - Architecture: [`docs/project_overview.md`](docs/project_overview.md)
 - Pipeline: [`docs/pipeline_overview.md`](docs/pipeline_overview.md)
+- Input/output walkthrough (TR): [`docs/input_output_examples.tr.md`](docs/input_output_examples.tr.md)
 - Schema design: [`docs/schema_design.md`](docs/schema_design.md)
 - Public API: [`docs/public_api.md`](docs/public_api.md)
 - Benchmarks: [`docs/benchmarking.md`](docs/benchmarking.md)
 - Quickstart scripts: [`examples/quickstarts/README.md`](examples/quickstarts/README.md)
+
+## Known Limitations
+
+- DRG extracts and operates on Knowledge Graph artifacts; it does not provide a
+  GraphRAG or RAG serving stack.
+- Optimizer integration is experimental and should be treated as a research
+  workflow, not a stable production tuning layer.
+- Long-document optimization is evolving; chunking and cross-chunk relation
+  recovery can require domain-specific tuning.
+- Confidence calibration is heuristic/experimental unless calibrated against
+  labelled data for your domain.
+- Live extraction quality depends on the configured LLM, schema quality, and
+  provider behavior.
 
 ## Development
 

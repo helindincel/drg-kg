@@ -60,6 +60,29 @@ class TestCreateDefaultSchema:
         assert "produces" in relation_names
 
 
+class TestResolveDefaultSchema:
+    def test_uses_env_schema_when_present(self, monkeypatch):
+        schema_path = (
+            "/Users/helindincel/Desktop/Github/drg-kg/schemas/global_default_schema.json"
+        )
+        monkeypatch.setenv("DRG_DEFAULT_SCHEMA", schema_path)
+        schema = cli_mod._resolve_default_schema()
+        relation_names = {
+            r.name
+            for rg in getattr(schema, "relation_groups", [])
+            for r in getattr(rg, "relations", [])
+        }
+        assert "manufactures" in relation_names
+        assert "named_after" in relation_names
+
+    def test_falls_back_to_builtin_if_env_schema_invalid(self, monkeypatch, capsys):
+        monkeypatch.setenv("DRG_DEFAULT_SCHEMA", "/does/not/exist.json")
+        schema = cli_mod._resolve_default_schema()
+        captured = capsys.readouterr()
+        assert "Falling back to built-in default schema" in captured.err
+        assert {e.name for e in schema.entities} == {"Company", "Product"}
+
+
 class TestArgparseWiring:
     def test_help_exits_cleanly(self, monkeypatch, capsys):
         with pytest.raises(SystemExit) as excinfo:

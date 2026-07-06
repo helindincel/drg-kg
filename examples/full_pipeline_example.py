@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Full Pipeline Example: Example 1 için tüm pipeline'ı çalıştırır.
+Full Pipeline Example: example_2 için tüm pipeline'ı çalıştırır.
 
 Pipeline adımları:
 1. Chunking
@@ -42,10 +42,47 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+LEGACY_SOURCE_TO_ID = {
+    "example_1": 1,
+    "example_2": 2,
+    "example_4": 3,
+    "example_5": 4,
+    "example_6": 5,
+    "history_of_pizza": 6,
+    "the_little_prince": 7,
+    "wolf": 8,
+}
 
-def load_text(example_name: str) -> str:
+
+def resolve_dataset_id(dataset: str | int) -> int:
+    """Normalize CLI args like ``2``, ``input2``, or legacy ``example_2`` to 1–8."""
+    raw = str(dataset).strip().lower()
+    if raw in LEGACY_SOURCE_TO_ID:
+        return LEGACY_SOURCE_TO_ID[raw]
+    if raw.startswith("input"):
+        raw = raw[5:]
+    elif raw.startswith("output"):
+        raw = raw[6:]
+    elif raw.startswith("example_"):
+        return LEGACY_SOURCE_TO_ID.get(raw, int(raw.split("_", 1)[1]))
+    return int(raw)
+
+
+def dataset_paths(dataset_id: int) -> dict[str, Path]:
+    stem = f"output{dataset_id}"
+    return {
+        "input": project_root / "inputs" / f"input{dataset_id}.txt",
+        "schema": project_root / "outputs" / f"{stem}_schema.json",
+        "kg": project_root / "outputs" / f"{stem}_kg.json",
+        "reports": project_root / "outputs" / f"{stem}_community_reports.json",
+        "summary": project_root / "outputs" / f"{stem}_summary.json",
+        "stem": Path(stem),
+    }
+
+
+def load_text(dataset_id: int) -> str:
     """Load text from inputs directory."""
-    text_path = project_root / "inputs" / f"{example_name}_text.txt"
+    text_path = dataset_paths(dataset_id)["input"]
     if not text_path.exists():
         raise FileNotFoundError(f"Text file not found: {text_path}")
 
@@ -53,9 +90,9 @@ def load_text(example_name: str) -> str:
         return f.read()
 
 
-def load_schema(example_name: str) -> EnhancedDRGSchema | None:
-    """Load schema from inputs directory if exists."""
-    schema_path = project_root / "inputs" / f"{example_name}_schema.json"
+def load_schema(dataset_id: int) -> EnhancedDRGSchema | None:
+    """Load schema from outputs directory if exists."""
+    schema_path = dataset_paths(dataset_id)["schema"]
     if not schema_path.exists():
         return None
 
@@ -82,14 +119,15 @@ def load_schema(example_name: str) -> EnhancedDRGSchema | None:
 
 
 def save_outputs(
-    example_name: str, schema: EnhancedDRGSchema | DRGSchema, kg: EnhancedKG, reports: list
+    dataset_id: int, schema: EnhancedDRGSchema | DRGSchema, kg: EnhancedKG, reports: list
 ):
     """Save outputs to outputs directory."""
+    paths = dataset_paths(dataset_id)
     outputs_dir = project_root / "outputs"
     outputs_dir.mkdir(exist_ok=True)
 
     # Schema kaydet
-    schema_path = outputs_dir / f"{example_name}_schema.json"
+    schema_path = paths["schema"]
     if isinstance(schema, EnhancedDRGSchema):
         schema_dict = schema.to_dict()
     else:
@@ -105,13 +143,13 @@ def save_outputs(
     logger.info(f"Schema saved to: {schema_path}")
 
     # KG kaydet
-    kg_path = outputs_dir / f"{example_name}_kg.json"
+    kg_path = paths["kg"]
     kg.save_json(str(kg_path), indent=2)
     logger.info(f"Knowledge graph saved to: {kg_path}")
 
     # Community reports kaydet
     if reports:
-        reports_path = outputs_dir / f"{example_name}_community_reports.json"
+        reports_path = paths["reports"]
         reports_dict = [
             report.to_dict() if hasattr(report, "to_dict") else report for report in reports
         ]
@@ -121,13 +159,14 @@ def save_outputs(
 
     # Summary kaydet
     summary = {
-        "example_name": example_name,
+        "dataset_id": dataset_id,
+        "input": str(paths["input"]),
         "nodes": len(kg.nodes),
         "edges": len(kg.edges),
         "clusters": len(kg.clusters) if hasattr(kg, "clusters") else 0,
         "community_reports": len(reports),
     }
-    summary_path = outputs_dir / f"{example_name}_summary.json"
+    summary_path = paths["summary"]
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
     logger.info(f"Summary saved to: {summary_path}")
@@ -135,18 +174,20 @@ def save_outputs(
     return kg_path
 
 
-def run_full_pipeline(example_name: str = "1example"):
-    """Run full pipeline for given example."""
-    logger.info(f"🚀 Starting full pipeline for: {example_name}")
+def run_full_pipeline(dataset: str | int = 2):
+    """Run full pipeline for a numbered dataset (``inputs/input{N}.txt``)."""
+    dataset_id = resolve_dataset_id(dataset)
+    paths = dataset_paths(dataset_id)
+    logger.info(f"🚀 Starting full pipeline for input{dataset_id}")
 
     # Step 1: Load text
     logger.info("📄 Step 1: Loading text...")
-    text = load_text(example_name)
+    text = load_text(dataset_id)
     logger.info(f"Loaded {len(text)} characters of text")
 
     # Step 2: Load or generate schema
     logger.info("📋 Step 2: Loading/Generating schema...")
-    schema = load_schema(example_name)
+    schema = load_schema(dataset_id)
     if schema is None:
         logger.info("Schema not found, generating from text...")
         # Auto-schema generation can exceed default max token budgets (some providers default ~1500),
@@ -163,7 +204,9 @@ def run_full_pipeline(example_name: str = "1example"):
     logger.info("✂️  Step 3: Chunking text...")
     chunker = create_chunker(strategy="token_based", chunk_size=768, overlap_ratio=0.15)
     chunks = chunker.chunk(
-        text, origin_dataset=example_name, origin_file=f"{example_name}_text.txt"
+        text,
+        origin_dataset=f"input{dataset_id}",
+        origin_file=paths["input"].name,
     )
     logger.info(f"Created {len(chunks)} chunks")
 
@@ -291,24 +334,24 @@ def run_full_pipeline(example_name: str = "1example"):
 
     # Step 9: Save outputs
     logger.info("💾 Step 9: Saving outputs...")
-    kg_path = save_outputs(example_name, schema, kg, reports)
+    kg_path = save_outputs(dataset_id, schema, kg, reports)
 
     # Final summary
     logger.info("\n" + "=" * 60)
     logger.info("✅ Pipeline completed successfully!")
-    logger.info(f"   Example: {example_name}")
+    logger.info(f"   Dataset: input{dataset_id}")
     logger.info(f"   Nodes: {len(kg.nodes)}")
     logger.info(f"   Edges: {len(kg.edges)}")
     logger.info(f"   Clusters: {len(kg.clusters) if hasattr(kg, 'clusters') else 0}")
     logger.info(f"   Community Reports: {len(reports)}")
     logger.info(f"   KG saved to: {kg_path}")
     logger.info("\n🌐 To view in UI, run:")
-    logger.info(f"   python examples/api_server_example.py {example_name}")
+    logger.info(f"   python examples/api_server_example.py {dataset_id}")
     logger.info("=" * 60)
 
     return kg, schema, reports
 
 
 if __name__ == "__main__":
-    example_name = sys.argv[1] if len(sys.argv) > 1 else "1example"
-    run_full_pipeline(example_name)
+    dataset = sys.argv[1] if len(sys.argv) > 1 else 2
+    run_full_pipeline(dataset)

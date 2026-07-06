@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import dspy
 
+from ..graph.construction_principles import KG_CONSTRUCTION_PRINCIPLES, RELATION_PREFLIGHT_CHECKLIST
 from ..schema import DRGSchema, EnhancedDRGSchema
 from ._relations import _normalize_schema
 from ._types import EntityMention, ExtractedRelation
@@ -118,13 +119,24 @@ def _create_entity_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
         """Extract named entities from the text that match the provided schema.
 
         For each entity found:
-        - Set name to the form used in the text.
+        - Set name to the canonical real-world form used in the text (not pronouns
+          or vague fragments like "the company").
         - Set type to exactly one value from entity_types[*].name.
-        - Set aliases to any abbreviations or alternate forms for the same entity in the text.
+        - Set aliases to abbreviations or alternate forms for the same entity.
         - Set evidence to the shortest verbatim text span that identifies the entity.
         - Set properties with values found in the text for keys declared in the matching entity type.
+        - Do NOT create entities for literal values (dates, amounts, percentages, versions);
+          store those as properties on the matching entity or relation instead.
+        - Extract entities that carry distinct semantic roles; avoid inflating node count
+          with mentions that add no unique, queryable information.
+        - Model significant events (funding rounds, lawsuits, acquisitions, launches)
+          as first-class entities when the schema provides matching types and the text
+          ties multiple facts to one occurrence.
+        - When available in schema, prioritize person / organization / location mentions
+          that participate in extractable relations.
         Only extract entities whose type matches one of the provided entity types.
-        """
+
+        """ + KG_CONSTRUCTION_PRINCIPLES
 
         text: str = dspy.InputField(desc="Input text to analyze")
         entity_types: list[dict] = dspy.InputField(
@@ -166,13 +178,24 @@ def _create_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -> type:
 
         Rules:
         - Only assert relations whose name appears in relation_schema.
+        - Respect schema source_type and target_type — direction matters.
         - Set is_negated=True when the text explicitly denies or revokes the relation
           (e.g. 'no longer', 'never', 'stopped', 'ceased').
         - Set confidence (0.0–1.0) to your certainty that the relation holds as stated.
         - Set evidence to the shortest verbatim text span that licenses the relation.
+        - Pick the most specific schema relation name supported by the evidence.
+        - Each relation must represent one unique semantic fact; do not emit duplicate
+          or paraphrased edges for the same underlying statement.
+        - Do NOT add shortcut or redundant edges solely to connect orphans or inflate
+          graph connectivity.
+        - Route multi-participant occurrences through event/funding/legal entities when
+          the schema allows, instead of many parallel edges to the same hub.
+        - Populate relation properties (role, amount, date, version, etc.) from the
+          text when the schema defines them.
         - Set temporal.start/end (ISO 8601 or year) when the relation is time-bounded.
         - Do NOT infer relations unsupported by the text.
-        """
+
+        """ + RELATION_PREFLIGHT_CHECKLIST + "\n\n" + KG_CONSTRUCTION_PRINCIPLES
 
         text: str = dspy.InputField(desc="Input text (current chunk)")
         entities: list[dict] = dspy.InputField(desc="Available entity mentions with name and type")
@@ -207,11 +230,17 @@ def _create_document_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -
 
         Rules:
         - Only assert relations whose name appears in relation_schema.
+        - Respect schema source_type and target_type — direction matters.
         - A relation may span multiple chunks; use evidence from the most direct chunk.
         - Set is_negated=True when the text explicitly denies the relation.
         - Set confidence (0.0–1.0) and evidence (verbatim span).
+        - Each relation must be one unique, text-supported fact; no duplicate or
+          shortcut edges for connectivity.
+        - Use event, funding, and legal-case entities as intermediaries when multiple
+          facts describe the same occurrence.
         - Set temporal.start/end when the relation is time-bounded.
-        """
+
+        """ + RELATION_PREFLIGHT_CHECKLIST + "\n\n" + KG_CONSTRUCTION_PRINCIPLES
 
         document_chunks: list[dict] = dspy.InputField(
             desc="Document chunks, each with chunk_id and text"
@@ -244,10 +273,14 @@ def _create_implicit_relation_signature(schema: DRGSchema | EnhancedDRGSchema) -
 
         Rules:
         - Only assert relations whose name appears in relation_schema.
+        - Respect schema source_type and target_type — direction matters.
         - Do NOT repeat relations already in existing_relations.
         - An implicit relation must be inferable from the text, not invented.
+        - Prefer the most specific relation names in relation_schema when multiple relations could fit.
+        - Do NOT add edges solely to reduce orphans or increase connectivity.
         - Set confidence, evidence, is_negated, and temporal as appropriate.
-        """
+
+        """ + RELATION_PREFLIGHT_CHECKLIST + "\n\n" + KG_CONSTRUCTION_PRINCIPLES
 
         text: str = dspy.InputField(desc="Input text")
         entities: list[dict] = dspy.InputField(desc="Canonical entity mentions with name and type")

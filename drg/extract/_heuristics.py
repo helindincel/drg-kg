@@ -43,14 +43,43 @@ def _infer_relation_metadata_heuristic(
     negations: list[bool] = []
 
     for s, r, o in relations:
-        window = _find_evidence_window(text, s, o, window_chars=220)
+        window = _find_evidence_window(text, s, o, relation_name=r, window_chars=220)
         negations.append(_detect_negation_in_window(window, relation_name=r))
-        temporal_info.append(_extract_year_temporal(window))
+        temporal_info.append(_extract_year_temporal(window, relation_name=r))
 
     return {"temporal_info": temporal_info, "negations": negations}
 
 
-def _find_evidence_window(text: str, a: str, b: str, window_chars: int = 200) -> str:
+def _relation_cues(relation_name: str) -> list[str]:
+    rel = (relation_name or "").strip().lower().replace("-", "_")
+    if not rel:
+        return []
+    pieces = [p for p in re.split(r"[_\W]+", rel) if p]
+    cues: list[str] = []
+    if len(pieces) > 1:
+        cues.append(" ".join(pieces))
+    for p in pieces:
+        if len(p) >= 3:
+            cues.append(p)
+    # Deduplicate while preserving order.
+    seen: set[str] = set()
+    out: list[str] = []
+    for c in cues:
+        if c in seen:
+            continue
+        seen.add(c)
+        out.append(c)
+    return out
+
+
+def _find_evidence_window(
+    text: str,
+    a: str,
+    b: str,
+    *,
+    relation_name: str | None = None,
+    window_chars: int = 200,
+) -> str:
     """Return a short window around the closest mentions of `a` and `b`."""
     if not text or not a or not b:
         return ""
@@ -75,6 +104,17 @@ def _find_evidence_window(text: str, a: str, b: str, window_chars: int = 200) ->
 
     if best_pair is None:
         return ""
+
+    relation_cues = _relation_cues(relation_name or "")
+    if relation_cues:
+        sent_re = re.compile(r"[^.!?\n]+(?:[.!?]|$)")
+        for m in sent_re.finditer(text):
+            sent = m.group(0).strip()
+            if not sent:
+                continue
+            sent_l = sent.lower()
+            if a.lower() in sent_l and b.lower() in sent_l and any(c in sent_l for c in relation_cues):
+                return sent
 
     # Prefer the sentence containing the closest pair to limit negation bleed
     # from adjacent sentences.
@@ -146,7 +186,11 @@ def _detect_negation_in_window(window: str, relation_name: str) -> bool:
     return False
 
 
-def _extract_year_temporal(window: str) -> dict[str, str | None] | None:
+def _extract_year_temporal(
+    window: str,
+    *,
+    relation_name: str | None = None,
+) -> dict[str, str | None] | None:
     """Extract simple year-only temporal metadata from a window.
 
     Returns:
@@ -156,6 +200,12 @@ def _extract_year_temporal(window: str) -> dict[str, str | None] | None:
     """
     if not window:
         return None
+    if relation_name:
+        cues = _relation_cues(relation_name)
+        wl = window.lower()
+        if cues and not any(c in wl for c in cues):
+            # Avoid copying temporal years from unrelated nearby statements.
+            return None
     years = [int(y) for y in re.findall(r"\b(19\d{2}|20\d{2})\b", window)]
     if not years:
         return None

@@ -8,7 +8,7 @@ report, and performance report.
 
 Source candidates:
 
-- `inputs/3example_text.txt`
+- `inputs/input2.txt`
 - `examples/quickstarts/`
 - `examples/benchmarks/corporate_acquisition_benchmark.json`
 
@@ -40,8 +40,8 @@ Recommended artifact set:
 
 Source candidates:
 
-- `inputs/1example_text.txt`
-- `inputs/2example_text.txt`
+- `inputs/input2.txt`
+- `outputs/output1_kg.json`
 - `examples/full_pipeline_example.py`
 
 Recommended artifact set:

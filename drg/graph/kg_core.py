@@ -465,16 +465,8 @@ class EnhancedKG:
                 out.append(event.to_dict())
         return out
 
-    def to_json(self, indent: int = 2) -> str:
-        """Export to JSON format.
-
-        ``metadata`` is included only when populated so the legacy three-key
-        shape ({"nodes", "edges", "clusters"}) is preserved for graphs built
-        without the incremental layer. The optional ``events`` key surfaces
-        event-typed nodes as their canonical event payload; it is only
-        emitted when the graph actually contains events, so legacy graphs
-        round-trip byte-for-byte.
-        """
+    def to_dict(self) -> dict[str, Any]:
+        """Export graph as a plain dict (same payload as :meth:`to_json`)."""
         data: dict[str, Any] = {
             "nodes": [node.to_dict() for node in self.nodes.values()],
             "edges": [edge.to_dict() for edge in self.edges],
@@ -485,7 +477,19 @@ class EnhancedKG:
             data["events"] = events_payload
         if self.metadata:
             data["metadata"] = self.metadata
-        return json.dumps(data, indent=indent, ensure_ascii=False)
+        return data
+
+    def to_json(self, indent: int = 2) -> str:
+        """Export to JSON format.
+
+        ``metadata`` is included only when populated so the legacy three-key
+        shape ({"nodes", "edges", "clusters"}) is preserved for graphs built
+        without the incremental layer. The optional ``events`` key surfaces
+        event-typed nodes as their canonical event payload; it is only
+        emitted when the graph actually contains events, so legacy graphs
+        round-trip byte-for-byte.
+        """
+        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
 
     def to_json_ld(self, indent: int = 2) -> str:
         """Export to JSON-LD format."""

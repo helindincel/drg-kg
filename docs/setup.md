@@ -9,7 +9,7 @@ Repo'nun **genel mimarisi ve felsefesi** için `docs/project_overview.md`'ye bak
 
 | Bileşen | Sürüm |
 |---------|-------|
-| Python  | 3.10, 3.11 veya 3.12 |
+| Python  | 3.10, 3.11, 3.12 veya 3.13 |
 | pip     | son sürüm |
 
 Sadece **core** kullanım için `pydantic` ve entity-resolution yolunda kullanılan

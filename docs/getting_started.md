@@ -6,7 +6,7 @@ the API server, MCP, Neo4j, and evaluation framework.
 
 ## 1. Create an Environment
 
-DRG is tested on Python 3.10, 3.11, and 3.12.
+DRG is tested on Python 3.10, 3.11, 3.12, and 3.13.
 
 ```bash
 python -m venv .venv

@@ -9,6 +9,49 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+### Release summary
+
+#### Features
+
+- DRG is positioned and documented as a schema-driven Knowledge Graph extraction
+  framework: define or infer a schema, extract typed entities and relations, and
+  build an `EnhancedKG` artifact for validation, deterministic query,
+  evaluation, versioning, and export.
+- The primary extraction APIs are treated as stable for the alpha series:
+  `extract_typed()`, `extract_from_chunks()`, `extract_typed_async()`,
+  `extract_from_chunks_async()`, and the backward-compatible `extract_triples()`
+  wrapper.
+- Package metadata, optional extras, Python 3.10-3.13 support, release
+  automation, CI, typed package marker, CLI/API/MCP/evaluation examples, and
+  bilingual README entry points are prepared for the first public release cycle.
+
+#### Breaking changes
+
+- No additional breaking changes are introduced by the release-readiness
+  documentation pass.
+- Pre-`1.0` users should still review this changelog before upgrading because
+  alpha JSON shapes, CLI flags, and optional integration surfaces may change.
+
+#### Experimental
+
+- Optimizer integration is experimental and should be treated as a research
+  workflow around extraction quality.
+- Confidence calibration remains heuristic/experimental unless calibrated
+  against labelled domain data.
+- Long-document optimization, including chunking and cross-chunk/windowed
+  relation recovery, is evolving.
+- API/UI/MCP implementation details outside documented commands and endpoints
+  are not frozen.
+
+#### Known limitations
+
+- DRG is not a GraphRAG framework, not a RAG framework, and not a retrieval/chat
+  serving stack.
+- Live extraction quality depends on the configured LLM, schema quality, and
+  provider behavior.
+- Integration tests that require live credentials remain outside the default CI
+  path.
+
 ### Changed (documentation cleanup)
 
 - `README.md` and `README.tr.md` were refreshed as the canonical root
@@ -245,7 +288,7 @@ to land on a coherent, production-leaning foundation.
 - `tests/fixtures/` — hand-written reference data for deterministic
   regression tests.
 - `.github/workflows/ci.yml` — Lint (Ruff) + type-check (MyPy) + test
-  (pytest, coverage) on Python 3.10/3.11/3.12.
+  (pytest, coverage) on Python 3.10/3.11/3.12/3.13.
 - `.pre-commit-config.yaml` — Ruff, MyPy, `detect-private-key`, and a
   set of standard pre-commit hooks.
 - 57 new tests covering the refactored packages, typed exceptions,

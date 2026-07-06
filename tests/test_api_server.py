@@ -148,6 +148,36 @@ class TestGetGraphStats:
         assert client_no_kg.get("/api/graph/stats").status_code == 404
 
 
+class TestSchemaEndpoints:
+    def test_current_schema_projection_returns_counts(self, client: TestClient):
+        resp = client.get("/api/schema/current")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["source"] == "loaded_graph_projection"
+        assert data["counts"]["entity_types"] >= 1
+        assert data["counts"]["relation_groups"] >= 1
+
+    def test_current_schema_requires_loaded_graph(self, client_no_kg: TestClient):
+        assert client_no_kg.get("/api/schema/current").status_code == 404
+
+    def test_list_schema_files_returns_global_default(self, client: TestClient):
+        resp = client.get("/api/schemas")
+        assert resp.status_code == 200
+        schemas = resp.json()["schemas"]
+        names = {item["name"] for item in schemas}
+        assert "global_default_schema.json" in names
+
+    def test_schema_content_returns_json_payload(self, client: TestClient):
+        listed = client.get("/api/schemas").json()["schemas"]
+        target = next(item for item in listed if item["name"] == "global_default_schema.json")
+        resp = client.get("/api/schemas/content", params={"schema_id": target["id"]})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["name"] == "global_default_schema.json"
+        assert "entity_types" in data["schema"]
+        assert "relation_groups" in data["schema"]
+
+
 class TestEvaluationSummary:
     def test_returns_v01_evaluation_summary(self, client: TestClient):
         resp = client.get("/api/evaluation/summary")

@@ -10,6 +10,8 @@ Public API
 - :class:`ConfidenceStrategy` — pluggable scorer contract.
 - :class:`DefaultConfidenceStrategy` — heuristic placeholder used when no
   strategy is supplied. Schema-aware, deterministic, side-effect-free.
+- :class:`CalibratedConfidenceStrategy` — optional labelled-data calibration
+  wrapper for production scoring.
 - :class:`ConfidenceScore` — value + signal breakdown returned by
   strategies. The graph data model only stores the scalar; the breakdown
   is consumed by callers that want to audit the scoring.
@@ -33,11 +35,14 @@ guidance for authoring custom strategies.
 
 from __future__ import annotations
 
+from ._calibrated import CalibratedConfidenceStrategy, CalibrationPoint
 from ._default import DefaultConfidenceStrategy
 from ._strategy import ConfidenceStrategy, EntityScoreMap, RelationScoreMap
 from ._types import ConfidenceScore, clamp_confidence
 
 __all__ = [
+    "CalibratedConfidenceStrategy",
+    "CalibrationPoint",
     "ConfidenceScore",
     "ConfidenceStrategy",
     "DefaultConfidenceStrategy",

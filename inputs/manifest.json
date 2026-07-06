@@ -1,0 +1,17 @@
+{
+  "convention": {
+    "input": "inputs/input{N}.txt",
+    "schema": "outputs/output{N}_schema.json",
+    "kg": "outputs/output{N}_kg.json"
+  },
+  "datasets": [
+    {"id": 1, "label": "Göbekli Tepe (archaeology)", "source": "example_1"},
+    {"id": 2, "label": "Neo-Paris sci-fi narrative", "source": "example_2"},
+    {"id": 3, "label": "Marie Curie biography", "source": "example_4"},
+    {"id": 4, "label": "Anthropic corporate profile", "source": "example_5"},
+    {"id": 5, "label": "Microsoft corporate profile", "source": "example_6"},
+    {"id": 6, "label": "Wikipedia: History of pizza", "source": "history_of_pizza"},
+    {"id": 7, "label": "Wikipedia: The Little Prince", "source": "the_little_prince"},
+    {"id": 8, "label": "Wikipedia: Wolf", "source": "wolf"}
+  ]
+}

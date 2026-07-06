@@ -58,6 +58,46 @@ def test_enhanced_schema_from_dict_accepts_src_dst_aliases():
     assert schema.is_valid_relation("rel", "A", "B")
 
 
+def test_enhanced_schema_from_dict_round_trips_groups():
+    data = {
+        "entity_types": [
+            {"name": "Person", "description": "Individuals"},
+            {"name": "Company", "description": "Organizations"},
+        ],
+        "relation_groups": [
+            {
+                "name": "employment",
+                "relations": [{"name": "works_at", "source": "Person", "target": "Company"}],
+            }
+        ],
+        "entity_groups": [
+            {
+                "name": "actors",
+                "description": "Active participants",
+                "entity_types": ["Person", {"name": "Company"}],
+                "examples": [{"text": "Alice at ACME"}],
+            }
+        ],
+        "property_groups": [
+            {
+                "name": "audit",
+                "description": "Shared audit fields",
+                "properties": {"source": "Where the value came from"},
+                "examples": [{"source": "doc-1"}],
+            }
+        ],
+    }
+
+    schema = EnhancedDRGSchema.from_dict(data)
+
+    assert [group.name for group in schema.entity_groups] == ["actors"]
+    assert schema.entity_groups[0].get_entity_type_names() == ["Person", "Company"]
+    assert [group.name for group in schema.property_groups] == ["audit"]
+    assert schema.to_dict()["property_groups"][0]["properties"]["source"] == (
+        "Where the value came from"
+    )
+
+
 def test_enhanced_schema_from_dict_rejects_empty():
     with pytest.raises(SchemaError):
         EnhancedDRGSchema.from_dict({})

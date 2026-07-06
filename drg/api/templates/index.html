@@ -5,147 +5,399 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DRG Knowledge Graph Visualization</title>
     <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+    <!-- fCoSE force-directed layout (+ its cose-base / layout-base deps) for
+         clean, community-respecting topology. Falls back to built-in 'cose'
+         if these fail to load (e.g. offline). -->
+    <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+    <script src="https://unpkg.com/cose-base/cose-base.js"></script>
+    <script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <style>
+        :root {
+            --bg: #f4f7fb;
+            --surface: #ffffff;
+            --surface-muted: #f8fafc;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-soft: #475569;
+            --text-muted: #64748b;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 14px 34px rgba(15, 23, 42, 0.1);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 10px;
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             overflow: hidden;
         }
 
-        header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            padding: 16px 24px;
-            font-size: 20px;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        main {
+        .app-header {
+            position: relative;
+            z-index: 1000;
+            height: 62px;
             display: flex;
-            height: calc(100vh - 57px);
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0 18px;
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
         }
 
-        aside {
-            width: 320px;
-            background: white;
-            border-right: 1px solid #e2e8f0;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
-        }
-
-        aside h3 {
+        .header-title {
             font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #0f172a;
+            letter-spacing: 0.01em;
+            font-weight: 700;
+            color: #111827;
         }
 
-        button, select, input {
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .header-badges {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            position: relative;
+        }
+
+        .badge {
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text-soft);
+            font-size: 11px;
+            padding: 4px 10px;
+            font-weight: 600;
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 16px;
+            padding: 16px;
+            height: calc(100vh - 62px);
+        }
+
+        .sidebar {
+            overflow-y: auto;
+            padding-right: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 14px;
+            transition: box-shadow 0.24s ease, transform 0.24s ease;
+        }
+
+        .panel-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.09);
+        }
+
+        .panel-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .stat-tile {
+            background: var(--surface-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0b1324;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 8px;
+        }
+
+        button, select, input[type="text"], input[type="search"], input[type="number"] {
             width: 100%;
-            margin: 8px 0;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 13px;
+            transition: 0.18s ease;
         }
 
         button {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            border: none;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+            font-weight: 600;
         }
 
-        button:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
-            transform: translateY(-1px);
+        .btn-primary {
+            background: #111827;
+            color: #f8fafc;
+            border-color: #0f172a;
         }
 
-        select, input {
-            background: white;
-            color: #1e293b;
+        .btn-primary:hover {
+            background: #0b1220;
         }
 
-        select:focus, input:focus {
+        .btn-secondary:hover, .tool-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        input:focus, select:focus {
+            border-color: #94a3b8;
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.18);
         }
 
-        section {
-            flex: 1;
+        .switch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .switch-row:last-child {
+            border-bottom: none;
+        }
+
+        .switch-row label {
+            color: var(--text-soft);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .switch-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #111827;
+        }
+
+        .helper {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        .field-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-top: 4px;
+        }
+
+        .threshold-hint {
+            margin-top: -2px;
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .legend-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface-muted);
+            font-size: 12px;
+            color: var(--text-soft);
+            font-weight: 600;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, 0.18);
+            flex: 0 0 auto;
+        }
+
+        .evaluation-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .metric-widget {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface-muted);
+            padding: 10px;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .metric-header strong {
+            font-size: 12px;
+            color: #1f2937;
+        }
+
+        .metric-score {
+            font-size: 12px;
+            color: #111827;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .metric-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #475569 0%, #0f172a 100%);
+            transition: width 240ms ease;
+        }
+
+        .metric-footnote {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .query-results {
+            display: none;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface-muted);
+            padding: 10px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-soft);
+            line-height: 1.5;
+        }
+
+        .graph-stage {
+            min-width: 0;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 10px;
+        }
+
+        .graph-toolbar {
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tool-btn {
+            width: auto;
+            margin: 0;
+            padding: 8px 11px;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .toolbar-badge {
+            margin-left: auto;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0 8px;
+        }
+
+        .graph-canvas-wrap {
             position: relative;
-            background: #ffffff;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            background: #f8fafc;
+            box-shadow: var(--shadow-md);
+            min-height: 0;
         }
 
         #cy {
+            position: relative;
+            /* z-index:0 makes #cy its own stacking context so the negative
+               z-index hull canvas paints above the background but below the
+               Cytoscape canvases (instead of disappearing behind #cy). */
+            z-index: 0;
             width: 100%;
             height: 100%;
-            background: #ffffff;
+            min-height: 420px;
+            background: radial-gradient(circle at 20% 20%, #fbfdff, #f4f7fb);
         }
 
-        .info {
+        /* Community region canvas sits behind Cytoscape's own layers:
+           painted after #cy's background but before positioned canvas siblings. */
+        #cluster-hull-layer {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            max-width: 360px;
-            display: none;
-            z-index: 1000;
-            border: 1px solid #e2e8f0;
-        }
-
-        .info.active {
-            display: block;
-        }
-
-        .info h4 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #0f172a;
-        }
-
-        .info p {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #475569;
-            margin: 8px 0;
-        }
-
-        #stats {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        #stats p {
-            font-size: 13px;
-            color: #64748b;
-            margin: 6px 0;
-        }
-
-        #stats strong {
-            color: #1e293b;
-            font-weight: 600;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
         }
 
         .empty-state {
@@ -154,9 +406,9 @@
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 32px;
             pointer-events: none;
-            z-index: 500;
+            z-index: 20;
+            padding: 20px;
         }
 
         .empty-state.active {
@@ -164,233 +416,319 @@
         }
 
         .empty-card {
-            max-width: 520px;
-            background: rgba(255,255,255,0.96);
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            padding: 28px;
-            box-shadow: 0 20px 60px rgba(15,23,42,0.16);
+            max-width: 580px;
             text-align: center;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: var(--shadow-md);
+            padding: 24px;
         }
 
         .empty-card h2 {
-            font-size: 22px;
-            color: #0f172a;
-            margin-bottom: 10px;
+            font-size: 21px;
+            margin-bottom: 8px;
+            color: #111827;
         }
 
         .empty-card p {
-            color: #475569;
-            font-size: 14px;
-            line-height: 1.7;
-            margin: 8px 0;
+            font-size: 13px;
+            color: var(--text-soft);
+            line-height: 1.55;
         }
 
         .empty-card code {
             display: inline-block;
             margin-top: 10px;
-            padding: 8px 10px;
             border-radius: 8px;
             background: #0f172a;
             color: #e2e8f0;
+            padding: 7px 10px;
             font-size: 12px;
         }
 
+        .inspector {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            bottom: 14px;
+            width: 360px;
+            max-height: calc(100% - 28px);
+            display: none;
+            flex-direction: column;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.97);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            z-index: 32;
+            transition: width 220ms ease, transform 220ms ease;
+            pointer-events: auto;
+        }
+
+        .inspector.active {
+            display: flex;
+            animation: inspectorIn 220ms ease;
+        }
+
+        .inspector.collapsed {
+            width: 56px;
+        }
+
+        .inspector.collapsed .inspector-body,
+        .inspector.collapsed .inspector-subtitle,
+        .inspector.collapsed .inspector-title {
+            display: none;
+        }
+
+        .inspector.collapsed .inspector-actions {
+            margin-left: 0;
+        }
+
+        @keyframes inspectorIn {
+            from { transform: translateX(12px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .inspector-head {
+            flex: 0 0 auto;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .inspector-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .inspector-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .inspector-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            width: auto;
+            margin: 0;
+            padding: 6px 9px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #fff;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .inspector-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .inspect-section {
+            flex: 0 0 auto;
+            min-height: min-content;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface-muted);
+        }
+
+        .inspect-section summary {
+            list-style: none;
+            cursor: pointer;
+            font-size: 12px;
+            color: #1f2937;
+            font-weight: 700;
+            padding: 10px;
+            border-bottom: 1px solid transparent;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .inspect-section:not([open]) summary {
+            border-radius: 10px;
+        }
+
+        .inspect-section[open] summary {
+            border-bottom-color: var(--border);
+        }
+
+        .inspect-content {
+            padding: 10px;
+            font-size: 12px;
+            color: var(--text-soft);
+            line-height: 1.55;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* Long evidence / metadata blocks scroll inside their section. */
+        .inspect-section[open] .inspect-content {
+            max-height: min(38vh, 280px);
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .detail-list {
-            margin: 8px 0 0 18px;
-            font-size: 13px;
-            color: #475569;
-            line-height: 1.6;
+            margin: 0 0 0 16px;
+            padding: 0;
         }
 
         .detail-list li {
             margin: 4px 0;
         }
 
-        .detail-section {
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .detail-section h5 {
-            font-size: 13px;
-            margin-bottom: 8px;
-            color: #0f172a;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .legend-items {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            font-size: 12px;
-            color: #475569;
-        }
-
-        .legend-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
-        }
-
-        .legend-swatch {
-            width: 12px;
-            height: 12px;
-            border-radius: 999px;
-            border: 1px solid rgba(15,23,42,0.18);
-            flex: 0 0 auto;
-        }
-
-        .legend-count {
-            color: #64748b;
-            font-variant-numeric: tabular-nums;
+        .json-block {
+            font-size: 11px;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 220px;
+            overflow: auto;
         }
 
         .muted {
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 12px;
             line-height: 1.5;
-        }
-
-        .metric-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .metric-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px;
-        }
-
-        .metric-card strong {
-            display: block;
-            font-size: 12px;
-            color: #334155;
-            margin-bottom: 4px;
-        }
-
-        .metric-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .metric-detail {
-            margin-top: 4px;
-            font-size: 11px;
-            color: #64748b;
-            line-height: 1.4;
         }
     </style>
 </head>
 <body>
-    <header>DRG Knowledge Graph Visualization</header>
+    <header class="app-header">
+        <div>
+            <div class="header-title">DRG Knowledge Graph Explorer</div>
+            <div class="header-subtitle">Explainability, provenance, and graph analytics for AI engineering</div>
+        </div>
+        <div class="header-badges">
+            <span class="badge">Knowledge Graph</span>
+            <span class="badge">Explainable AI</span>
+        </div>
+    </header>
 
-    <main>
-        <aside>
-            <h3>Controls</h3>
-            <button onclick="loadFullGraph()">Load Full Graph</button>
-            <button onclick="loadCommunities()">Load Communities</button>
-            <button onclick="resetView()">Reset View</button>
-
-            <h3 style="margin-top: 24px;">Display</h3>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #334155; margin-top: 8px;">
-                <input type="checkbox" id="hub-split-toggle" />
-                Anti-hub view (UI-only)
-            </label>
-            <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 12px; color: #64748b;">Threshold</span>
-                <input
-                    type="number"
-                    id="hub-split-threshold"
-                    value="10"
-                    min="3"
-                    max="100"
-                    style="width: 72px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;"
-                />
-            </div>
-            <div style="margin-top: 8px; font-size: 12px; color: #64748b; line-height: 1.5;">
-                Adds small proxy nodes to reduce star-shaped hubs in the layout. Does not change the KG.
-            </div>
-
-            <h3 style="margin-top: 24px;">Entity Search</h3>
-            <input
-                type="search"
-                id="entity-search"
-                list="entity-options"
-                placeholder="Search entities..."
-                onkeydown="handleEntitySearchKeydown(event)"
-            >
-            <datalist id="entity-options"></datalist>
-            <button onclick="zoomToSelectedEntity()">Zoom to Entity</button>
-            <div class="muted">Start typing an entity name, then select a match to focus it in the graph.</div>
-
-            <h3 style="margin-top: 24px;">Layout</h3>
-            <select id="layout-select" onchange="changeLayout()">
-                <option value="breadthfirst">Breadth-First</option>
-                <option value="concentric">Concentric</option>
-                <option value="circle">Circle</option>
-                <option value="grid">Grid</option>
-                <option value="cose">Force-Directed</option>
-            </select>
-
-            <h3 style="margin-top: 24px;">Query</h3>
-            <input type="text" id="query-input" placeholder="Enter your query...">
-            <button onclick="executeQuery()">Execute Query</button>
-
-            <div id="stats">
-                <p><strong>Graph Statistics</strong></p>
-                <p>Nodes: <span id="node-count">-</span></p>
-                <p>Edges: <span id="edge-count">-</span></p>
-                <p>Clusters: <span id="cluster-count">-</span></p>
-                <p>Avg degree: <span id="average-degree">-</span></p>
-                <p>Density: <span id="graph-density">-</span></p>
+    <main class="app-shell">
+        <aside class="sidebar">
+            <div class="panel-card">
+                <div class="panel-title">Graph Overview</div>
+                <div class="overview-grid">
+                    <div class="stat-tile"><div class="stat-label">Nodes</div><div class="stat-value" id="node-count">-</div></div>
+                    <div class="stat-tile"><div class="stat-label">Edges</div><div class="stat-value" id="edge-count">-</div></div>
+                    <div class="stat-tile"><div class="stat-label">Entity Types</div><div class="stat-value" id="entity-types-count">-</div></div>
+                    <div class="stat-tile"><div class="stat-label">Density</div><div class="stat-value" id="graph-density">-</div></div>
+                    <div class="stat-tile"><div class="stat-label">Connected Components</div><div class="stat-value" id="cluster-count">-</div></div>
+                    <div class="stat-tile"><div class="stat-label">Avg Degree</div><div class="stat-value" id="average-degree">-</div></div>
+                </div>
+                <div class="form-grid" style="margin-top:10px;">
+                    <button class="btn-primary" onclick="loadFullGraph()">Load Full Graph</button>
+                    <button class="btn-secondary" onclick="loadCommunities()">Load Communities</button>
+                </div>
             </div>
 
-            <div id="evaluation-panel" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #0f172a;">Evaluation v0.1</h3>
-                <div id="evaluation-content" class="muted">Load a graph to see evaluation metrics.</div>
+            <div class="panel-card">
+                <div class="panel-title">Visualization</div>
+                <div class="switch-row"><label for="relation-mode-toggle">Presentation Mode</label><input type="checkbox" id="relation-mode-toggle"></div>
+                <div class="switch-row"><label for="hub-split-toggle">Simplify Hub Nodes</label><input type="checkbox" id="hub-split-toggle"></div>
+                <div class="switch-row"><label for="cluster-regions-toggle">Cluster Regions</label><input type="checkbox" id="cluster-regions-toggle" checked></div>
+                <div class="form-grid" style="margin-top:10px;">
+                    <label class="field-label" for="hub-split-threshold">Simplify Threshold</label>
+                    <input type="number" id="hub-split-threshold" value="8" min="3" max="8" placeholder="Simplify threshold">
+                    <div class="threshold-hint" id="hub-threshold-hint">Values above the graph max degree have no additional effect.</div>
+                    <select id="layout-select" onchange="changeLayout()">
+                        <option value="fcose">Force-Directed</option>
+                        <option value="concentric">Concentric (Hub-Centric)</option>
+                        <option value="breadthfirst">Breadth-First</option>
+                        <option value="circle">Circle</option>
+                        <option value="grid">Grid</option>
+                        <option value="cose">Force-Directed (Legacy)</option>
+                    </select>
+                </div>
+                <p class="helper" style="margin-top:8px;">Presentation Mode shows relationships as small dark nodes for demos. Simplify Hub Nodes reduces dense hub visuals without changing KG semantics. Cluster Regions draw soft background zones around detected communities.</p>
             </div>
 
-            <div id="legend" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #0f172a;">Legend</h3>
-                <div id="legend-content" class="muted">Load a graph to see entity types.</div>
+            <div class="panel-card">
+                <div class="panel-title">Find Entity</div>
+                <div class="form-grid">
+                    <input type="search" id="entity-search" list="entity-options" placeholder="Find an entity node..." onkeydown="handleEntitySearchKeydown(event)">
+                    <datalist id="entity-options"></datalist>
+                    <button class="btn-secondary" onclick="zoomToSelectedEntity()">Find Entity</button>
+                </div>
+                <p class="helper" style="margin-top:8px;">Zoom to a node in the graph and open its inspector.</p>
             </div>
 
-            <div id="query-results" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0; display: none;">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #0f172a;">Query Results</h3>
-                <div id="query-results-content" style="font-size: 13px; color: #475569; line-height: 1.6;">
-                    <!-- Query results will be inserted here -->
+            <div class="panel-card" id="evaluation-panel">
+                <div class="panel-title">Evaluation</div>
+                <div id="evaluation-content" class="muted">Load a graph to see ontology, confidence, and coverage metrics.</div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Legend</div>
+                <div id="legend-content" class="muted">Load a graph to see entity type badges.</div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Ask Graph</div>
+                <div class="form-grid">
+                    <input type="text" id="query-input" placeholder="Ask about entities and relationships...">
+                    <button class="btn-secondary" onclick="executeQuery()">Ask Graph</button>
+                </div>
+                <p class="helper" style="margin-top:8px;">Natural-language KG lookup. This is not a Cypher console; try "Dr. Elena Vasquez" or "Project Aurora".</p>
+                <div id="query-results" class="query-results">
+                    <div id="query-results-content"></div>
                 </div>
             </div>
         </aside>
 
-        <section>
-            <div id="cy"></div>
-            <div class="empty-state" id="empty-state">
-                <div class="empty-card">
-                    <h2>No graph loaded</h2>
-                    <p>Use Load Full Graph after starting the API with a KG, or run the bundled demo server first.</p>
-                    <code>python examples/api_server_example.py</code>
-                </div>
+        <section class="graph-stage">
+            <div class="graph-toolbar">
+                <button class="tool-btn" onclick="fitGraph()">Fit Graph</button>
+                <button class="tool-btn" onclick="exportPNG()">Export PNG</button>
+                <span class="toolbar-badge" id="toolbar-state">Layout: fcose</span>
             </div>
-            <div class="info" id="info-panel">
-                <div id="info-content"></div>
+
+            <div class="graph-canvas-wrap" id="graph-wrap">
+                <div id="cy"></div>
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-card">
+                        <h2>No graph loaded</h2>
+                        <p>Use Load Full Graph after starting the API with a KG, or run the bundled demo server first.</p>
+                        <code>python examples/api_server_example.py</code>
+                    </div>
+                </div>
+                <aside class="inspector" id="info-panel">
+                    <div class="inspector-head">
+                        <div>
+                            <div class="inspector-title" id="inspector-title">Inspector</div>
+                            <div class="inspector-subtitle" id="inspector-subtitle">Select a node or edge</div>
+                        </div>
+                        <div class="inspector-actions">
+                            <button class="icon-btn" onclick="toggleInspectorCollapse()">Collapse</button>
+                            <button class="icon-btn" onclick="copyInspectorJson()">Copy JSON</button>
+                            <button class="icon-btn" onclick="hideInfo()">Close</button>
+                        </div>
+                    </div>
+                    <div class="inspector-body" id="info-content"></div>
+                </aside>
             </div>
         </section>
     </main>
@@ -398,32 +736,68 @@
     <script>
         let cy;
         let graphElements = [];
+        let rawGraphElements = [];
         let entityIndex = [];
-        // Default to a force-directed layout to avoid "single hub star" visuals.
-        // Persist user preference in localStorage.
-        let currentLayout = (localStorage.getItem('drg_layout') || 'cose');
+        let inspectorJsonCache = '{}';
+        let inspectorPinnedNodeId = null;
+        const DEFAULT_LAYOUT_VERSION = 'structure-fcose-v3';
+        let fcoseRegistered = false;
+        function fcoseAvailable() {
+            if (fcoseRegistered) return true;
+            try {
+                if (window.cytoscape && window.cytoscapeFcose) {
+                    window.cytoscape.use(window.cytoscapeFcose);
+                    fcoseRegistered = true;
+                    return true;
+                }
+            } catch (e) {
+                // use() throws if already registered — that still means it's available.
+                fcoseRegistered = true;
+                return true;
+            }
+            return false;
+        }
+        let currentLayout = localStorage.getItem('drg_layout') || 'fcose';
+        if (localStorage.getItem('drg_layout_default_version') !== DEFAULT_LAYOUT_VERSION) {
+            currentLayout = 'fcose';
+            localStorage.setItem('drg_layout', currentLayout);
+            localStorage.setItem('drg_layout_default_version', DEFAULT_LAYOUT_VERSION);
+        }
+        let currentGraphView = 'full';
+        let graphReloadTimer = null;
+        let graphMaxDegree = 0;
+        let focusedElementId = null;
+        let labelDegreeCutoff = 0;
+        let zoomLabelTimer = null;
+        let hubDegreeCutoff = Infinity;
+        let hullCanvas = null;
+        let hullCtx = null;
+        let hullModelData = [];
+        let focusActive = false;
+        let clusterRegionsEnabled = true;
+
         const DEFAULT_ENTITY_COLORS = {
-            Person: '#8b5cf6',
-            Company: '#3b82f6',
-            Organization: '#14b8a6',
-            Location: '#10b981',
+            Person: '#6366f1',
+            Company: '#2563eb',
+            Organization: '#0ea5a8',
+            Location: '#16a34a',
             Product: '#f59e0b',
-            Service: '#06b6d4',
+            Service: '#0891b2',
             Year: '#64748b',
             Event: '#ef4444',
             HubProxy: '#cbd5e1',
             Unknown: '#94a3b8',
         };
+        const RELATION_NODE_COLOR = '#1f2937';
+        const RELATION_NODE_BORDER = '#334155';
 
-        function setEmptyState(active, message) {
-            const emptyState = document.getElementById('empty-state');
-            if (!emptyState) return;
-            emptyState.classList.toggle('active', !!active);
-            if (message) {
-                const p = emptyState.querySelector('p');
-                if (p) p.textContent = message;
-            }
-        }
+        // Muted, desaturated palette for community regions. Kept low-saturation
+        // on purpose so filled hulls read as soft background zones, never as
+        // foreground color blocks competing with the nodes.
+        const COMMUNITY_HULL_COLORS = [
+            '#64748b', '#6366f1', '#0ea5a9', '#0891b2', '#7c3aed',
+            '#b4753a', '#3f7d58', '#9a5b6d', '#4f6b8a', '#8a6d3b',
+        ];
 
         function escapeHtml(value) {
             return String(value ?? '')
@@ -441,6 +815,76 @@
             return String(value);
         }
 
+        function displayMetric(value) {
+            if (value === null || value === undefined) return '-';
+            if (typeof value === 'number') return value.toFixed(value >= 10 ? 1 : 3).replace(/\.?0+$/, '');
+            return String(value);
+        }
+
+        function scorePercent(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return '-';
+            return `${Math.round(n * 100)}%`;
+        }
+
+        function clampPercent(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return 0;
+            return Math.max(0, Math.min(100, Math.round(n * 100)));
+        }
+
+        function setEmptyState(active, message) {
+            const emptyState = document.getElementById('empty-state');
+            if (!emptyState) return;
+            emptyState.classList.toggle('active', !!active);
+            if (message) {
+                const p = emptyState.querySelector('p');
+                if (p) p.textContent = message;
+            }
+        }
+
+        function relationModeEnabled() {
+            return !!document.getElementById('relation-mode-toggle')?.checked;
+        }
+
+        function computeMaxDegreeFromElements(elements = []) {
+            const degree = new Map();
+            for (const element of elements || []) {
+                if (!isEdgeElement(element)) continue;
+                degree.set(element.data.source, (degree.get(element.data.source) || 0) + 1);
+                degree.set(element.data.target, (degree.get(element.data.target) || 0) + 1);
+            }
+            let maxDegree = 0;
+            for (const value of degree.values()) maxDegree = Math.max(maxDegree, value);
+            return maxDegree;
+        }
+
+        function updateAntiHubThresholdControls(maxDegree) {
+            const input = document.getElementById('hub-split-threshold');
+            const hint = document.getElementById('hub-threshold-hint');
+            if (!input) return;
+
+            graphMaxDegree = Number.isFinite(Number(maxDegree)) ? Number(maxDegree) : graphMaxDegree;
+            const noSplitThreshold = Math.max(3, graphMaxDegree + 1);
+            input.max = String(noSplitThreshold);
+
+            const currentValue = parseInt(input.value || String(noSplitThreshold), 10);
+            if (Number.isNaN(currentValue) || currentValue > noSplitThreshold) {
+                input.value = String(noSplitThreshold);
+                localStorage.setItem('drg_hub_split_threshold', input.value);
+            }
+            if (currentValue < Number(input.min || 3)) {
+                input.value = input.min || '3';
+                localStorage.setItem('drg_hub_split_threshold', input.value);
+            }
+
+            if (hint) {
+                hint.textContent = graphMaxDegree > 0
+                    ? `Max connections in this graph: ${graphMaxDegree}. Value ${noSplitThreshold} means no hub nodes are simplified.`
+                    : 'Values above the graph max degree have no additional effect.';
+            }
+        }
+
         function isNodeElement(element) {
             return !!(element && element.data && element.data.id && !element.data.source && !element.data.target);
         }
@@ -455,6 +899,23 @@
             return DEFAULT_ENTITY_COLORS[type || 'Unknown'] || DEFAULT_ENTITY_COLORS.Unknown;
         }
 
+        function relationNodeId(edge, idx) {
+            const rel = edge.data.relationship_type || edge.data.label || 'relation';
+            return `rel::${edge.data.source}::${rel}::${edge.data.target}::${idx}`;
+        }
+
+        function computeHubCutoff(degrees) {
+            // A node is a "hub" if it sits in the upper tail of the degree
+            // distribution. We use a percentile so hubs stay a small, visually
+            // meaningful minority regardless of graph size, with a sensible floor.
+            const values = degrees.filter(d => d > 0).sort((a, b) => a - b);
+            if (values.length < 6) return Infinity;
+            const p85 = values[Math.floor(values.length * 0.85)];
+            const maxDeg = values[values.length - 1];
+            if (maxDeg < 4) return Infinity;
+            return Math.max(4, Math.min(maxDeg, p85 + 1));
+        }
+
         function prepareGraphElements(elements = []) {
             const degree = new Map();
             for (const element of elements) {
@@ -462,6 +923,8 @@
                 degree.set(element.data.source, (degree.get(element.data.source) || 0) + 1);
                 degree.set(element.data.target, (degree.get(element.data.target) || 0) + 1);
             }
+
+            hubDegreeCutoff = computeHubCutoff([...degree.values()]);
 
             return (elements || []).map(element => {
                 const next = {
@@ -476,16 +939,633 @@
                     next.data.connection_count = count;
                     next.data.weight = Math.max(1, Math.min(12, count || next.data.weight || 1));
                     next.data.color = entityColor(type, next.style['background-color']);
+                    next.data.is_hub = (type !== 'Relation' && type !== 'HubProxy' && count >= hubDegreeCutoff)
+                        ? 1 : 0;
+                }
+                if (isEdgeElement(next)) {
+                    const confidence = Number(next.data.confidence);
+                    next.data.label = next.data.label || next.data.relationship_type || '';
+                    next.data.confidence_label = Number.isFinite(confidence) ? `${Math.round(confidence * 100)}%` : 'N/A';
+                    if (!Number.isFinite(confidence)) next.data.confidence = 0;
                 }
                 return next;
             });
         }
 
+        function toRelationNodeElements(elements = []) {
+            const output = [];
+            let edgeIdx = 0;
+            for (const element of elements) {
+                if (isNodeElement(element)) {
+                    output.push(element);
+                    continue;
+                }
+                if (!isEdgeElement(element)) continue;
+                const relType = element.data.relationship_type || element.data.label || 'relation';
+                const relId = relationNodeId(element, edgeIdx);
+                output.push({
+                    group: 'nodes',
+                    data: {
+                        id: relId,
+                        label: relType,
+                        type: 'Relation',
+                        relation_payload: {
+                            source: element.data.source,
+                            target: element.data.target,
+                            relationship_type: relType,
+                            relationship_detail: element.data.relationship_detail,
+                            relationship_description: element.data.relationship_description,
+                            confidence: element.data.confidence,
+                            metadata: element.data.metadata || {},
+                        },
+                        color: RELATION_NODE_COLOR,
+                        connection_count: 2,
+                        weight: 1,
+                    },
+                });
+                output.push({
+                    group: 'edges',
+                    data: {
+                        id: `${relId}::in`,
+                        source: element.data.source,
+                        target: relId,
+                        relationship_type: relType,
+                        label: relType,
+                        metadata: { relation_link: true, segment: 'source_to_relation' },
+                        confidence: element.data.confidence,
+                    },
+                    classes: 'relation-link',
+                });
+                output.push({
+                    group: 'edges',
+                    data: {
+                        id: `${relId}::out`,
+                        source: relId,
+                        target: element.data.target,
+                        relationship_type: relType,
+                        label: relType,
+                        metadata: { ...(element.data.metadata || {}), relation_link: true, segment: 'relation_to_target' },
+                        confidence: element.data.confidence,
+                    },
+                    classes: 'relation-link',
+                });
+                edgeIdx += 1;
+            }
+            return output;
+        }
+
+        function makeLayoutOptions() {
+            // Transparently fall back to built-in 'cose' when fCoSE isn't loaded.
+            let layoutName = currentLayout;
+            if (layoutName === 'fcose' && !fcoseAvailable()) layoutName = 'cose';
+
+            if (layoutName === 'fcose') {
+                return {
+                    name: 'fcose',
+                    quality: 'proof',
+                    animate: true,
+                    animationDuration: 700,
+                    randomize: true,
+                    padding: 90,
+                    nodeDimensionsIncludeLabels: true,
+                    uniformNodeDimensions: false,
+                    packComponents: true,
+                    // Generous separation so communities read as distinct regions
+                    // and edges have room to breathe.
+                    nodeSeparation: 140,
+                    nodeRepulsion: function(node) {
+                        const deg = node.degree(false);
+                        if (node.data('type') === 'Relation') return 6000;
+                        return 9000 + Math.min(28000, deg * 1600);
+                    },
+                    idealEdgeLength: function(edge) {
+                        if (edge.hasClass('relation-link')) return 70;
+                        const deg = Math.max(edge.source().degree(false), edge.target().degree(false));
+                        return 110 + Math.min(220, deg * 12);
+                    },
+                    edgeElasticity: function() { return 0.42; },
+                    gravity: 0.24,
+                    gravityRange: 3.4,
+                    numIter: 3000,
+                };
+            }
+
+            const base = {
+                name: layoutName,
+                animate: true,
+                animationDuration: 650,
+                spacingFactor: layoutName === 'breadthfirst' ? 2.9 : (layoutName === 'concentric' ? 3.2 : 2.6),
+                padding: 110,
+                avoidOverlap: true,
+                nodeDimensionsIncludeLabels: true,
+            };
+            if (layoutName === 'concentric') {
+                // Push high-degree hubs toward the center so the topology reads
+                // as hub -> periphery, with generous inter-ring spacing.
+                base.concentric = function(node) { return node.data('connection_count') || node.degree(false) || 0; };
+                base.levelWidth = function() { return 2; };
+                base.minNodeSpacing = 40;
+            }
+            if (layoutName === 'cose') {
+                base.componentSpacing = 220;
+                base.nodeOverlap = 30;
+                base.nodeRepulsion = function(node) {
+                    const deg = node.degree(false);
+                    if (node.data('type') === 'Relation') return 11000;
+                    return 42000 + Math.min(150000, deg * 6400);
+                };
+                base.idealEdgeLength = function(edge) {
+                    if (edge.hasClass('relation-link')) return 130;
+                    const s = edge.source();
+                    const t = edge.target();
+                    const deg = Math.max(s.degree(false), t.degree(false));
+                    return 320 + Math.min(560, deg * 26);
+                };
+                base.edgeElasticity = 0.18;
+                base.gravity = 0.045;
+                base.numIter = 2200;
+                base.initialTemp = 280;
+                base.coolingFactor = 0.985;
+                base.minTemp = 1.0;
+            }
+            return base;
+        }
+
+        function hashCommunityColor(communityId, index) {
+            if (Number.isFinite(index)) return COMMUNITY_HULL_COLORS[index % COMMUNITY_HULL_COLORS.length];
+            let hash = 0;
+            const str = String(communityId || '');
+            for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+            return COMMUNITY_HULL_COLORS[hash % COMMUNITY_HULL_COLORS.length];
+        }
+
+        // Andrew's monotone chain convex hull over model-space points.
+        function convexHull(points) {
+            if (points.length < 3) return points.slice();
+            const pts = points.slice().sort((a, b) => (a.x - b.x) || (a.y - b.y));
+            const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+            const lower = [];
+            for (const p of pts) {
+                while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+                lower.push(p);
+            }
+            const upper = [];
+            for (let i = pts.length - 1; i >= 0; i--) {
+                const p = pts[i];
+                while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+                upper.push(p);
+            }
+            lower.pop();
+            upper.pop();
+            return lower.concat(upper);
+        }
+
+        function ensureHullCanvas() {
+            const container = document.getElementById('cy');
+            if (!container) return;
+            if (hullCanvas && !hullCanvas.isConnected) {
+                hullCanvas = null;
+                hullCtx = null;
+            }
+            if (!hullCanvas) {
+                hullCanvas = document.createElement('canvas');
+                hullCanvas.id = 'cluster-hull-layer';
+                container.insertBefore(hullCanvas, container.firstChild);
+                hullCtx = hullCanvas.getContext('2d');
+            }
+            const rect = container.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            const w = Math.max(1, Math.floor(rect.width));
+            const h = Math.max(1, Math.floor(rect.height));
+            if (hullCanvas.width !== w * dpr || hullCanvas.height !== h * dpr) {
+                hullCanvas.width = w * dpr;
+                hullCanvas.height = h * dpr;
+                hullCanvas.style.width = w + 'px';
+                hullCanvas.style.height = h + 'px';
+            }
+        }
+
+        // Cache community hulls in model coordinates; recomputed only when the
+        // layout settles, then cheaply re-transformed to screen space per frame.
+        function recomputeHullModel() {
+            hullModelData = [];
+            if (!cy) return;
+            const groups = new Map();
+            cy.nodes().forEach(node => {
+                const type = node.data('type');
+                if (type === 'Relation') return;
+                const cid = node.data('community_id') || node.data('community');
+                if (!cid) return;
+                const pos = node.position();
+                if (!groups.has(cid)) groups.set(cid, []);
+                groups.get(cid).push({ x: pos.x, y: pos.y });
+            });
+            let total = 0;
+            for (const pts of groups.values()) total += pts.length;
+
+            let idx = 0;
+            const orderedIds = [...groups.keys()].sort((a, b) => String(a).localeCompare(String(b)));
+            for (const cid of orderedIds) {
+                const pts = groups.get(cid);
+                // Need >=3 points for a hull. Skip a dominant catch-all cluster
+                // (>55% of nodes): its hull would blanket the whole graph and
+                // convey no grouping — the surrounding regions read better.
+                if (pts.length < 3 || (groups.size > 1 && pts.length / total > 0.55)) { idx++; continue; }
+                hullModelData.push({
+                    community_id: cid,
+                    color: hashCommunityColor(cid, idx),
+                    hull: convexHull(pts),
+                    size: pts.length,
+                });
+                idx++;
+            }
+        }
+
+        function drawSmoothPolygon(ctx, pts) {
+            if (pts.length < 3) return;
+            const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+            const start = mid(pts[pts.length - 1], pts[0]);
+            ctx.moveTo(start.x, start.y);
+            for (let i = 0; i < pts.length; i++) {
+                const cur = pts[i];
+                const next = pts[(i + 1) % pts.length];
+                const m = mid(cur, next);
+                ctx.quadraticCurveTo(cur.x, cur.y, m.x, m.y);
+            }
+            ctx.closePath();
+        }
+
+        function drawHulls() {
+            if (!hullCtx || !hullCanvas) return;
+            const dpr = window.devicePixelRatio || 1;
+            hullCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            hullCtx.clearRect(0, 0, hullCanvas.width, hullCanvas.height);
+            if (!clusterRegionsEnabled || !cy || !hullModelData.length) return;
+
+            const zoom = cy.zoom();
+            const pan = cy.pan();
+            const padding = 24;
+            const fillAlpha = focusActive ? 0.025 : 0.09;
+            const strokeAlpha = focusActive ? 0.06 : 0.24;
+
+            for (const group of hullModelData) {
+                const rendered = group.hull.map(p => ({ x: p.x * zoom + pan.x, y: p.y * zoom + pan.y }));
+                let cx = 0, cy2 = 0;
+                for (const p of rendered) { cx += p.x; cy2 += p.y; }
+                cx /= rendered.length; cy2 /= rendered.length;
+                const expanded = rendered.map(p => {
+                    const dx = p.x - cx, dy = p.y - cy2;
+                    const len = Math.hypot(dx, dy) || 1;
+                    return { x: p.x + (dx / len) * padding, y: p.y + (dy / len) * padding };
+                });
+
+                hullCtx.beginPath();
+                drawSmoothPolygon(hullCtx, expanded);
+                hullCtx.fillStyle = group.color;
+                hullCtx.globalAlpha = fillAlpha;
+                hullCtx.fill();
+                hullCtx.globalAlpha = strokeAlpha;
+                hullCtx.lineWidth = 1.25;
+                hullCtx.strokeStyle = group.color;
+                hullCtx.stroke();
+                hullCtx.globalAlpha = 1;
+            }
+        }
+
+        function refreshHulls() {
+            ensureHullCanvas();
+            recomputeHullModel();
+            drawHulls();
+        }
+
+        function initCytoscape(elements = []) {
+            if (cy) cy.destroy();
+            hullModelData = [];
+            focusActive = false;
+
+            rawGraphElements = Array.isArray(elements) ? elements : [];
+            let prepared = prepareGraphElements(rawGraphElements);
+            if (relationModeEnabled()) prepared = prepareGraphElements(toRelationNodeElements(prepared));
+            graphElements = prepared;
+            setEmptyState(!prepared.length);
+            renderLegend();
+            updateEntitySearch();
+            updateEntityTypeMetric();
+
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: prepared,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': 'data(color)',
+                            'background-opacity': 0.9,
+                            'label': 'data(label)',
+                            'shape': 'ellipse',
+                            'width': 'mapData(connection_count, 0, 12, 16, 52)',
+                            'height': 'mapData(connection_count, 0, 12, 16, 52)',
+                            'padding': '6px',
+                            'border-width': 1.25,
+                            'border-color': '#ffffff',
+                            'border-opacity': 0.9,
+                            'font-size': '11px',
+                            'font-weight': 600,
+                            'min-zoomed-font-size': 10,
+                            'text-wrap': 'wrap',
+                            'text-max-width': '104px',
+                            'text-valign': 'bottom',
+                            'text-halign': 'center',
+                            'color': '#334155',
+                            'text-outline-width': 2.5,
+                            'text-outline-color': '#f8fafc',
+                            'text-outline-opacity': 0.95,
+                            'text-margin-y': 3,
+                            'transition-property': 'opacity, width, height, border-width, border-color, background-opacity',
+                            'transition-duration': '180ms',
+                        }
+                    },
+                    {
+                        // Hubs stay a small minority; a gentle size bump plus a
+                        // soft slate ring is enough to make them read first
+                        // without shouting over the rest of the graph.
+                        selector: 'node[is_hub = 1]',
+                        style: {
+                            'background-opacity': 0.96,
+                            'border-width': 2,
+                            'border-color': '#334155',
+                            'border-opacity': 0.55,
+                            'width': 'mapData(connection_count, 0, 12, 34, 76)',
+                            'height': 'mapData(connection_count, 0, 12, 34, 76)',
+                            'font-size': '12px',
+                            'font-weight': 700,
+                            'z-index': 60,
+                        }
+                    },
+                    {
+                        selector: 'node[type = "Relation"]',
+                        style: {
+                            'shape': 'round-rectangle',
+                            'background-color': RELATION_NODE_COLOR,
+                            'background-opacity': 0.85,
+                            'border-color': RELATION_NODE_BORDER,
+                            'width': 13,
+                            'height': 13,
+                            'padding': '2px',
+                            'label': '',
+                            'shadow-opacity': 0.12,
+                        }
+                    },
+                    {
+                        selector: 'node.label-hidden',
+                        style: { 'label': '' }
+                    },
+                    {
+                        selector: 'node:selected',
+                        style: {
+                            'border-color': '#f59e0b',
+                            'border-width': 5,
+                            'label': 'data(label)',
+                            'min-zoomed-font-size': 0,
+                            'z-index': 999,
+                        }
+                    },
+                    {
+                        selector: '.query-highlight',
+                        style: {
+                            'border-color': '#f59e0b',
+                            'border-width': 5,
+                            'z-index': 999,
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'curve-style': 'bezier',
+                            'control-point-step-size': 48,
+                            'line-color': '#c3ccd9',
+                            'target-arrow-color': '#c3ccd9',
+                            'target-arrow-shape': 'triangle',
+                            'target-arrow-size': 6,
+                            'arrow-scale': 0.7,
+                            'width': 'mapData(confidence, 0, 1, 0.6, 1.8)',
+                            'opacity': 0.26,
+                            'label': '',
+                            'font-size': '10px',
+                            'font-weight': 600,
+                            'text-background-color': '#ffffff',
+                            'text-background-opacity': 0.96,
+                            'text-background-padding': '3px 5px',
+                            'text-background-shape': 'roundrectangle',
+                            'text-rotation': 'autorotate',
+                            'text-margin-y': -9,
+                            'color': '#1f2937',
+                            'text-outline-width': 1,
+                            'text-outline-color': '#ffffff',
+                            'transition-property': 'opacity, width, line-color, target-arrow-color',
+                            'transition-duration': '200ms',
+                        }
+                    },
+                    {
+                        selector: 'edge.relation-link',
+                        style: {
+                            'curve-style': 'straight',
+                            'line-style': 'dashed',
+                            'opacity': 0.28,
+                            'width': 1.4,
+                        }
+                    },
+                    {
+                        selector: 'edge:selected',
+                        style: {
+                            'label': 'data(label)',
+                            'line-color': '#f59e0b',
+                            'target-arrow-color': '#f59e0b',
+                            'opacity': 1,
+                            'width': 3,
+                            'z-index': 900,
+                        }
+                    },
+                    {
+                        selector: '.dimmed',
+                        style: { 'opacity': 0.08, 'text-opacity': 0 }
+                    },
+                    {
+                        selector: 'node.neighbor-highlight',
+                        style: { 'opacity': 1, 'z-index': 700, 'label': 'data(label)', 'min-zoomed-font-size': 0 }
+                    },
+                    {
+                        selector: 'edge.neighbor-highlight',
+                        style: { 'opacity': 1, 'z-index': 700 }
+                    },
+                    {
+                        selector: 'edge.edge-emphasis',
+                        style: {
+                            'opacity': 1,
+                            'width': 3,
+                            'line-color': '#475569',
+                            'target-arrow-color': '#475569',
+                            'label': 'data(label)',
+                            'z-index': 800,
+                        }
+                    },
+                    {
+                        selector: '.path-highlight',
+                        style: { 'line-color': '#f59e0b', 'target-arrow-color': '#f59e0b', 'opacity': 1, 'width': 4.2 }
+                    },
+                ],
+                layout: makeLayoutOptions(),
+            });
+
+            cy.on('tap', 'node', (evt) => { showNodeInfo(evt.target); applyFocusContext(evt.target); });
+            cy.on('tap', 'edge', (evt) => { showEdgeInfo(evt.target); applyFocusContext(evt.target); });
+            cy.on('tap', (evt) => {
+                if (evt.target === cy) {
+                    focusedElementId = null;
+                    inspectorPinnedNodeId = null;
+                    focusActive = false;
+                    clearHoverState();
+                    updateLabelVisibility();
+                    drawHulls();
+                    hideInfo();
+                }
+            });
+            cy.on('mouseover', 'node', (evt) => applyHoverContext(evt.target));
+            cy.on('mouseover', 'edge', (evt) => applyHoverContext(evt.target));
+            cy.on('mouseout', 'node', () => restoreContext());
+            cy.on('mouseout', 'edge', () => restoreContext());
+            cy.on('zoom', () => {
+                if (zoomLabelTimer) clearTimeout(zoomLabelTimer);
+                zoomLabelTimer = setTimeout(updateLabelVisibility, 90);
+            });
+            cy.on('layoutstop', () => { recomputeHullModel(); updateLabelVisibility(); drawHulls(); });
+            // Keep the hull layer glued to the graph during pan/zoom/animation.
+            cy.on('render', () => drawHulls());
+            cy.on('resize', () => refreshHulls());
+
+            labelDegreeCutoff = computeLabelCutoff();
+            cy.fit(cy.elements(), 90);
+            ensureHullCanvas();
+            updateLabelVisibility();
+            updateToolbarState();
+        }
+
+        function updateEntityTypeMetric() {
+            const typeCounter = new Set();
+            for (const element of graphElements) {
+                if (isNodeElement(element) && !['Relation', 'HubProxy'].includes(element.data.type || '')) {
+                    typeCounter.add(element.data.type || 'Unknown');
+                }
+            }
+            const target = document.getElementById('entity-types-count');
+            if (target) target.textContent = typeCounter.size || '-';
+        }
+
+        function updateToolbarState() {
+            const toolbarState = document.getElementById('toolbar-state');
+            if (toolbarState) toolbarState.textContent = `Layout: ${currentLayout}`;
+        }
+
+        function clearHoverState() {
+            if (!cy) return;
+            cy.elements().removeClass('dimmed neighbor-highlight edge-emphasis path-highlight');
+        }
+
+        function computeLabelCutoff() {
+            if (!cy) return 0;
+            const entityCount = cy.nodes().filter(n => n.data('type') !== 'Relation').length;
+            if (entityCount <= 60) return 0;
+            if (entityCount <= 120) return 2;
+            if (entityCount <= 250) return 3;
+            return 4;
+        }
+
+        // Progressive disclosure: at low zoom we surface only structural
+        // anchors (hubs); as the user zooms in, labels are revealed in tiers
+        // down to every node, so topology reads before text.
+        function labelCutoffForZoom(zoom) {
+            const base = labelDegreeCutoff;
+            if (base <= 0) return zoom < 0.45 ? 1 : 0;
+            if (zoom >= 1.15) return 0;
+            if (zoom >= 0.85) return base;
+            if (zoom >= 0.55) return base + 2;
+            return Number.isFinite(hubDegreeCutoff) ? hubDegreeCutoff : base + 4;
+        }
+
+        function updateLabelVisibility() {
+            if (!cy) return;
+            const cutoff = labelCutoffForZoom(cy.zoom());
+            cy.batch(() => {
+                cy.nodes().forEach(node => {
+                    if (node.data('type') === 'Relation') return;
+                    if (node.selected() || node.hasClass('neighbor-highlight')) {
+                        node.removeClass('label-hidden');
+                        return;
+                    }
+                    const degree = node.data('connection_count') || 0;
+                    if (cutoff <= 0 || degree >= cutoff) node.removeClass('label-hidden');
+                    else node.addClass('label-hidden');
+                });
+            });
+        }
+
+        function contextNeighborhood(element) {
+            if (element.isEdge && element.isEdge()) {
+                return element.connectedNodes().union(element);
+            }
+            return element.closedNeighborhood();
+        }
+
+        function applyContext(element) {
+            if (!cy || !element || !element.length) return;
+            clearHoverState();
+            focusActive = true;
+            const neighborhood = contextNeighborhood(element);
+            cy.elements().addClass('dimmed');
+            neighborhood.removeClass('dimmed').addClass('neighbor-highlight');
+            const edges = (element.isEdge && element.isEdge()) ? element : element.connectedEdges();
+            edges.removeClass('dimmed').addClass('edge-emphasis');
+
+            if (element.isNode && element.isNode() && inspectorPinnedNodeId && inspectorPinnedNodeId !== element.id()) {
+                const anchor = cy.getElementById(inspectorPinnedNodeId);
+                if (anchor.length) {
+                    const result = cy.elements().aStar({ root: element, goal: anchor, directed: false });
+                    if (result.found && result.path) {
+                        result.path.removeClass('dimmed').addClass('path-highlight');
+                    }
+                }
+            }
+            neighborhood.nodes().removeClass('label-hidden');
+            drawHulls();
+        }
+
+        function applyHoverContext(element) {
+            applyContext(element);
+        }
+
+        function applyFocusContext(element) {
+            if (!element || !element.length) return;
+            focusedElementId = element.id();
+            applyContext(element);
+        }
+
+        function restoreContext() {
+            if (focusedElementId && cy) {
+                const focused = cy.getElementById(focusedElementId);
+                if (focused && focused.length) {
+                    applyContext(focused);
+                    return;
+                }
+            }
+            clearHoverState();
+            focusActive = false;
+            updateLabelVisibility();
+            drawHulls();
+        }
+
         function extractProvenance(data) {
             const metadata = data.metadata || {};
-            const provenance = metadata.provenance && typeof metadata.provenance === 'object'
-                ? metadata.provenance
-                : {};
+            const provenance = metadata.provenance && typeof metadata.provenance === 'object' ? metadata.provenance : {};
             return {
                 document_id: provenance.document_id || metadata.document_id || metadata.source_ref || (Array.isArray(metadata.source_documents) ? metadata.source_documents[0] : null),
                 sentence_id: provenance.sentence_id || metadata.sentence_id || null,
@@ -494,50 +1574,154 @@
             };
         }
 
-        function hasProvenance(provenance) {
-            return !!(provenance.document_id || provenance.sentence_id || provenance.snippet || provenance.extracted_at);
+        function renderList(values = {}) {
+            const entries = Object.entries(values).filter(([, value]) => value !== undefined && value !== null && value !== '');
+            if (!entries.length) return '<p class="muted">No data available.</p>';
+            return `<ul class="detail-list">${entries.map(([key, value]) => `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(displayValue(value))}</li>`).join('')}</ul>`;
         }
 
-        function renderKeyValueList(title, values) {
-            const entries = Object.entries(values || {}).filter(([, value]) => value !== undefined && value !== null && value !== '');
-            if (entries.length === 0) return '';
-            let html = `<div class="detail-section"><h5>${escapeHtml(title)}</h5><ul class="detail-list">`;
-            for (const [key, value] of entries) {
-                html += `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(displayValue(value))}</li>`;
+        function buildInspectorSection(title, contentHtml, open = true) {
+            return `<details class="inspect-section" ${open ? 'open' : ''}><summary>${escapeHtml(title)}</summary><div class="inspect-content">${contentHtml}</div></details>`;
+        }
+
+        function setInspector(title, subtitle, sections, jsonPayload) {
+            const panel = document.getElementById('info-panel');
+            const content = document.getElementById('info-content');
+            const titleEl = document.getElementById('inspector-title');
+            const subtitleEl = document.getElementById('inspector-subtitle');
+
+            inspectorJsonCache = JSON.stringify(jsonPayload || {}, null, 2);
+            titleEl.textContent = title || 'Inspector';
+            subtitleEl.textContent = subtitle || '';
+            content.innerHTML = `${sections.join('')}
+                ${buildInspectorSection('JSON View', `<div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="icon-btn" onclick="copyInspectorJson()">Copy JSON</button></div><pre class="json-block">${escapeHtml(inspectorJsonCache)}</pre>`, false)}
+            `;
+            panel.classList.remove('collapsed');
+            panel.classList.add('active');
+        }
+
+        function copyInspectorJson() {
+            navigator.clipboard.writeText(inspectorJsonCache || '{}').catch(() => {});
+        }
+
+        function toggleInspectorCollapse() {
+            const panel = document.getElementById('info-panel');
+            if (!panel) return;
+            panel.classList.toggle('collapsed');
+        }
+
+        function hideInfo() {
+            const panel = document.getElementById('info-panel');
+            if (!panel) return;
+            panel.classList.remove('active');
+            panel.classList.remove('collapsed');
+            focusedElementId = null;
+            inspectorPinnedNodeId = null;
+            focusActive = false;
+            if (cy) {
+                clearHoverState();
+                updateLabelVisibility();
+                drawHulls();
             }
-            html += '</ul></div>';
-            return html;
         }
 
-        function renderProvenanceSection(data) {
-            const provenance = extractProvenance(data);
-            if (!hasProvenance(provenance)) return '';
-            return renderKeyValueList('Provenance', provenance);
-        }
-
-        function relationLabel(edge, nodeId, direction) {
+        function relationLabel(edge, direction) {
             const rel = edge.data('relationship_type') || edge.data('label') || 'relation';
             const peerId = direction === 'incoming' ? edge.data('source') : edge.data('target');
             const peer = cy ? cy.getElementById(peerId) : null;
             const peerLabel = peer && peer.length ? (peer.data('label') || peer.id()) : peerId;
-            const arrow = direction === 'incoming' ? 'from' : 'to';
-            return `${rel} ${arrow} ${peerLabel}`;
+            return `${rel} ${direction === 'incoming' ? 'from' : 'to'} ${peerLabel}`;
         }
 
         function renderNodeRelations(node) {
-            const incoming = node.incomers('edge').map(edge => relationLabel(edge, node.id(), 'incoming'));
-            const outgoing = node.outgoers('edge').map(edge => relationLabel(edge, node.id(), 'outgoing'));
-            let html = '<div class="detail-section"><h5>Relations</h5>';
-            html += '<p><strong>Incoming:</strong></p>';
-            html += incoming.length
-                ? `<ul class="detail-list">${incoming.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
-                : '<p class="muted">No incoming relations.</p>';
-            html += '<p style="margin-top: 10px;"><strong>Outgoing:</strong></p>';
-            html += outgoing.length
-                ? `<ul class="detail-list">${outgoing.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
-                : '<p class="muted">No outgoing relations.</p>';
-            html += '</div>';
-            return html;
+            const incoming = node.incomers('edge').map(edge => relationLabel(edge, 'incoming'));
+            const outgoing = node.outgoers('edge').map(edge => relationLabel(edge, 'outgoing'));
+            return `
+                <p><strong>Incoming</strong></p>
+                ${incoming.length ? `<ul class="detail-list">${incoming.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '<p class="muted">No incoming relations.</p>'}
+                <p style="margin-top:8px;"><strong>Outgoing</strong></p>
+                ${outgoing.length ? `<ul class="detail-list">${outgoing.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '<p class="muted">No outgoing relations.</p>'}
+            `;
+        }
+
+        function showNodeInfo(node) {
+            const nodeLabel = node.data('label') || node.id();
+            const nodeType = node.data('type') || 'Unknown';
+            const nodeData = node.data();
+            const metadata = nodeData.metadata || {};
+            const relationPayload = nodeData.relation_payload || null;
+            const provenance = extractProvenance(nodeData);
+            inspectorPinnedNodeId = node.id();
+
+            if (nodeType === 'Relation' && relationPayload) {
+                setInspector(
+                    nodeLabel,
+                    'Relation node',
+                    [
+                        buildInspectorSection('Entity', renderList({ Name: nodeLabel, Type: nodeType, Confidence: relationPayload.confidence })),
+                        buildInspectorSection('Metadata', renderList(relationPayload.metadata || {}), false),
+                        buildInspectorSection('Relationships', renderList({ Source: relationPayload.source, Target: relationPayload.target, Relationship: relationPayload.relationship_type })),
+                        buildInspectorSection('Provenance', renderList(provenance), false),
+                    ],
+                    nodeData
+                );
+                return;
+            }
+
+            setInspector(
+                nodeLabel,
+                `Entity · ${nodeType}`,
+                [
+                    buildInspectorSection('Entity', renderList({
+                        Name: nodeLabel,
+                        Type: nodeType,
+                        Confidence: metadata.confidence ?? nodeData.confidence,
+                        Degree: node.data('connection_count') || node.degree(false) || 0,
+                    })),
+                    buildInspectorSection('Metadata', renderList(metadata), false),
+                    buildInspectorSection('Evidence', renderList({ evidence: metadata.evidence || provenance.snippet || 'No explicit evidence available.' }), false),
+                    buildInspectorSection('Relationships', renderNodeRelations(node)),
+                    buildInspectorSection('Provenance', renderList({
+                        source_document: provenance.document_id,
+                        sentence_id: provenance.sentence_id,
+                        extracted_at: provenance.extracted_at,
+                        snippet: provenance.snippet,
+                    }), false),
+                ],
+                nodeData
+            );
+        }
+
+        function showEdgeInfo(edge) {
+            const relType = edge.data('relationship_type') || edge.data('label') || 'Relation';
+            const sourceId = edge.data('source');
+            const targetId = edge.data('target');
+            const sourceNode = cy ? cy.getElementById(sourceId) : null;
+            const targetNode = cy ? cy.getElementById(targetId) : null;
+            const sourceLabel = sourceNode && sourceNode.length ? (sourceNode.data('label') || sourceNode.id()) : sourceId;
+            const targetLabel = targetNode && targetNode.length ? (targetNode.data('label') || targetNode.id()) : targetId;
+            const metadata = edge.data('metadata') || {};
+            const provenance = extractProvenance(edge.data());
+
+            setInspector(
+                relType,
+                'Relationship edge',
+                [
+                    buildInspectorSection('Entity', renderList({
+                        Type: relType,
+                        Source: sourceLabel,
+                        Target: targetLabel,
+                        Confidence: edge.data('confidence') ?? metadata.confidence,
+                    })),
+                    buildInspectorSection('Metadata', renderList(metadata), false),
+                    buildInspectorSection('Evidence', renderList({
+                        relationship_description: edge.data('relationship_description'),
+                        relationship_detail: edge.data('relationship_detail'),
+                    }), false),
+                    buildInspectorSection('Provenance', renderList(provenance), false),
+                ],
+                edge.data()
+            );
         }
 
         function renderLegend() {
@@ -545,28 +1729,25 @@
             if (!legendContent) return;
             const counts = new Map();
             const colors = new Map();
+
             for (const element of graphElements) {
                 if (!isNodeElement(element)) continue;
                 const type = element.data.type || 'Unknown';
+                if (type === 'Relation' || type === 'HubProxy') continue;
                 counts.set(type, (counts.get(type) || 0) + 1);
                 colors.set(type, element.data.color || entityColor(type));
             }
-            if (counts.size === 0) {
+
+            if (!counts.size) {
                 legendContent.className = 'muted';
-                legendContent.textContent = 'Load a graph to see entity types.';
+                legendContent.textContent = 'Load a graph to see entity type badges.';
                 return;
             }
-            const items = [...counts.keys()].sort((a, b) => a.localeCompare(b));
+
             legendContent.className = 'legend-items';
-            legendContent.innerHTML = items.map(type => `
-                <div class="legend-item">
-                    <span class="legend-label">
-                        <span class="legend-swatch" style="background:${escapeHtml(colors.get(type))}"></span>
-                        <span>${escapeHtml(type)}</span>
-                    </span>
-                    <span class="legend-count">${counts.get(type)}</span>
-                </div>
-            `).join('');
+            legendContent.innerHTML = [...counts.keys()].sort((a, b) => a.localeCompare(b)).map((type) => (
+                `<span class="legend-badge"><span class="legend-dot" style="background:${escapeHtml(colors.get(type))};"></span>${escapeHtml(type)} (${counts.get(type)})</span>`
+            )).join('');
         }
 
         function updateEntitySearch() {
@@ -574,13 +1755,14 @@
             if (!options) return;
             entityIndex = graphElements
                 .filter(isNodeElement)
+                .filter(element => !['Relation', 'HubProxy'].includes(element.data.type || ''))
                 .map(element => ({
                     id: element.data.id,
                     label: element.data.label || element.data.id,
                     type: element.data.type || 'Unknown',
                 }))
                 .sort((a, b) => a.label.localeCompare(b.label));
-            options.innerHTML = entityIndex.map(entity => (
+            options.innerHTML = entityIndex.map((entity) => (
                 `<option value="${escapeHtml(entity.label)}" label="${escapeHtml(entity.type)}"></option>`
             )).join('');
         }
@@ -598,20 +1780,17 @@
             if (!cy || !input) return;
             const entity = findEntityBySearchValue(input.value);
             if (!entity) {
-                setEmptyState(false);
                 input.focus();
                 return;
             }
             const node = cy.getElementById(entity.id);
-            if (node.length === 0) return;
+            if (!node.length) return;
             cy.elements().removeClass('query-highlight');
             node.addClass('query-highlight');
-            cy.animate({
-                center: { eles: node },
-                zoom: Math.max(cy.zoom(), 1.6),
-            }, { duration: 500 });
+            cy.animate({ center: { eles: node }, zoom: Math.max(cy.zoom(), 1.7) }, { duration: 500 });
             node.select();
             showNodeInfo(node);
+            applyFocusContext(node);
         }
 
         function handleEntitySearchKeydown(event) {
@@ -621,365 +1800,20 @@
             }
         }
 
-        function computeMaxDegree(elements) {
-            const deg = new Map();
-            for (const el of elements || []) {
-                const d = el && el.data;
-                if (!d) continue;
-                const s = d.source;
-                const t = d.target;
-                if (!s || !t) continue;
-                deg.set(s, (deg.get(s) || 0) + 1);
-                deg.set(t, (deg.get(t) || 0) + 1);
-            }
-            let maxDeg = 0;
-            for (const v of deg.values()) maxDeg = Math.max(maxDeg, v);
-            return maxDeg;
-        }
-
-        function maybeAutoSwitchLayoutForHub(elements, hubSplitEnabled) {
-            // If hub-split is OFF and a hub-like graph is rendered with breadthfirst,
-            // auto-switch to force-directed to avoid a single-center "star" view.
-            if (hubSplitEnabled) return;
-            if (currentLayout !== 'breadthfirst') return;
-            const threshold = parseInt(localStorage.getItem('drg_hub_split_threshold') || '10', 10);
-            const maxDeg = computeMaxDegree(elements);
-            if (maxDeg >= (Number.isNaN(threshold) ? 10 : threshold)) {
-                currentLayout = 'cose';
-                localStorage.setItem('drg_layout', currentLayout);
-                const layoutSelect = document.getElementById('layout-select');
-                if (layoutSelect) layoutSelect.value = currentLayout;
-            }
-        }
-
-        function initCytoscape(elements = []) {
-            if (cy) {
-                cy.destroy();
-            }
-
-            elements = prepareGraphElements(elements);
-            graphElements = elements;
-            renderLegend();
-            updateEntitySearch();
-            setEmptyState(!elements || elements.length === 0);
-
-            cy = cytoscape({
-                container: document.getElementById('cy'),
-                elements: elements,
-                style: [
-                    // Base node style - Professional and readable
-                    {
-                        selector: 'node',
-                        style: {
-                            'background-color': 'data(color)',
-                            'label': 'data(label)',
-                            'width': 'mapData(connection_count, 0, 12, 42, 104)',
-                            'height': 'mapData(connection_count, 0, 12, 42, 104)',
-                            'font-size': '13px',
-                            'font-weight': '600',
-                            'text-valign': 'center',
-                            'text-halign': 'center',
-                            'color': '#ffffff',
-                            'text-outline-width': 3,
-                            'text-outline-color': '#0f172a',
-                            'text-outline-opacity': 0.9,
-                            'border-width': 4,
-                            'border-color': '#0f172a',
-                            'border-opacity': 0.3,
-                            'shape': 'ellipse',
-                            'text-wrap': 'wrap',
-                            'text-max-width': '96px',
-                            'padding': '10px',
-                            'min-width': 42,
-                            'min-height': 42,
-                        }
-                    },
-                    // Entity type colors - Professional palette
-                    {
-                        selector: 'node[type = "Company"]',
-                        style: {
-                            'background-color': '#3b82f6',
-                            'border-color': '#1e40af',
-                        }
-                    },
-                    {
-                        selector: 'node[type = "Person"]',
-                        style: {
-                            'background-color': '#8b5cf6',
-                            'border-color': '#6d28d9',
-                        }
-                    },
-                    {
-                        selector: 'node[type = "Location"]',
-                        style: {
-                            'background-color': '#10b981',
-                            'border-color': '#059669',
-                        }
-                    },
-                    {
-                        selector: 'node[type = "Product"]',
-                        style: {
-                            'background-color': '#f59e0b',
-                            'border-color': '#d97706',
-                        }
-                    },
-                    {
-                        selector: 'node[type = "Service"]',
-                        style: {
-                            'background-color': '#06b6d4',
-                            'border-color': '#0891b2',
-                        }
-                    },
-                    {
-                        selector: 'node[type = "Year"]',
-                        style: {
-                            'background-color': '#64748b',
-                            'border-color': '#475569',
-                        }
-                    },
-                    {
-                        selector: 'node[type = "Event"]',
-                        style: {
-                            'background-color': '#ef4444',
-                            'border-color': '#dc2626',
-                        }
-                    },
-                    // Node hover
-                    {
-                        selector: 'node:selected',
-                        style: {
-                            'border-width': 6,
-                            'border-color': '#fbbf24',
-                            'border-opacity': 0.8,
-                            'z-index': 999,
-                        }
-                    },
-                    {
-                        selector: 'node:hover',
-                        style: {
-                            'width': 'mapData(connection_count, 0, 12, 50, 114)',
-                            'height': 'mapData(connection_count, 0, 12, 50, 114)',
-                            'font-size': '14px',
-                            'border-width': 5,
-                            'z-index': 999,
-                        }
-                    },
-                    // Edge styles - Clear and readable
-                    {
-                        selector: 'edge',
-                        style: {
-                            'width': 4,
-                            'line-color': '#475569',
-                            'target-arrow-color': '#475569',
-                            'target-arrow-shape': 'triangle',
-                            'target-arrow-size': 16,
-                            'target-arrow-fill': 'filled',
-                            'curve-style': 'bezier',
-                            'control-point-step-size': 80,
-                            'label': 'data(label)',
-                            'font-size': '13px',
-                            'font-weight': '600',
-                            'text-background-color': '#ffffff',
-                            'text-background-opacity': 0.95,
-                            'text-background-padding': '5px 8px',
-                            'text-background-shape': 'roundrectangle',
-                            'text-rotation': 'autorotate',
-                            'text-margin-y': -15,
-                            'text-events': 'yes',
-                            'color': '#1e293b',
-                            'source-arrow-shape': 'none',
-                            'opacity': 0.75,
-                            'text-outline-width': 1,
-                            'text-outline-color': '#ffffff',
-                        }
-                    },
-                    // Edge hover
-                    {
-                        selector: 'edge:hover',
-                        style: {
-                            'width': 5,
-                            'line-color': '#ef4444',
-                            'target-arrow-color': '#ef4444',
-                            'target-arrow-size': 18,
-                            'font-size': '14px',
-                            'opacity': 1,
-                            'z-index': 999,
-                        }
-                    },
-                    {
-                        selector: 'edge:selected',
-                        style: {
-                            'width': 5,
-                            'line-color': '#3b82f6',
-                            'target-arrow-color': '#3b82f6',
-                            'target-arrow-size': 18,
-                            'opacity': 1,
-                        }
-                    },
-                    // Query highlight style
-                    {
-                        selector: '.query-highlight',
-                        style: {
-                            'border-width': 6,
-                            'border-color': '#f59e0b',
-                            'border-opacity': 0.8,
-                            'background-color': '#fef3c7',
-                            'z-index': 1000,
-                        }
-                    },
-                ],
-                layout: {
-                    name: currentLayout,
-                    animate: true,
-                    animationDuration: 800,
-                    spacingFactor: currentLayout === 'breadthfirst' ? 2.5 : (currentLayout === 'concentric' ? 3.0 : 2.2),
-                    padding: 80,
-                    ...(currentLayout === 'cose' ? {
-                        // Degree-aware repulsion to spread star-shaped hubs more evenly.
-                        nodeRepulsion: function(node) {
-                            const deg = node.degree(false); // undirected degree
-                            return 12000 + Math.min(40000, deg * 2500);
-                        },
-                        idealEdgeLength: function(edge) {
-                            // Longer edges around hubs to reduce overlap
-                            const s = edge.source();
-                            const t = edge.target();
-                            const deg = Math.max(s.degree(false), t.degree(false));
-                            return 180 + Math.min(260, deg * 12);
-                        },
-                        edgeElasticity: 0.35,
-                        gravity: 0.2,
-                        numIter: 1200,
-                        initialTemp: 250,
-                        coolingFactor: 0.98,
-                        minTemp: 1.0,
-                    } : {}),
-                }
-            });
-
-            // Node click handler
-            cy.on('tap', 'node', function(evt) {
-                const node = evt.target;
-                showNodeInfo(node);
-            });
-
-            // Edge click handler
-            cy.on('tap', 'edge', function(evt) {
-                const edge = evt.target;
-                showEdgeInfo(edge);
-            });
-
-            // Background click handler
-            cy.on('tap', function(evt) {
-                if (evt.target === cy) {
-                    cy.elements().removeClass('selected');
-                    hideInfo();
-                }
-            });
-        }
-
-        function showNodeInfo(node) {
-            const panel = document.getElementById('info-panel');
-            const content = document.getElementById('info-content');
-
-            const nodeLabel = node.data('label') || node.id();
-            const nodeType = node.data('type') || 'Unknown';
-            const nodeMeta = node.data('metadata') || {};
-            const nodeId = node.id();
-            const isProxy = nodeType === 'HubProxy' || (typeof nodeId === 'string' && nodeId.startsWith('hubproxy::'));
-
-            let html = `<h4>${escapeHtml(nodeLabel)}</h4>`;
-            html += `<p><strong>Name:</strong> ${escapeHtml(nodeLabel)}</p>`;
-            html += `<p><strong>Type:</strong> ${escapeHtml(nodeType)}</p>`;
-            // Avoid leaking internal proxy ids in the UI; show an explainable summary instead.
-            if (isProxy) {
-                const hub = nodeMeta.hub || '';
-                const rel = nodeMeta.relationship_type || nodeLabel || '';
-                if (hub || rel) {
-                    html += `<p><strong>Proxy for:</strong> ${escapeHtml(hub ? hub : '(unknown)')} ${rel ? '&bull; ' + escapeHtml(rel) : ''}</p>`;
-                }
-            } else {
-                html += `<p><strong>ID:</strong> ${escapeHtml(nodeId)}</p>`;
-            }
-            html += `<p><strong>Degree:</strong> ${escapeHtml(node.data('connection_count') || node.degree(false) || 0)}</p>`;
-
-            if (node.data('properties') && Object.keys(node.data('properties')).length > 0) {
-                html += `<div class="detail-section"><h5>Properties</h5><ul class="detail-list">`;
-                for (const [key, value] of Object.entries(node.data('properties'))) {
-                    html += `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(displayValue(value))}</li>`;
-                }
-                html += `</ul></div>`;
-            } else {
-                html += `<div class="detail-section"><h5>Properties</h5><p class="muted">No properties available.</p></div>`;
-            }
-            html += renderNodeRelations(node);
-            html += renderProvenanceSection(node.data());
-
-            content.innerHTML = html;
-            panel.classList.add('active');
-        }
-
-        function showEdgeInfo(edge) {
-            const panel = document.getElementById('info-panel');
-            const content = document.getElementById('info-content');
-
-            const relType = edge.data('relationship_type') || edge.data('label');
-            const source = edge.data('source');
-            const target = edge.data('target');
-            const sourceNode = cy ? cy.getElementById(source) : null;
-            const targetNode = cy ? cy.getElementById(target) : null;
-            const sourceLabel = sourceNode && sourceNode.length ? (sourceNode.data('label') || sourceNode.id()) : source;
-            const targetLabel = targetNode && targetNode.length ? (targetNode.data('label') || targetNode.id()) : target;
-            const metadata = edge.data('metadata') || {};
-            const confidence = edge.data('confidence') ?? metadata.confidence ?? null;
-
-            let html = `<h4>${escapeHtml(relType)}</h4>`;
-            html += `<p><strong>Source:</strong> ${escapeHtml(sourceLabel)}</p>`;
-            html += `<p><strong>Target:</strong> ${escapeHtml(targetLabel)}</p>`;
-            html += `<p><strong>Relation:</strong> ${escapeHtml(relType)}</p>`;
-            html += `<p><strong>Confidence:</strong> ${escapeHtml(displayValue(confidence))}</p>`;
-
-            if (edge.data('relationship_description')) {
-                html += `<p style="margin-top: 12px;"><strong>Description:</strong><br/>${escapeHtml(edge.data('relationship_description'))}</p>`;
-            }
-            if (edge.data('relationship_detail')) {
-                html += `<p style="margin-top: 12px;"><strong>Detail:</strong><br/>${escapeHtml(edge.data('relationship_detail'))}</p>`;
-            }
-            html += renderKeyValueList('Temporal Metadata', {
-                start_time: edge.data('start_time') || edge.data('valid_from') || metadata.start_time || metadata.valid_from || metadata.temporal?.valid_from,
-                end_time: edge.data('end_time') || edge.data('valid_to') || metadata.end_time || metadata.valid_to || metadata.temporal?.valid_to,
-                created_at: edge.data('created_at') || metadata.created_at || metadata.temporal?.created_at,
-                updated_at: edge.data('updated_at') || metadata.updated_at || metadata.temporal?.updated_at,
-            });
-            html += renderProvenanceSection(edge.data());
-
-            content.innerHTML = html;
-            panel.classList.add('active');
-        }
-
-        function hideInfo() {
-            document.getElementById('info-panel').classList.remove('active');
-        }
-
         async function loadFullGraph() {
             try {
-                const hubSplit = document.getElementById('hub-split-toggle')?.checked;
+                currentGraphView = 'full';
+                const relationMode = relationModeEnabled();
+                const hubSplit = relationMode ? false : document.getElementById('hub-split-toggle')?.checked;
                 const threshold = parseInt(document.getElementById('hub-split-threshold')?.value || '10', 10);
                 const params = new URLSearchParams();
-                // Always send hub_split explicitly so backend doesn't fall back to env defaults.
                 params.set('hub_split', hubSplit ? '1' : '0');
-                // Only send threshold when hub split is enabled (avoids confusing "hub-like" view).
                 if (hubSplit && !Number.isNaN(threshold)) params.set('hub_split_threshold', String(threshold));
-                const url = params.toString()
-                    ? `/api/visualization/cytoscape?${params}`
-                    : '/api/visualization/cytoscape';
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Graph endpoint returned ${response.status}`);
-                }
+                const response = await fetch(params.toString() ? `/api/visualization/cytoscape?${params}` : '/api/visualization/cytoscape');
+                if (!response.ok) throw new Error(`Graph endpoint returned ${response.status}`);
                 const data = await response.json();
-                maybeAutoSwitchLayoutForHub(data.elements, !!hubSplit);
-                initCytoscape(data.elements);
+                rawGraphElements = data.elements || [];
+                initCytoscape(rawGraphElements);
                 await loadGraphStats();
                 await loadEvaluationSummary();
             } catch (error) {
@@ -990,22 +1824,18 @@
 
         async function loadCommunities() {
             try {
-                const hubSplit = document.getElementById('hub-split-toggle')?.checked;
+                currentGraphView = 'communities';
+                const relationMode = relationModeEnabled();
+                const hubSplit = relationMode ? false : document.getElementById('hub-split-toggle')?.checked;
                 const threshold = parseInt(document.getElementById('hub-split-threshold')?.value || '10', 10);
                 const params = new URLSearchParams();
-                // Always send hub_split explicitly so backend doesn't fall back to env defaults.
                 params.set('hub_split', hubSplit ? '1' : '0');
                 if (hubSplit && !Number.isNaN(threshold)) params.set('hub_split_threshold', String(threshold));
-                const url = params.toString()
-                    ? `/api/visualization/communities/cytoscape?${params}`
-                    : '/api/visualization/communities/cytoscape';
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Communities endpoint returned ${response.status}`);
-                }
+                const response = await fetch(params.toString() ? `/api/visualization/communities/cytoscape?${params}` : '/api/visualization/communities/cytoscape');
+                if (!response.ok) throw new Error(`Communities endpoint returned ${response.status}`);
                 const data = await response.json();
-                maybeAutoSwitchLayoutForHub(data.elements, !!hubSplit);
-                initCytoscape(data.elements);
+                rawGraphElements = data.elements || [];
+                initCytoscape(rawGraphElements);
                 await loadGraphStats();
                 await loadEvaluationSummary();
             } catch (error) {
@@ -1018,34 +1848,56 @@
             try {
                 const response = await fetch('/api/graph/stats');
                 const stats = await response.json();
-
-                document.getElementById('node-count').textContent = stats.node_count;
-                document.getElementById('edge-count').textContent = stats.edge_count;
-                document.getElementById('cluster-count').textContent = stats.cluster_count;
+                document.getElementById('node-count').textContent = stats.node_count ?? '-';
+                document.getElementById('edge-count').textContent = stats.edge_count ?? '-';
+                document.getElementById('cluster-count').textContent = stats.cluster_count ?? '-';
                 document.getElementById('average-degree').textContent = displayMetric(stats.average_degree);
                 document.getElementById('graph-density').textContent = displayMetric(stats.density);
+
+                const graphResponse = await fetch('/api/graph');
+                if (graphResponse.ok) {
+                    const graph = await graphResponse.json();
+                    const baseElements = [
+                        ...(graph.nodes || []).map(node => ({ data: node })),
+                        ...(graph.edges || []).map(edge => ({ data: edge })),
+                    ];
+                    updateAntiHubThresholdControls(computeMaxDegreeFromElements(baseElements));
+                }
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
         }
 
-        function displayMetric(value) {
-            if (value === null || value === undefined) return '-';
-            if (typeof value === 'number') return value.toFixed(value >= 10 ? 1 : 3).replace(/\.?0+$/, '');
-            return String(value);
+        function renderMetricWidget(label, value, detail = '') {
+            const numericValue = Number(value);
+            const isAvailable = Number.isFinite(numericValue);
+            const pct = isAvailable ? clampPercent(numericValue) : 0;
+            return `
+                <div class="metric-widget">
+                    <div class="metric-header">
+                        <strong>${escapeHtml(label)}</strong>
+                        <span class="metric-score">${isAvailable ? `${pct}%` : 'N/A'}</span>
+                    </div>
+                    <div class="metric-bar"><div class="metric-bar-fill" style="width:${pct}%; opacity:${isAvailable ? 1 : 0.28};"></div></div>
+                    ${detail ? `<div class="metric-footnote">${escapeHtml(detail)}</div>` : ''}
+                </div>
+            `;
         }
 
-        function scorePercent(value) {
-            if (value === null || value === undefined) return '-';
-            return `${Math.round(Number(value) * 100)}%`;
+        function reloadCurrentGraph() {
+            if (currentGraphView === 'communities') {
+                loadCommunities();
+                return;
+            }
+            loadFullGraph();
         }
 
-        function renderTopScores(scores) {
-            const entries = Object.entries(scores || {})
-                .sort((a, b) => Number(b[1]) - Number(a[1]))
-                .slice(0, 4);
-            if (entries.length === 0) return 'No ontology metrics available.';
-            return entries.map(([name, score]) => `${escapeHtml(name)} ${scorePercent(score)}`).join('<br/>');
+        function scheduleGraphReload() {
+            if (graphReloadTimer) clearTimeout(graphReloadTimer);
+            graphReloadTimer = setTimeout(() => {
+                graphReloadTimer = null;
+                reloadCurrentGraph();
+            }, 350);
         }
 
         async function loadEvaluationSummary() {
@@ -1055,34 +1907,24 @@
                 const response = await fetch('/api/evaluation/summary');
                 if (!response.ok) throw new Error(`Evaluation endpoint returned ${response.status}`);
                 const data = await response.json();
-                const graph = data.graph_statistics || {};
-                const confidence = data.confidence_summary || {};
                 const ontology = data.ontology_evaluation || {};
-                const projection = data.ontology_projection || {};
+                const confidence = data.confidence_summary || {};
+                const coverage = Number(confidence.coverage || 0);
+                const metrics = [
+                    renderMetricWidget('Ontology Quality', ontology.overall_score, 'Ontology score'),
+                    renderMetricWidget('Confidence', confidence.average, `Scored ${confidence.total_scored ?? 0}/${confidence.total_items ?? 0}`),
+                    renderMetricWidget('Coverage', coverage, 'Coverage of confidence labels'),
+                ];
 
-                content.className = 'metric-grid';
-                content.innerHTML = `
-                    <div class="metric-card">
-                        <strong>Ontology Evaluation</strong>
-                        <div class="metric-value">${scorePercent(ontology.overall_score)}</div>
-                        <div class="metric-detail">${renderTopScores(ontology.per_metric_scores)}</div>
-                    </div>
-                    <div class="metric-card">
-                        <strong>Graph Statistics</strong>
-                        <div class="metric-value">${escapeHtml(graph.node_count ?? '-')} / ${escapeHtml(graph.edge_count ?? '-')}</div>
-                        <div class="metric-detail">nodes / edges · ${escapeHtml(projection.entity_type_count ?? '-')} types · density ${escapeHtml(displayMetric(graph.density))}</div>
-                    </div>
-                    <div class="metric-card">
-                        <strong>Confidence Summary</strong>
-                        <div class="metric-value">${confidence.average === null || confidence.average === undefined ? 'N/A' : scorePercent(confidence.average)}</div>
-                        <div class="metric-detail">coverage ${scorePercent(confidence.coverage || 0)} · scored ${escapeHtml(confidence.total_scored ?? 0)}/${escapeHtml(confidence.total_items ?? 0)}</div>
-                    </div>
-                    <div class="metric-card">
-                        <strong>Evaluation UI</strong>
-                        <div class="metric-value">v0.1</div>
-                        <div class="metric-detail">${escapeHtml(data.evaluation_ui?.has_gold_labels ? 'Gold-label comparison ready.' : 'Graph-quality summary; gold-label F1 needs benchmark artifacts.')}</div>
-                    </div>
-                `;
+                if (data.evaluation_ui?.has_gold_labels) {
+                    metrics.push(
+                        renderMetricWidget('Precision', data.evaluation_ui.precision, 'Computed from gold labels'),
+                        renderMetricWidget('Recall', data.evaluation_ui.recall, 'Computed from gold labels'),
+                    );
+                }
+
+                content.className = 'evaluation-list';
+                content.innerHTML = metrics.join('');
             } catch (error) {
                 console.error('Error loading evaluation summary:', error);
                 content.className = 'muted';
@@ -1093,73 +1935,46 @@
         async function executeQuery() {
             const queryInput = document.getElementById('query-input');
             const query = queryInput.value.trim();
-
             if (!query) {
-                alert('Please enter a query');
+                alert('Please enter an entity, relationship, or graph question.');
                 return;
             }
 
             const resultsDiv = document.getElementById('query-results');
             const resultsContent = document.getElementById('query-results-content');
-
-            // Show loading state
             resultsDiv.style.display = 'block';
-            resultsContent.innerHTML = '<p style="color: #64748b;">Processing query...</p>';
-
-            // Scroll to results
-            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (/^\s*(match|create|merge|return|with|unwind)\b/i.test(query)) {
+                resultsContent.innerHTML = `
+                    <p><strong>Ask Graph:</strong> ${escapeHtml(query)}</p>
+                    <p style="margin-top:8px;">This panel does not execute Cypher. Ask about an entity, relation, or graph question instead, for example <strong>Dr. Elena Vasquez</strong> or <strong>Project Aurora</strong>.</p>
+                `;
+                return;
+            }
+            resultsContent.innerHTML = '<p class="muted">Asking graph...</p>';
 
             try {
                 const response = await fetch('/api/query', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        query: query,
+                        query,
                         k_entities: 10,
                         k_reports: 5,
                         k_context_chunks: 5,
                     }),
                 });
-
-                if (!response.ok) {
-                    throw new Error(`Query failed: ${response.statusText}`);
-                }
-
+                if (!response.ok) throw new Error(`Query failed: ${response.statusText}`);
                 const result = await response.json();
-
-                // Format results nicely
-                let html = '';
-
-                // Query
-                html += `<div style="margin-bottom: 16px; padding: 12px; background: #f1f5f9; border-radius: 8px; border-left: 4px solid #3b82f6;">`;
-                html += `<strong style="color: #1e293b; display: block; margin-bottom: 4px;">Query:</strong>`;
-                html += `<span style="color: #475569;">${escapeHtml(query)}</span>`;
-                html += `</div>`;
-
-                // Answer - Clean and concise
-                if (result.answer) {
-                    // Extract the main answer text (before "Community summaries" if present)
-                    let answerText = result.answer;
-                    const communityIndex = answerText.indexOf('Community summaries:');
-                    if (communityIndex > 0) {
-                        answerText = answerText.substring(0, communityIndex).trim();
-                    }
-
-                    html += `<div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">`;
-                    html += `<strong style="color: #1e293b; display: block; margin-bottom: 8px;">Answer:</strong>`;
-                    html += `<p style="color: #166534; margin: 0; line-height: 1.6;">${escapeHtml(answerText)}</p>`;
-                    html += `</div>`;
-                }
-
-                resultsContent.innerHTML = html;
-
+                let answerText = result.answer || '';
+                const communityIndex = answerText.indexOf('Community summaries:');
+                if (communityIndex > 0) answerText = answerText.slice(0, communityIndex).trim();
+                resultsContent.innerHTML = `
+                    <p><strong>Question:</strong> ${escapeHtml(query)}</p>
+                    <p style="margin-top:8px;"><strong>Result:</strong> ${escapeHtml(answerText || 'No graph result returned.')}</p>
+                `;
             } catch (error) {
                 console.error('Error executing query:', error);
-                resultsContent.innerHTML = `<div style="padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444; color: #991b1b;">`;
-                resultsContent.innerHTML += `<strong>Error:</strong> ${escapeHtml(error.message)}`;
-                resultsContent.innerHTML += `</div>`;
+                resultsContent.innerHTML = `<p><strong>Error:</strong> ${escapeHtml(error.message)}</p>`;
             }
         }
 
@@ -1167,79 +1982,92 @@
             const select = document.getElementById('layout-select');
             currentLayout = select.value;
             localStorage.setItem('drg_layout', currentLayout);
-
-            if (cy) {
-                let layoutOptions = {
-                    name: currentLayout,
-                    animate: true,
-                    animationDuration: 800,
-                    spacingFactor: currentLayout === 'breadthfirst' ? 2.5 : (currentLayout === 'concentric' ? 3.0 : 2.2),
-                    padding: 80,
-                };
-
-                if (currentLayout === 'cose') {
-                    layoutOptions.nodeRepulsion = function(node) {
-                        const deg = node.degree(false);
-                        return 12000 + Math.min(40000, deg * 2500);
-                    };
-                    layoutOptions.idealEdgeLength = function(edge) {
-                        const s = edge.source();
-                        const t = edge.target();
-                        const deg = Math.max(s.degree(false), t.degree(false));
-                        return 180 + Math.min(260, deg * 12);
-                    };
-                    layoutOptions.edgeElasticity = 0.35;
-                    layoutOptions.gravity = 0.2;
-                    layoutOptions.numIter = 1200;
-                    layoutOptions.initialTemp = 250;
-                    layoutOptions.coolingFactor = 0.98;
-                    layoutOptions.minTemp = 1.0;
-                }
-
-                cy.layout(layoutOptions).run();
-            }
+            if (cy) cy.layout(makeLayoutOptions()).run();
+            updateToolbarState();
         }
 
-        function resetView() {
-            if (cy) {
-                cy.reset();
-                cy.fit();
-            }
+        function fitGraph() {
+            if (cy) cy.fit(cy.elements(), 90);
         }
 
-        // Initialize on page load
+        function downloadDataURL(filename, dataUrl) {
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = filename;
+            a.click();
+        }
+
+        function exportPNG() {
+            if (!cy) return;
+            const png = cy.png({ full: true, scale: 2, bg: '#f8fafc' });
+            downloadDataURL(`drg-kg-${Date.now()}.png`, png);
+        }
+
         window.addEventListener('load', function() {
+            // Keep wheel / touch scroll inside the inspector — Cytoscape zoom
+            // would otherwise capture the event when the panel is over the graph.
+            const infoPanel = document.getElementById('info-panel');
+            if (infoPanel) {
+                infoPanel.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
+                infoPanel.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: true });
+            }
+
             const hubToggle = document.getElementById('hub-split-toggle');
+            const relationToggle = document.getElementById('relation-mode-toggle');
             const hubThreshold = document.getElementById('hub-split-threshold');
             const layoutSelect = document.getElementById('layout-select');
+            const clusterToggle = document.getElementById('cluster-regions-toggle');
 
-            // Persist anti-hub preference. Default OFF (user can enable if needed).
+            const savedClusterRegions = localStorage.getItem('drg_cluster_regions');
+            clusterRegionsEnabled = savedClusterRegions !== null ? savedClusterRegions === '1' : true;
+            if (clusterToggle) {
+                clusterToggle.checked = clusterRegionsEnabled;
+                clusterToggle.addEventListener('change', () => {
+                    clusterRegionsEnabled = clusterToggle.checked;
+                    localStorage.setItem('drg_cluster_regions', clusterRegionsEnabled ? '1' : '0');
+                    drawHulls();
+                });
+            }
+
+            window.addEventListener('resize', () => { if (cy) refreshHulls(); });
+
             const savedHubSplit = localStorage.getItem('drg_hub_split');
             if (hubToggle) {
-                hubToggle.checked = savedHubSplit ? (savedHubSplit === '1') : false;
+                hubToggle.checked = savedHubSplit ? savedHubSplit === '1' : true;
                 hubToggle.addEventListener('change', () => {
                     localStorage.setItem('drg_hub_split', hubToggle.checked ? '1' : '0');
                     if (hubThreshold) hubThreshold.disabled = !hubToggle.checked;
-                    loadFullGraph();
+                    reloadCurrentGraph();
                 });
             }
 
-            // Persist threshold as well (helps tune hub splitting).
+            const savedPresentationMode = localStorage.getItem('drg_presentation_mode');
+            const savedRelationMode = localStorage.getItem('drg_relation_mode');
+            if (relationToggle) {
+                relationToggle.checked = savedPresentationMode !== null
+                    ? savedPresentationMode === '1'
+                    : (savedRelationMode === '1');
+                relationToggle.addEventListener('change', () => {
+                    localStorage.setItem('drg_presentation_mode', relationToggle.checked ? '1' : '0');
+                    if (rawGraphElements.length > 0) initCytoscape(rawGraphElements);
+                    else loadFullGraph();
+                });
+            }
+
             const savedThreshold = localStorage.getItem('drg_hub_split_threshold');
             if (hubThreshold) {
-                if (savedThreshold) hubThreshold.value = savedThreshold;
-                // Disable threshold input when anti-hub is off (purely UI-side control).
+                hubThreshold.value = savedThreshold || '6';
                 if (hubToggle) hubThreshold.disabled = !hubToggle.checked;
-                hubThreshold.addEventListener('change', () => {
+                const updateHubThreshold = () => {
+                    updateAntiHubThresholdControls(graphMaxDegree);
                     localStorage.setItem('drg_hub_split_threshold', hubThreshold.value || '10');
-                    loadFullGraph();
-                });
+                    scheduleGraphReload();
+                };
+                hubThreshold.addEventListener('input', updateHubThreshold);
+                hubThreshold.addEventListener('change', updateHubThreshold);
             }
 
-            // Apply saved layout to the select UI on load.
-            if (layoutSelect) {
-                layoutSelect.value = currentLayout;
-            }
+            if (layoutSelect) layoutSelect.value = currentLayout;
 
             loadFullGraph();
         });

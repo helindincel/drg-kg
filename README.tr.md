@@ -4,24 +4,26 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-DRG bir **Knowledge Graph Lifecycle Framework**'tür: yapılandırılmamış metinleri
-aranabilir ve açıklanabilir Bilgi Grafiklerine dönüştüren, ayrıca ilk
-extraction sonrasında graph'ın nasıl doğrulanacağını, güncelleneceğini,
-versiyonlanacağını, sorgulanacağını ve değerlendirileceğini paketleyen şema
-odaklı bir Python kütüphanesidir. Deklaratif şemalar ve DSPy tabanlı extraction
-kullanır; üretilen graph nesneleri doğrulanabilir, merge edilebilir,
-versiyonlanabilir, karşılaştırılabilir, sorgulanabilir, değerlendirilebilir,
-API üzerinden sunulabilir veya Neo4j'ye aktarılabilir.
+DRG bir **şema odaklı Knowledge Graph extraction framework**'tür.
+Yapılandırılmamış metni, deklaratif şemalar ve DSPy tabanlı extraction ile
+açıklanabilir Knowledge Graph artifact'larına dönüştürür.
+
+Ana vaat extraction'dır: domain şeması tanımlayın veya metinden türetin, typed
+entity ve relation çıkarın, ardından incelenebilir, doğrulanabilir,
+deterministik sorgulanabilir, versiyonlanabilir, değerlendirilebilir veya
+export edilebilir bir `EnhancedKG` oluşturun. DRG bir GraphRAG framework
+değildir, bir RAG framework değildir, retrieval veya chat application stack'i
+değildir. Query, API, MCP, Neo4j, optimizer ve evaluation modülleri çıkarılmış
+graph'ların etrafındaki destek katmanlarıdır.
 
 İngilizce dokümantasyon için [`README.md`](README.md) dosyasına bakın.
 
 ## Alpha Durumu
 
-DRG şu anda alpha aşamasındadır. Temel kavramlar deneme ve prototipleme için
-yeterince oturmuş olsa da public API'ler, JSON formatları, CLI flag'leri ve
-opsiyonel entegrasyon yüzeyleri `v1.0` öncesinde değişebilir. Ciddi deneyler
-için versiyon pin'leyin ve yükseltme öncesinde [`CHANGELOG.md`](CHANGELOG.md)
-dosyasını inceleyin.
+DRG şu anda alpha aşamasındadır. Ana extraction API'leri alpha serisi için
+stabil kabul edilir; JSON formatları, CLI flag'leri ve opsiyonel entegrasyon
+yüzeyleri `v1.0` öncesinde değişebilir. Ciddi deneyler için versiyon pin'leyin
+ve yükseltme öncesinde [`CHANGELOG.md`](CHANGELOG.md) dosyasını inceleyin.
 
 ## Neden DRG?
 
@@ -61,8 +63,8 @@ döngüsünü paketler:
 
 DRG şunları hedefler:
 
-- Bir Knowledge Graph lifecycle framework'ü olmak.
-- Şema-first bir Knowledge Graph extraction kütüphanesi olmak.
+- Bir Knowledge Graph extraction framework'ü olmak.
+- Metinden typed entity ve relation çıkaran schema-first bir kütüphane olmak.
 - Metinden gelen entity ve relation'lar için graph construction ve enrichment
   toolkit'i sağlamak.
 - `EnhancedKG` etrafında deterministik query, evaluation, versioning,
@@ -72,9 +74,13 @@ DRG şunları hedefler:
 DRG şunlar değildir:
 
 - Genel amaçlı bir LLM uygulama framework'ü.
+- GraphRAG framework'ü.
+- RAG framework'ü.
 - Chatbot framework'ü.
 - Database veya search backend.
 - Retrieval framework.
+- Vector veya hybrid search katmanı; embedding'ler serving index değil,
+  entity resolution/export için opsiyonel yardımcı sinyallerdir.
 - Neo4j, NetworkX, LangChain, LlamaIndex veya DSPy yerine geçen bir araç.
 - Henüz hosted product veya tam stabil production platform.
 
@@ -124,6 +130,21 @@ CLI / FastAPI UI / MCP / Neo4j Export / JSON
 | Integration | MCP server | Mevcut | KG operasyonlarını MCP uyumlu client'lara açar. |
 | Quality | Evaluation framework | Mevcut | Extraction, graph-query, structural ve performans metrikleri. |
 
+## Experimental Özellikler
+
+Aşağıdaki modüller araştırma ve entegrasyon deneyleri için kullanışlıdır, ancak
+henüz dondurulmuş core extraction API'nin parçası değildir:
+
+- Optimizer integration: DSPy optimizer workflow'ları experimentaldir; training
+  data ve metrik pratikleri oturdukça değişebilir.
+- Confidence calibration: confidence strategy'leri ve calibrated score'lar,
+  kendi labelled verinizle fit edilmedikçe heuristic/experimentaldir.
+- Long-document optimization: chunking, cross-chunk relation recovery ve
+  windowed relation extraction gelişmeye devam etmektedir.
+- API/UI/MCP entegrasyon detayları: dokümante komut ve endpoint'lerin çalışması
+  hedeflenir, ancak internal response shape ve UI implementation detayları
+  değişebilir.
+
 ## Kullanım Alanları
 
 - Haber analizi: haberlerden kişi, şirket, olay, satın alma, çatışma ve
@@ -142,8 +163,7 @@ CLI / FastAPI UI / MCP / Neo4j Export / JSON
 
 `v0.2` hedefleri:
 
-- Örneklerde kullanılan top-level Python API ve CLI contract'larını stabilize
-  etmek.
+- Top-level Python extraction API'sini alpha serisi boyunca stabil tutmak.
 - API key gerektirmeyen ve mock'lu demoları genişleterek yeni kullanıcıların
   DRG'yi hızlı değerlendirmesini sağlamak.
 - Extraction, temporal metadata ve graph query için evaluation kapsamını
@@ -175,11 +195,11 @@ DRG birkaç ekosistemdeki fikirlerin üzerine inşa edilir:
 
 ## Kurulum
 
-DRG Python 3.10, 3.11 ve 3.12 üzerinde desteklenir.
+DRG Python 3.10, 3.11, 3.12 ve 3.13 üzerinde desteklenir.
 
 ```bash
-# Kaynak kod checkout'ı, tüm lokal demo stack'i
-pip install -e ".[all]"
+# Kaynak kod checkout'ı, minimal graph/query kullanımı
+pip install -e .
 
 # Geliştirme araçları
 pip install -e ".[dev]"
@@ -203,16 +223,20 @@ pip install "drg-kg[extract]"  # Yalnızca DSPy extraction
 Tam ilk çalıştırma rehberi için
 [`docs/getting_started.md`](docs/getting_started.md) dosyasına bakın.
 
+İlk çalıştırılabilir örnek API key veya LLM gerektirmez:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[all]"
+pip install -e .
 drg --help
+python examples/query_layer_example.py
 ```
 
 Canlı extraction için bir model provider yapılandırılmalıdır:
 
 ```bash
+pip install -e ".[extract]"
 cp .env.example .env
 
 export DRG_MODEL=openai/gpt-4o-mini
@@ -226,6 +250,11 @@ export GEMINI_API_KEY=...
 export DRG_MODEL=ollama_chat/llama3
 export DRG_BASE_URL=http://localhost:11434
 ```
+
+Production extraction için LM yoksa hızlı hata almak önerilir. `DRG_REQUIRE_LM=1`
+veya `DRG_STRICT=1` ayarlandığında eksik LM konfigürasyonu `LLMConfigError`
+üretir; bu bayraklar yokken Python API testler ve offline örnekler için boş
+extraction döndürmeye devam eder.
 
 Hikaye odaklı bir CLI extraction örneği:
 
@@ -303,6 +332,20 @@ API key ayarlamadan deterministik repo demosunu denemek için:
 python examples/query_layer_example.py
 ```
 
+## Public API Stabilitesi
+
+Tercih edilen Python API isimleri alpha serisi için dondurulmuş kabul edilir:
+`extract_typed()`, `extract_from_chunks()`, `extract_typed_async()`,
+`extract_from_chunks_async()` ve backward-compatible `extract_triples()`
+wrapper'ı. Bu isimler ve temel return davranışları changelog girdisi ve
+migration notu olmadan değiştirilmemelidir.
+
+`DRGSchema`, `EnhancedDRGSchema`, `EntityType`, `Relation` gibi schema tipleri
+ve `build_enhanced_kg()` builder'ı da dokümante kullanıcı yüzeyinin parçasıdır.
+Optimizer, API, MCP, UI ve prompt internallerinden deep import'lar experimental
+kalmaya devam eder. Detaylar için [`docs/public_api.md`](docs/public_api.md)
+dosyasına bakın.
+
 ## Örnek Galerisi
 
 | Örnek | Ne gösterir? |
@@ -320,6 +363,9 @@ python examples/query_layer_example.py
 | [`examples/evaluation_framework_example.py`](examples/evaluation_framework_example.py) | Evaluation metrikleri ve rapor üretimi. |
 | [`examples/mcp_demo.py`](examples/mcp_demo.py) | MCP entegrasyon akışı. |
 | [`examples/optimizer_demo.py`](examples/optimizer_demo.py) | Extraction etrafında DSPy optimizer deneyleri. |
+
+Input -> output artifact walkthrough için:
+[`docs/input_output_examples.tr.md`](docs/input_output_examples.tr.md).
 
 ## CLI
 
@@ -390,10 +436,24 @@ drg/
 - Kurulum ve konfigürasyon: [`docs/setup.md`](docs/setup.md)
 - Mimari: [`docs/project_overview.md`](docs/project_overview.md)
 - Pipeline: [`docs/pipeline_overview.md`](docs/pipeline_overview.md)
+- Input/output walkthrough: [`docs/input_output_examples.tr.md`](docs/input_output_examples.tr.md)
 - Şema tasarımı: [`docs/schema_design.md`](docs/schema_design.md)
 - Public API: [`docs/public_api.md`](docs/public_api.md)
 - Benchmarking: [`docs/benchmarking.md`](docs/benchmarking.md)
 - Quickstart scriptleri: [`examples/quickstarts/README.md`](examples/quickstarts/README.md)
+
+## Known Limitations
+
+- DRG Knowledge Graph artifact'ları çıkarır ve bu artifact'lar üzerinde işlem
+  yapar; GraphRAG veya RAG serving stack'i sağlamaz.
+- Optimizer integration experimentaldir ve stabil production tuning katmanı
+  değil, research workflow olarak ele alınmalıdır.
+- Long-document optimization gelişmektedir; chunking ve cross-chunk relation
+  recovery domain'e göre tuning gerektirebilir.
+- Confidence calibration, domain'iniz için labelled data ile kalibre edilmedikçe
+  heuristic/experimentaldir.
+- Live extraction kalitesi kullanılan LLM'e, schema kalitesine ve provider
+  davranışına bağlıdır.
 
 ## Geliştirme
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio as _asyncio
 import contextlib
 import functools as _functools
+import json
 import os
 from collections import Counter
 from typing import Any
@@ -47,6 +48,7 @@ from ._schema_gen import (
     _sample_text_for_schema_generation,  # noqa: F401 — imported for test access
     generate_schema_from_text,
 )
+from ._schema_sanitizer import SchemaSanitizer, SanitizationReport
 from ._signatures import (
     _create_coreference_signature,
     _create_document_relation_signature,
@@ -85,6 +87,8 @@ __all__ = [
     # Public API
     "KGExtractor",
     "RelationList",
+    "SanitizationReport",
+    "SchemaSanitizer",
     "SchemaGeneration",
     "SchemaOutput",
     "create_kgedge_from_triple",
@@ -135,37 +139,7 @@ def _maybe_lm_context(lm: Any | None):
     return contextlib.nullcontext()
 
 
-def _maybe_json_adapter_context():
-    """Use DSPy 3's JSONAdapter for structured Pydantic outputs when available."""
-    json_adapter_cls = getattr(dspy, "JSONAdapter", None)
-    if json_adapter_cls is None or isinstance(json_adapter_cls, _Mock):
-        return contextlib.nullcontext()
-
-    settings = getattr(dspy, "settings", None)
-    if settings is not None and getattr(settings, "adapter", None) is not None:
-        return contextlib.nullcontext()
-
-    try:
-        adapter = json_adapter_cls()
-    except Exception:
-        return contextlib.nullcontext()
-
-    ctx_factory = getattr(dspy, "context", None)
-    if ctx_factory is not None and not isinstance(ctx_factory, _Mock):
-        try:
-            return ctx_factory(adapter=adapter)
-        except TypeError:
-            pass
-
-    if settings is not None:
-        sub_ctx = getattr(settings, "context", None)
-        if sub_ctx is not None and not isinstance(sub_ctx, _Mock):
-            try:
-                return sub_ctx(adapter=adapter)
-            except TypeError:
-                pass
-
-    return contextlib.nullcontext()
+from ._adapters import _maybe_json_adapter_context, run_predict
 
 
 def _should_return_dspy_prediction() -> bool:
@@ -187,6 +161,52 @@ def _should_return_dspy_prediction() -> bool:
     if not isinstance(pred_cls, type):
         return False
     return getattr(pred_cls, "__module__", "").startswith("dspy")
+
+
+def _truthy_env(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def _require_lm() -> bool:
+    """Return whether extraction should fail instead of mock-mode degrading."""
+    return is_strict() or _truthy_env("DRG_REQUIRE_LM") or _truthy_env("DRG_PRODUCTION")
+
+
+def _effective_lm(lm: Any | None) -> Any | None:
+    """Return the injected or globally configured DSPy LM after auto config."""
+    if lm is not None:
+        return lm
+    _configure_llm_auto()
+    return getattr(getattr(dspy, "settings", None), "lm", None)
+
+
+def _empty_extraction_result(return_enriched: bool):
+    if return_enriched:
+        return [], [], []
+    return [], []
+
+
+def _guard_lm_or_mock_empty(*, lm: Any | None, return_enriched: bool, operation: str):
+    """Common LM guard for public extraction APIs.
+
+    Tests and notebooks may intentionally run without a configured LM. In that
+    case legacy mock mode still returns empty extraction unless strict/prod mode
+    asks us to fail fast.
+    """
+    effective_lm = _effective_lm(lm)
+    if effective_lm is not None or isinstance(_get_extractor, _Mock):
+        return None
+
+    message = (
+        "No DSPy LM is loaded. Configure LM via environment variables "
+        "(e.g., DRG_MODEL + API key) or unset DRG_REQUIRE_LM/DRG_STRICT to allow "
+        "mock-mode empty extraction."
+    )
+    if _require_lm():
+        raise LLMConfigError(message)
+
+    logger.warning("No DSPy LM configured for %s; returning empty extraction (mock mode).", operation)
+    return _empty_extraction_result(return_enriched)
 
 
 def _coerce_entity_mentions(raw_entities: Any) -> list[EntityMention]:
@@ -358,6 +378,300 @@ def _remap_enriched_to_triples(
     return aligned
 
 
+def _filter_relation_metadata(
+    triples: list[tuple[str, str, str]],
+    enriched_relations: list[dict[str, Any]] | None,
+    *,
+    min_confidence: float | None = None,
+    filter_negated: bool = True,
+) -> tuple[list[tuple[str, str, str]], list[dict[str, Any]]]:
+    """Apply a single relation metadata policy across single/chunk paths."""
+    aligned = _remap_enriched_to_triples(enriched_relations, triples)
+    kept_triples: list[tuple[str, str, str]] = []
+    kept_enriched: list[dict[str, Any]] = []
+
+    for triple, rel_dict in zip(triples, aligned, strict=False):
+        if filter_negated and rel_dict.get("is_negated", False):
+            logger.debug("Filtered out negated relation: %s", rel_dict.get("relation", triple))
+            continue
+
+        if min_confidence is not None:
+            confidence = rel_dict.get("confidence")
+            if isinstance(confidence, (int, float)) and confidence < min_confidence:
+                logger.debug(
+                    "Filtered out low-confidence relation %s (confidence %.3f < %.3f)",
+                    rel_dict.get("relation", triple),
+                    confidence,
+                    min_confidence,
+                )
+                continue
+
+        kept_triples.append(triple)
+        kept_enriched.append(rel_dict)
+
+    return kept_triples, kept_enriched
+
+
+def _postprocess_schema_and_metadata(
+    *,
+    schema: DRGSchema | EnhancedDRGSchema,
+    entities: list[tuple[str, str]],
+    triples: list[tuple[str, str, str]],
+    enriched_relations: list[dict[str, Any]] | None,
+    min_confidence: float | None = None,
+    filter_negated: bool = True,
+    enable_reverse_relation_fallback: bool = False,
+) -> tuple[list[tuple[str, str]], list[tuple[str, str, str]], list[dict[str, Any]]]:
+    """Shared schema validation and relation metadata filtering."""
+    valid_entities, valid_triples = _filter_against_schema(
+        schema=schema,
+        entities_typed=entities,
+        triples=triples,
+        enable_reverse_relation_fallback=enable_reverse_relation_fallback,
+    )
+    valid_triples, valid_enriched = _filter_relation_metadata(
+        valid_triples,
+        enriched_relations,
+        min_confidence=min_confidence,
+        filter_negated=filter_negated,
+    )
+    return valid_entities, valid_triples, valid_enriched
+
+
+def _relation_schema_triples(schema: DRGSchema | EnhancedDRGSchema) -> list[tuple[str, str, str]]:
+    normalized = _normalize_schema(schema)
+    return [(rel.name, rel.src, rel.dst) for rel in normalized.relations]
+
+
+def _candidate_relation_entity_groups(
+    schema: DRGSchema | EnhancedDRGSchema,
+    entities: list[tuple[str, str]],
+    *,
+    max_pairs: int,
+) -> list[dict[str, Any]]:
+    """Build schema-valid relation candidates for windowed document extraction."""
+    entities_by_type: dict[str, list[str]] = {}
+    for name, etype in entities:
+        if name.strip():
+            entities_by_type.setdefault(etype, []).append(name)
+
+    candidates: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for relation_name, src_type, dst_type in _relation_schema_triples(schema):
+        for source in entities_by_type.get(src_type, []):
+            for target in entities_by_type.get(dst_type, []):
+                if source == target:
+                    continue
+                key = (source, relation_name, target)
+                if key in seen:
+                    continue
+                seen.add(key)
+                candidates.append(
+                    {
+                        "relation": relation_name,
+                        "source": source,
+                        "source_type": src_type,
+                        "target": target,
+                        "target_type": dst_type,
+                    }
+                )
+                if len(candidates) >= max_pairs:
+                    return candidates
+    return candidates
+
+
+def _chunk_text(chunk: dict[str, Any] | str) -> str:
+    return chunk.get("text", "") if isinstance(chunk, dict) else str(chunk)
+
+
+def _select_evidence_windows_for_pair(
+    chunk_texts: list[str],
+    *,
+    source: str,
+    target: str,
+    max_windows: int,
+) -> list[dict[str, Any]]:
+    """Select compact chunks that mention both or either candidate endpoint."""
+    source_l = source.lower()
+    target_l = target.lower()
+    both: list[dict[str, Any]] = []
+    either: list[dict[str, Any]] = []
+
+    for idx, text in enumerate(chunk_texts):
+        if not text.strip():
+            continue
+        lowered = text.lower()
+        item = {"chunk_id": idx, "text": text}
+        has_source = source_l in lowered
+        has_target = target_l in lowered
+        if has_source and has_target:
+            both.append(item)
+        elif has_source or has_target:
+            either.append(item)
+
+    selected = both[:max_windows]
+    if len(selected) < max_windows:
+        selected.extend(either[: max_windows - len(selected)])
+    if selected:
+        return selected
+
+    # Conservative fallback: give the extractor one non-empty chunk rather than
+    # the whole document when string matching misses an alias.
+    for idx, text in enumerate(chunk_texts):
+        if text.strip():
+            return [{"chunk_id": idx, "text": text}]
+    return []
+
+
+def _should_use_windowed_document_relations(
+    *,
+    chunks: list[dict[str, Any]] | list[str],
+    entities: list[tuple[str, str]],
+) -> bool:
+    mode = os.getenv("DRG_WINDOWED_RELATION_EXTRACTION", "auto").strip().lower()
+    if mode in {"1", "true", "yes", "on", "always"}:
+        return True
+    if mode in {"0", "false", "no", "off", "never"}:
+        return False
+    chunk_threshold = int(os.getenv("DRG_WINDOWED_RELATION_CHUNK_THRESHOLD", "6"))
+    entity_threshold = int(os.getenv("DRG_WINDOWED_RELATION_ENTITY_THRESHOLD", "25"))
+    return len(chunks) >= chunk_threshold or len(entities) >= entity_threshold
+
+
+def _extract_document_relations_windowed(
+    *,
+    extractor: Any,
+    schema: DRGSchema | EnhancedDRGSchema,
+    chunks: list[dict[str, Any]] | list[str],
+    entities: list[tuple[str, str]],
+) -> ExtractionResult:
+    """Extract document relations through schema-valid candidate windows."""
+    max_pairs = int(os.getenv("DRG_MAX_RELATION_CANDIDATE_PAIRS", "160"))
+    max_windows = int(os.getenv("DRG_MAX_RELATION_EVIDENCE_WINDOWS", "3"))
+    chunk_texts = [_chunk_text(chunk) for chunk in chunks]
+    entity_type = dict(entities)
+    candidates = _candidate_relation_entity_groups(schema, entities, max_pairs=max_pairs)
+
+    triples: list[tuple[str, str, str]] = []
+    enriched: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+
+    for candidate in candidates:
+        windows = _select_evidence_windows_for_pair(
+            chunk_texts,
+            source=candidate["source"],
+            target=candidate["target"],
+            max_windows=max_windows,
+        )
+        if not windows:
+            continue
+
+        pair_entities = _dedupe_preserve_order(
+            [
+                (candidate["source"], candidate["source_type"]),
+                (candidate["target"], candidate["target_type"]),
+            ]
+        )
+        throttle_llm_calls()
+        result = extractor.extract_document_relations(chunks=windows, entities=pair_entities)
+        result_relations = getattr(result, "relations", [])
+        result_enriched = _remap_enriched_to_triples(
+            getattr(result, "enriched_relations", None),
+            result_relations,
+        )
+
+        for triple, rel_dict in zip(result_relations, result_enriched, strict=False):
+            s, _r, o = triple
+            if s not in entity_type or o not in entity_type or triple in seen:
+                continue
+            seen.add(triple)
+            triples.append(triple)
+            metadata = dict(rel_dict.get("metadata") or {})
+            metadata.setdefault("source", "windowed_document_relation_extraction")
+            metadata.setdefault(
+                "candidate_relation",
+                (candidate["source"], candidate["relation"], candidate["target"]),
+            )
+            metadata.setdefault("evidence_chunk_ids", [w["chunk_id"] for w in windows])
+            copied = dict(rel_dict)
+            copied["relation"] = triple
+            copied["metadata"] = metadata
+            enriched.append(copied)
+
+    logger.info(
+        "Windowed document relation extraction completed: %d candidates -> %d relations",
+        len(candidates),
+        len(triples),
+    )
+    return ExtractionResult(entities=entities, relations=triples, enriched_relations=enriched)
+
+
+def _infer_implicit_relations_windowed(
+    *,
+    extractor: Any,
+    schema: DRGSchema | EnhancedDRGSchema,
+    chunks: list[dict[str, Any]] | list[str],
+    entities: list[tuple[str, str]],
+    existing_relations: list[tuple[str, str, str]],
+) -> ExtractionResult:
+    """Infer implicit relations through the same candidate-window budget."""
+    max_pairs = int(os.getenv("DRG_MAX_IMPLICIT_CANDIDATE_PAIRS", "120"))
+    max_windows = int(os.getenv("DRG_MAX_RELATION_EVIDENCE_WINDOWS", "3"))
+    chunk_texts = [_chunk_text(chunk) for chunk in chunks]
+    candidates = _candidate_relation_entity_groups(schema, entities, max_pairs=max_pairs)
+
+    triples: list[tuple[str, str, str]] = []
+    enriched: list[dict[str, Any]] = []
+    seen = set(existing_relations)
+    entity_type = dict(entities)
+
+    for candidate in candidates:
+        windows = _select_evidence_windows_for_pair(
+            chunk_texts,
+            source=candidate["source"],
+            target=candidate["target"],
+            max_windows=max_windows,
+        )
+        if not windows:
+            continue
+        pair_entities = [
+            (candidate["source"], candidate["source_type"]),
+            (candidate["target"], candidate["target_type"]),
+        ]
+        window_text = "\n\n".join(window["text"] for window in windows)
+        throttle_llm_calls()
+        result = extractor.infer_implicit_relations(
+            text=window_text,
+            entities=pair_entities,
+            existing_relations=existing_relations,
+        )
+        result_relations = getattr(result, "relations", [])
+        result_enriched = _remap_enriched_to_triples(
+            getattr(result, "enriched_relations", None),
+            result_relations,
+        )
+        for triple, rel_dict in zip(result_relations, result_enriched, strict=False):
+            s, _r, o = triple
+            if s not in entity_type or o not in entity_type or triple in seen:
+                continue
+            seen.add(triple)
+            triples.append(triple)
+            metadata = dict(rel_dict.get("metadata") or {})
+            metadata.setdefault("source", "windowed_implicit_relation_inference")
+            metadata.setdefault("evidence_chunk_ids", [w["chunk_id"] for w in windows])
+            copied = dict(rel_dict)
+            copied["relation"] = triple
+            copied["metadata"] = metadata
+            enriched.append(copied)
+
+    logger.info(
+        "Windowed implicit relation inference completed: %d candidates -> %d relations",
+        len(candidates),
+        len(triples),
+    )
+    return ExtractionResult(entities=entities, relations=triples, enriched_relations=enriched)
+
+
 def _canonicalize_chunk_entities(
     chunk_entities_list: list[list[tuple[str, str]]],
     name_mapping: dict[str, str],
@@ -489,7 +803,12 @@ class KGExtractor(dspy.Module):
         with an injected LM context)."""
         logger.info("Starting entity extraction...")
 
-        entity_result = self.entity_extractor(text=text, entity_types=self._entity_types)
+        entity_result = run_predict(
+            self.entity_extractor,
+            salvage_fields=("entities",),
+            text=text,
+            entity_types=self._entity_types,
+        )
         entities_raw = (
             entity_result.entities
             if isinstance(entity_result, EntityList)
@@ -523,7 +842,9 @@ class KGExtractor(dspy.Module):
             f"{context_count} context = {len(entities_list)} total entities."
         )
 
-        relation_result = self.relation_extractor(
+        relation_result = run_predict(
+            self.relation_extractor,
+            salvage_fields=("relations",),
             text=text,
             entities=_entity_mentions_to_dspy_input(entity_mentions),
             relation_schema=self._relation_schema,
@@ -547,15 +868,21 @@ class KGExtractor(dspy.Module):
         enriched_relations = []
         for i, rel in enumerate(extracted_relations):
             typed_temporal = _temporal_to_dict(rel.temporal)
+            heuristic_temporal = temporal_info[i] if temporal_info else None
+            heuristic_negated = negations[i] if negations is not None else False
+            metadata = dict(rel.metadata)
+            if typed_temporal is None and heuristic_temporal is not None:
+                metadata.setdefault("temporal_source", "heuristic")
+            if not rel.is_negated and heuristic_negated:
+                metadata.setdefault("negation_source", "heuristic")
             enriched_relations.append(
                 {
                     "relation": _relation_to_triple(rel),
                     "confidence": rel.confidence,
                     "evidence": rel.evidence,
-                    "temporal": typed_temporal or (temporal_info[i] if temporal_info else None),
-                    "is_negated": rel.is_negated
-                    or (negations[i] if negations is not None else False),
-                    "metadata": rel.metadata,
+                    "temporal": typed_temporal or heuristic_temporal,
+                    "is_negated": rel.is_negated or heuristic_negated,
+                    "metadata": metadata,
                 }
             )
 
@@ -582,7 +909,9 @@ class KGExtractor(dspy.Module):
             stack.enter_context(_maybe_lm_context(self.lm))
             stack.enter_context(_maybe_json_adapter_context())
             entity_mentions = _tuples_to_entity_mentions(entities)
-            result = self.document_relation_extractor(
+            result = run_predict(
+                self.document_relation_extractor,
+                salvage_fields=("relations",),
                 document_chunks=_chunks_to_dspy_input(chunks),
                 entities=_entity_mentions_to_dspy_input(entity_mentions),
                 relation_schema=self._relation_schema,
@@ -610,7 +939,9 @@ class KGExtractor(dspy.Module):
             stack.enter_context(_maybe_lm_context(self.lm))
             stack.enter_context(_maybe_json_adapter_context())
             entity_mentions = _tuples_to_entity_mentions(entities)
-            result = self.implicit_relation_extractor(
+            result = run_predict(
+                self.implicit_relation_extractor,
+                salvage_fields=("relations",),
                 text=text,
                 entities=_entity_mentions_to_dspy_input(entity_mentions),
                 existing_relations=_relations_to_dspy_input(existing_relations),
@@ -639,7 +970,9 @@ class KGExtractor(dspy.Module):
             stack.enter_context(_maybe_lm_context(self.lm))
             stack.enter_context(_maybe_json_adapter_context())
             entity_mentions = _tuples_to_entity_mentions(entities)
-            result = self.coreference_resolver(
+            result = run_predict(
+                self.coreference_resolver,
+                salvage_fields=("resolved_relations", "relations"),
                 text=text,
                 entities=_entity_mentions_to_dspy_input(entity_mentions),
                 relations=_relations_to_dspy_input(relations),
@@ -664,6 +997,28 @@ class KGExtractor(dspy.Module):
 # ---------------------------------------------------------------------------
 
 _extractor: KGExtractor | None = None
+
+
+def _schema_fingerprint(schema: DRGSchema | EnhancedDRGSchema) -> str:
+    """Return a stable cache key for all extraction-relevant schema metadata."""
+    if isinstance(schema, EnhancedDRGSchema):
+        payload = schema.to_dict()
+    else:
+        payload = {
+            "entities": [{"name": e.name} for e in schema.entities],
+            "relations": [
+                {
+                    "name": r.name,
+                    "src": r.src,
+                    "dst": r.dst,
+                    "description": r.description,
+                    "detail": r.detail,
+                    "properties": r.properties,
+                }
+                for r in schema.relations
+            ],
+        }
+    return json.dumps(payload, sort_keys=True, ensure_ascii=False)
 
 
 def _configure_llm_auto() -> None:
@@ -697,15 +1052,7 @@ def _get_extractor(
         _extractor = KGExtractor(schema, lm=lm)
         return _extractor
 
-    normalized_old = _normalize_schema(_extractor.schema)
-    normalized_new = _normalize_schema(schema)
-
-    old_entities = {e.name for e in normalized_old.entities}
-    old_relations = {(r.name, r.src, r.dst) for r in normalized_old.relations}
-    new_entities = {e.name for e in normalized_new.entities}
-    new_relations = {(r.name, r.src, r.dst) for r in normalized_new.relations}
-
-    schema_changed = old_entities != new_entities or old_relations != new_relations
+    schema_changed = _schema_fingerprint(_extractor.schema) != _schema_fingerprint(schema)
     lm_changed = _extractor.lm is not lm
 
     if schema_changed or lm_changed:
@@ -734,6 +1081,8 @@ def extract_from_chunks(
     two_pass_extraction: bool = True,
     embedding_provider: Any = None,
     return_enriched: bool = False,
+    min_confidence: float | None = None,
+    filter_negated: bool = True,
     lm: Any | None = None,
 ) -> (
     tuple[list[tuple[str, str]], list[tuple[str, str, str]]]
@@ -751,13 +1100,13 @@ def extract_from_chunks(
             of reading from the global ``dspy.settings``. Default ``None``
             preserves the legacy auto-configuration behaviour.
     """
-    # Mock-mode short-circuit: if no LM is configured, return empty results.
-    effective_lm = lm if lm is not None else getattr(getattr(dspy, "settings", None), "lm", None)
-    if effective_lm is None and not isinstance(_get_extractor, _Mock):
-        logger.warning("No DSPy LM configured; returning empty extraction (mock mode).")
-        if return_enriched:
-            return [], [], []
-        return [], []
+    guarded_empty = _guard_lm_or_mock_empty(
+        lm=lm,
+        return_enriched=return_enriched,
+        operation="extract_from_chunks",
+    )
+    if guarded_empty is not None:
+        return guarded_empty
 
     extractor = _get_extractor(schema, lm=lm)
 
@@ -849,11 +1198,19 @@ def extract_from_chunks(
                 raise ExtractionError(
                     "Extractor does not support document-level relation extraction"
                 )
-            throttle_llm_calls()
-            document_result = extractor.extract_document_relations(
-                chunks=_chunks_to_dspy_input(chunk_texts),
-                entities=all_entities,
-            )
+            if _should_use_windowed_document_relations(chunks=chunk_texts, entities=all_entities):
+                document_result = _extract_document_relations_windowed(
+                    extractor=extractor,
+                    schema=schema,
+                    chunks=chunk_texts,
+                    entities=all_entities,
+                )
+            else:
+                throttle_llm_calls()
+                document_result = extractor.extract_document_relations(
+                    chunks=_chunks_to_dspy_input(chunk_texts),
+                    entities=all_entities,
+                )
             all_triples.extend(getattr(document_result, "relations", []))
             document_enriched = getattr(document_result, "enriched_relations", None)
             if isinstance(document_enriched, list):
@@ -994,16 +1351,24 @@ def extract_from_chunks(
                 raise ExtractionError(
                     "Extractor does not support document-level relation extraction"
                 )
-            throttle_llm_calls()
-            document_result = extractor.extract_document_relations(
-                chunks=_chunks_to_dspy_input(
-                    [
-                        chunk.get("text", "") if isinstance(chunk, dict) else str(chunk)
-                        for chunk in chunks
-                    ]
-                ),
-                entities=_dedupe_preserve_order(all_entities),
-            )
+            document_entities = _dedupe_preserve_order(all_entities)
+            document_chunks = [_chunk_text(chunk) for chunk in chunks]
+            if _should_use_windowed_document_relations(
+                chunks=document_chunks,
+                entities=document_entities,
+            ):
+                document_result = _extract_document_relations_windowed(
+                    extractor=extractor,
+                    schema=schema,
+                    chunks=document_chunks,
+                    entities=document_entities,
+                )
+            else:
+                throttle_llm_calls()
+                document_result = extractor.extract_document_relations(
+                    chunks=_chunks_to_dspy_input(document_chunks),
+                    entities=document_entities,
+                )
             all_triples.extend(getattr(document_result, "relations", []))
             document_enriched = getattr(document_result, "enriched_relations", None)
             if isinstance(document_enriched, list):
@@ -1014,15 +1379,16 @@ def extract_from_chunks(
     all_triples = _dedupe_preserve_order(all_triples)
     all_enriched = _remap_enriched_to_triples(all_enriched, all_triples)
 
-    # Schema validation: filter entities/triples to schema-declared types and
-    # relations (parity with extract_typed which applies _filter_against_schema).
+    # Schema validation: keep entities/triples within the declared ontology.
     try:
-        all_entities, all_triples = _filter_against_schema(
+        all_entities, all_triples, all_enriched = _postprocess_schema_and_metadata(
             schema=schema,
-            entities_typed=all_entities,
+            entities=all_entities,
             triples=all_triples,
+            enriched_relations=all_enriched,
+            # Final relation metadata filtering runs after implicit inference.
+            filter_negated=False,
         )
-        all_enriched = _remap_enriched_to_triples(all_enriched, all_triples)
     except Exception as _schema_filter_exc:
         if is_strict():
             raise
@@ -1090,6 +1456,14 @@ def extract_from_chunks(
             )
             if isinstance(extractor, _Mock) or not hasattr(extractor, "infer_implicit_relations"):
                 inferred_result = ExtractionResult(entities=all_entities, relations=[])
+            elif _should_use_windowed_document_relations(chunks=chunks, entities=all_entities):
+                inferred_result = _infer_implicit_relations_windowed(
+                    extractor=extractor,
+                    schema=schema,
+                    chunks=chunks,
+                    entities=all_entities,
+                    existing_relations=all_triples,
+                )
             else:
                 throttle_llm_calls()
                 inferred_result = extractor.infer_implicit_relations(
@@ -1115,6 +1489,15 @@ def extract_from_chunks(
             if is_strict():
                 raise
             logger.debug("Implicit relationship inference failed: %s", e, exc_info=True)
+
+    all_entities, all_triples, all_enriched = _postprocess_schema_and_metadata(
+        schema=schema,
+        entities=all_entities,
+        triples=all_triples,
+        enriched_relations=all_enriched,
+        min_confidence=min_confidence,
+        filter_negated=filter_negated,
+    )
 
     # Optional hub-dominance QA gate (off by default).
     _validate_hub_dominance(all_triples)
@@ -1194,6 +1577,7 @@ def extract_typed(
     embedding_provider: Any = None,
     return_enriched: bool = False,
     min_confidence: float | None = None,
+    filter_negated: bool = True,
     enable_reverse_relation_fallback: bool = False,
     lm: Any | None = None,
 ) -> (
@@ -1223,21 +1607,13 @@ def extract_typed(
             f"Maximum allowed: {_max_chars:,} chars (set DRG_MAX_TEXT_CHARS to override)."
         )
 
-    # Mock-mode short-circuit: if no LM is available (neither injected nor
-    # globally configured) and the extractor is real, return empty extraction
-    # instead of crashing on the DSPy call.
-    effective_lm = lm if lm is not None else getattr(getattr(dspy, "settings", None), "lm", None)
-    if effective_lm is None and not isinstance(_get_extractor, _Mock):
-        if os.getenv("DRG_REQUIRE_LM", "").lower() in {"1", "true", "yes"}:
-            raise LLMConfigError(
-                "No DSPy LM is loaded. Configure LM via environment variables "
-                "(e.g., DRG_MODEL + API key) or unset DRG_REQUIRE_LM to allow "
-                "mock-mode empty extraction."
-            )
-        logger.warning("No DSPy LM configured; returning empty extraction (mock mode).")
-        if return_enriched:
-            return [], [], []
-        return [], []
+    guarded_empty = _guard_lm_or_mock_empty(
+        lm=lm,
+        return_enriched=return_enriched,
+        operation="extract_typed",
+    )
+    if guarded_empty is not None:
+        return guarded_empty
 
     extractor = _get_extractor(schema, lm=lm)
 
@@ -1246,42 +1622,10 @@ def extract_typed(
     entities_typed = result.entities if hasattr(result, "entities") and result.entities else []
     triples = result.relations if hasattr(result, "relations") and result.relations else []
 
-    # Enriched relation filtering (negation + min_confidence).
     enriched_relations: list[dict[str, Any]] | None = None
     enriched_raw = getattr(result, "enriched_relations", None)
     if isinstance(enriched_raw, list) and enriched_raw:
         enriched_relations = enriched_raw
-        filtered_triples: list[tuple[str, str, str]] = []
-        filtered_enriched: list[dict[str, Any]] = []
-        for i, rel_dict in enumerate(enriched_relations):
-            if rel_dict.get("is_negated", False):
-                logger.debug(f"Filtered out negated relation: {rel_dict.get('relation')}")
-                continue
-
-            if min_confidence is not None:
-                confidence = rel_dict.get("confidence")
-                if confidence is None:
-                    logger.debug(f"No confidence score for {rel_dict.get('relation')}, keeping")
-                elif confidence < min_confidence:
-                    logger.debug(
-                        f"Filtered out low-confidence relation {rel_dict.get('relation')} "
-                        f"(confidence: {confidence:.2f} < {min_confidence:.2f})"
-                    )
-                    continue
-
-            filtered_triples.append(triples[i] if i < len(triples) else rel_dict["relation"])
-            filtered_enriched.append(rel_dict)
-
-        triples = filtered_triples
-        enriched_relations = filtered_enriched
-
-        if min_confidence is not None:
-            filtered_count = len(enriched_raw) - len(filtered_enriched)
-            if filtered_count > 0:
-                logger.info(
-                    f"Confidence filtering: {filtered_count} relationships filtered out "
-                    f"(confidence < {min_confidence:.2f}), {len(filtered_enriched)} remaining"
-                )
 
     if not isinstance(entities_typed, list):
         raise ExtractionError(
@@ -1290,11 +1634,14 @@ def extract_typed(
     if not isinstance(triples, list):
         raise ExtractionError(f"Extraction returned invalid triples type: {type(triples).__name__}")
 
-    # Schema validation: keep only entities/relations the schema allows.
-    valid_entities, valid_triples = _filter_against_schema(
+    # Schema validation: keep only entities/relations the schema allows. Final
+    # metadata filters run after optional implicit relation inference below.
+    valid_entities, valid_triples, enriched_relations = _postprocess_schema_and_metadata(
         schema=schema,
-        entities_typed=entities_typed,
+        entities=entities_typed,
         triples=triples,
+        enriched_relations=enriched_relations,
+        filter_negated=False,
         enable_reverse_relation_fallback=enable_reverse_relation_fallback,
     )
 
@@ -1384,8 +1731,15 @@ def extract_typed(
                         enriched_relations.append(enriched_by_triple.get(t, {"relation": t}))
                     existing.add(t)
 
-    # Map enriched_relations to valid triples (after schema validation, before resolution).
-    valid_enriched = _remap_enriched_to_triples(enriched_relations, valid_triples)
+    valid_entities, valid_triples, valid_enriched = _postprocess_schema_and_metadata(
+        schema=schema,
+        entities=valid_entities,
+        triples=valid_triples,
+        enriched_relations=enriched_relations,
+        min_confidence=min_confidence,
+        filter_negated=filter_negated,
+        enable_reverse_relation_fallback=enable_reverse_relation_fallback,
+    )
 
     if return_enriched:
         return valid_entities, valid_triples, valid_enriched

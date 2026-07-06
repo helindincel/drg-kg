@@ -35,10 +35,12 @@ from .metrics import weighted_f1_metric
 
 __all__ = [
     "KGOptimizerConfig",
+    "PipelineStage",
     "optimize_extractor",
 ]
 
 OptimizerType = Literal["bootstrap", "mipro", "copro", "labeled_few_shot"]
+PipelineStage = Literal["single_text", "document_relations", "implicit_relations", "coreference"]
 
 
 @dataclass
@@ -59,6 +61,9 @@ class KGOptimizerConfig:
         teacher_settings: Extra kwargs forwarded to the DSPy teacher LM.
         trainset_fraction: Fraction of training examples to use as the
             bootstrap seed (rest used as validation).
+        pipeline_stage: Which DSPy program to compile. ``single_text`` keeps
+            the legacy ``KGExtractor.forward`` behavior; the other stages tune
+            document relation, implicit relation, or coreference sub-programs.
     """
 
     optimizer_type: OptimizerType = "bootstrap"
@@ -70,21 +75,85 @@ class KGOptimizerConfig:
     relation_weight: float = 0.4
     teacher_settings: dict[str, Any] = field(default_factory=dict)
     trainset_fraction: float = 0.8
+    pipeline_stage: PipelineStage = "single_text"
 
 
-def _make_dspy_examples(training_data: list[dict[str, Any]]) -> list[Any]:
+def _make_dspy_examples(
+    training_data: list[dict[str, Any]],
+    *,
+    pipeline_stage: PipelineStage = "single_text",
+) -> list[Any]:
     """Convert raw training dicts to ``dspy.Example`` objects."""
     import dspy
 
     examples = []
     for item in training_data:
-        ex = dspy.Example(
-            text=item.get("text", ""),
-            expected_entities=item.get("expected_entities", []),
-            expected_relations=item.get("expected_relations", []),
-        ).with_inputs("text")
+        payload = {
+            "text": item.get("text", ""),
+            "chunks": item.get("chunks", []),
+            "entities": item.get("entities", item.get("expected_entities", [])),
+            "relations": item.get("relations", []),
+            "existing_relations": item.get("existing_relations", item.get("relations", [])),
+            "expected_entities": item.get("expected_entities", []),
+            "expected_relations": item.get("expected_relations", []),
+            "expected_enriched_relations": item.get("expected_enriched_relations", []),
+        }
+        if pipeline_stage == "single_text":
+            ex = dspy.Example(**payload).with_inputs("text")
+        elif pipeline_stage == "document_relations":
+            ex = dspy.Example(**payload).with_inputs("chunks", "entities")
+        elif pipeline_stage == "implicit_relations":
+            ex = dspy.Example(**payload).with_inputs("text", "entities", "existing_relations")
+        elif pipeline_stage == "coreference":
+            ex = dspy.Example(**payload).with_inputs("text", "entities", "relations")
+        else:
+            raise ValueError(f"Unknown pipeline_stage: {pipeline_stage!r}")
         examples.append(ex)
     return examples
+
+
+def _build_optimizable_program(dspy_module, extractor, pipeline_stage: PipelineStage):
+    """Wrap a concrete extraction stage in a compile-able DSPy module."""
+
+    if pipeline_stage == "single_text":
+        return extractor
+
+    class OptimizableExtractionStage(dspy_module.Module):
+        def __init__(self, wrapped_extractor, stage: PipelineStage):
+            super().__init__()
+            self.extractor = wrapped_extractor
+            self.pipeline_stage = stage
+
+        def forward(
+            self,
+            text: str = "",
+            chunks: list[dict[str, Any]] | None = None,
+            entities: list[tuple[str, str]] | None = None,
+            relations: list[tuple[str, str, str]] | None = None,
+            existing_relations: list[tuple[str, str, str]] | None = None,
+        ):
+            entities = entities or []
+            relations = relations or []
+            existing_relations = existing_relations or []
+            chunks = chunks or []
+
+            if self.pipeline_stage == "document_relations":
+                return self.extractor.extract_document_relations(chunks=chunks, entities=entities)
+            if self.pipeline_stage == "implicit_relations":
+                return self.extractor.infer_implicit_relations(
+                    text=text,
+                    entities=entities,
+                    existing_relations=existing_relations,
+                )
+            if self.pipeline_stage == "coreference":
+                return self.extractor.resolve_coreferences_dspy(
+                    text=text,
+                    entities=entities,
+                    relations=relations,
+                )
+            raise ValueError(f"Unknown pipeline_stage: {self.pipeline_stage!r}")
+
+    return OptimizableExtractionStage(extractor, pipeline_stage)
 
 
 def _get_dspy_optimizer(dspy_module, name: str):
@@ -161,7 +230,9 @@ def optimize_extractor(
             raise ValueError("schema is required when extractor is not supplied.")
         extractor = KGExtractor(schema)
 
-    examples = _make_dspy_examples(training_data)
+    program = _build_optimizable_program(dspy, extractor, cfg.pipeline_stage)
+
+    examples = _make_dspy_examples(training_data, pipeline_stage=cfg.pipeline_stage)
     if not examples:
         raise ValueError("training_data must contain at least one example.")
 
@@ -180,12 +251,12 @@ def optimize_extractor(
             max_labeled_demos=cfg.max_labeled_demos,
             teacher_settings=cfg.teacher_settings or {},
         )
-        return teleprompter.compile(extractor, trainset=trainset)
+        return teleprompter.compile(program, trainset=trainset)
 
     elif cfg.optimizer_type == "labeled_few_shot":
         LabeledFewShot = _get_dspy_optimizer(dspy, "LabeledFewShot")
         teleprompter = LabeledFewShot(k=cfg.max_labeled_demos)
-        return teleprompter.compile(extractor, trainset=trainset)
+        return teleprompter.compile(program, trainset=trainset)
 
     elif cfg.optimizer_type == "copro":
         COPRO = _get_dspy_optimizer(dspy, "COPRO")
@@ -194,7 +265,7 @@ def optimize_extractor(
             verbose=False,
         )
         return teleprompter.compile(
-            extractor,
+            program,
             trainset=trainset,
             eval_kwargs={"devset": devset},
         )
@@ -212,7 +283,7 @@ def optimize_extractor(
             MIPRO = _get_dspy_optimizer(dspy, "MIPRO")
             teleprompter = MIPRO(metric=metric)
         return teleprompter.compile(
-            extractor,
+            program,
             trainset=trainset,
             max_bootstrapped_demos=cfg.max_bootstrapped_demos,
             max_labeled_demos=cfg.max_labeled_demos,

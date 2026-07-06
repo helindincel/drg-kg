@@ -106,6 +106,7 @@ def find_text_provenance(
     document_id: str | None = None,
     chunk_id: str | None = None,
     extractor_version: str | None = None,
+    preferred_snippet: str | None = None,
 ) -> ProvenanceRecord:
     """Return best-effort sentence/span provenance for terms in ``text``."""
 
@@ -117,6 +118,24 @@ def find_text_provenance(
     }
     if not text:
         return ProvenanceRecord(**base)
+
+    if preferred_snippet and preferred_snippet.strip():
+        snippet = preferred_snippet.strip()
+        normalized_snippet = snippet.removeprefix("… ").removesuffix(" …").strip()
+        pattern = re.compile(re.escape(normalized_snippet), flags=re.IGNORECASE)
+        match = pattern.search(text) if normalized_snippet else None
+        if match:
+            sentence_id: str | None = None
+            for sid, start, end, _ in _sentences(text):
+                if start <= match.start() < end:
+                    sentence_id = sid
+                    break
+            return ProvenanceRecord(
+                **base,
+                sentence_id=sentence_id,
+                source_span=(match.start(), match.end()),
+                snippet=normalized_snippet,
+            )
 
     lowered_terms = [t.lower().strip() for t in terms if t and t.strip()]
     best: tuple[str, int, int, str] | None = None

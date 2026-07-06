@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
@@ -21,6 +22,7 @@ import pytest
 # Stub dspy before any drg import so the module loads without a real install.
 sys.modules.setdefault("dspy", MagicMock())
 
+import drg.extract as extract_mod  # noqa: E402
 from drg.extract import (  # noqa: E402
     create_kgedge_from_triple,
     extract_from_chunks,
@@ -52,6 +54,56 @@ def rich_schema() -> DRGSchema:
             Relation("produces", "Company", "Product"),
         ],
     )
+
+
+# ---------------------------------------------------------------------------
+# Extractor cache invalidation
+# ---------------------------------------------------------------------------
+
+
+def test_get_extractor_rebuilds_when_schema_metadata_changes():
+    """Schema descriptions/details are part of the DSPy prompt contract."""
+    schema_v1 = DRGSchema(
+        entities=[Entity("Company"), Entity("Product")],
+        relations=[
+            Relation(
+                "produces",
+                "Company",
+                "Product",
+                description="A company manufactures or creates a product",
+                detail="Apple produces the iPhone.",
+            )
+        ],
+    )
+    schema_v2 = DRGSchema(
+        entities=[Entity("Company"), Entity("Product")],
+        relations=[
+            Relation(
+                "produces",
+                "Company",
+                "Product",
+                description="A company commercially releases a product line",
+                detail="Apple commercially released the iPhone.",
+            )
+        ],
+    )
+    lm = object()
+
+    extract_mod._extractor = None
+    try:
+        with patch("drg.extract.KGExtractor") as mock_extractor_cls:
+            mock_extractor_cls.side_effect = lambda schema, lm=None: SimpleNamespace(
+                schema=schema,
+                lm=lm,
+            )
+
+            first = extract_mod._get_extractor(schema_v1, lm=lm)
+            second = extract_mod._get_extractor(schema_v2, lm=lm)
+
+        assert first is not second
+        assert mock_extractor_cls.call_count == 2
+    finally:
+        extract_mod._extractor = None
 
 
 # ---------------------------------------------------------------------------
@@ -175,22 +227,18 @@ class TestAsyncWrappers:
         coro.close()
 
     def test_extract_typed_async_runs(self, simple_schema: DRGSchema):
-        result = asyncio.get_event_loop().run_until_complete(extract_typed_async("", simple_schema))
+        result = asyncio.run(extract_typed_async("", simple_schema))
         assert isinstance(result, tuple)
 
     def test_extract_from_chunks_async_runs(self, simple_schema: DRGSchema):
         chunks: list[dict] = [{"text": ""}]
-        result = asyncio.get_event_loop().run_until_complete(
-            extract_from_chunks_async(chunks, simple_schema)
-        )
+        result = asyncio.run(extract_from_chunks_async(chunks, simple_schema))
         assert isinstance(result, tuple)
 
     def test_extract_typed_async_respects_length_limit(self, simple_schema: DRGSchema, monkeypatch):
         monkeypatch.setenv("DRG_MAX_TEXT_CHARS", "5")
         with pytest.raises(ValueError, match="too long"):
-            asyncio.get_event_loop().run_until_complete(
-                extract_typed_async("123456789", simple_schema)
-            )
+            asyncio.run(extract_typed_async("123456789", simple_schema))
 
 
 # ---------------------------------------------------------------------------

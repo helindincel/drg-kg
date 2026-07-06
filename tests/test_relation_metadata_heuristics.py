@@ -21,3 +21,10 @@ def test_negation_heuristic_abstains_if_negation_not_related_to_relation():
     relations = [("Apple", "produces", "Newton")]
     meta = _infer_relation_metadata_heuristic(text=text, relations=relations)
     assert meta["negations"] == [False]
+
+
+def test_temporal_heuristic_does_not_inherit_unrelated_year():
+    text = "Apple acquired Beats. In 2020, Apple opened a flagship store."
+    relations = [("Apple", "acquired", "Beats")]
+    meta = _infer_relation_metadata_heuristic(text=text, relations=relations)
+    assert meta["temporal_info"] == [None]

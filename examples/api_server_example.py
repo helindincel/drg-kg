@@ -100,32 +100,45 @@ def main():
             port = int(argv[idx + 1])
             del argv[idx : idx + 2]
 
-    # Example name: command line argument > environment variable > auto-detect latest > default
+    # Dataset id: command line argument > environment variable > auto-detect latest > default
     if len(argv) > 0:
-        example_name = argv[0]
-        if example_name.isdigit():
-            example_name = f"{example_name}example"
+        dataset_arg = argv[0]
     elif os.getenv("DRG_EXAMPLE"):
-        example_name = os.getenv("DRG_EXAMPLE")
-        if example_name.isdigit():
-            example_name = f"{example_name}example"
+        dataset_arg = os.getenv("DRG_EXAMPLE")
     else:
-        # Auto-detect: Find the most recently modified KG file
-        kg_files = list(Path("outputs").glob("*example*_kg.json"))
+        kg_files = list(Path("outputs").glob("output*_kg.json"))
         if kg_files:
-            # Sort by modification time (most recent first)
             latest_kg = max(kg_files, key=lambda p: p.stat().st_mtime)
-            # Extract example name from filename (e.g., "outputs/3example_kg.json" -> "3example")
-            example_name = latest_kg.stem.replace("_kg", "")
+            dataset_arg = latest_kg.stem.replace("_kg", "").replace("output", "")
             print(f"🔍 En son güncellenen KG dosyası bulundu: {latest_kg.name}")
         else:
-            example_name = "1example"
+            dataset_arg = "2"
+
+    dataset_arg = str(dataset_arg).strip().lower()
+    if dataset_arg.startswith("input"):
+        dataset_arg = dataset_arg[5:]
+    elif dataset_arg.startswith("output"):
+        dataset_arg = dataset_arg[6:]
+    legacy_map = {
+        "example_1": "1",
+        "example_2": "2",
+        "example_4": "3",
+        "example_5": "4",
+        "example_6": "5",
+        "history_of_pizza": "6",
+        "the_little_prince": "7",
+        "wolf": "8",
+    }
+    dataset_id = int(legacy_map.get(dataset_arg, dataset_arg))
+    dataset_label = f"input{dataset_id}"
 
     print("=" * 70)
-    print(f"DRG API Server Example - {example_name.upper()}")
+    print(f"DRG API Server Example - {dataset_label.upper()}")
     print("=" * 70)
-    print(f"📌 Example seçimi: {example_name}")
-    print(f"   (Değiştirmek için: export DRG_EXAMPLE=3example veya python {sys.argv[0]} 3)")
+    print(f"📌 Dataset seçimi: {dataset_label}")
+    print(
+        f"   (Değiştirmek için: export DRG_EXAMPLE=1 veya python {sys.argv[0]} 2)"
+    )
 
     def _try_load_kg_file(path: Path) -> EnhancedKG | None:
         """Load a KG JSON file into EnhancedKG.
@@ -196,13 +209,12 @@ def main():
         return kg
 
     # Load knowledge graph from file if exists, otherwise use sample
-    kg_path = Path(f"outputs/{example_name}_kg.json")
+    kg_path = Path(f"outputs/output{dataset_id}_kg.json")
     kg = _try_load_kg_file(kg_path)
 
-    # Backward compatibility: if full pipeline output doesn't exist, fall back to CLI output:
-    # outputs/example{N}.json (where example_name is like "4example")
+    # Backward compatibility: legacy numbered example outputs (e.g. outputs/example2.json)
     if kg is None:
-        m = re.match(r"^(\d+)example$", example_name)
+        m = re.match(r"^example_(\d+)$", example_name)
         if m:
             legacy_path = Path(f"outputs/example{m.group(1)}.json")
             kg = _try_load_kg_file(legacy_path)

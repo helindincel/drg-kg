@@ -1,0 +1,28 @@
+include CHANGELOG.md
+include CODE_OF_CONDUCT.md
+include CONTRIBUTING.md
+include LICENSE
+include README.md
+include README.tr.md
+include SECURITY.md
+include pyproject.toml
+
+recursive-include drg *.py
+recursive-include drg *.typed
+recursive-include drg/api/templates *.html
+recursive-include drg/api/static *
+
+prune .github
+prune docs
+prune examples
+prune inputs
+prune outputs
+prune reports
+prune schemas
+prune scripts
+prune testenv
+prune tests
+
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude .DS_Store
