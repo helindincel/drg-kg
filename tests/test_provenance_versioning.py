@@ -125,6 +125,13 @@ def test_api_update_versions_and_provenance(monkeypatch):
             "text": "Alice works at Acme.",
             "model": "ollama_chat/llama3",
             "document_id": "doc_1",
+            "schema": {
+                "entities": [{"name": "Person"}, {"name": "Company"}, {"name": "Product"}],
+                "relations": [
+                    {"name": "works_at", "source": "Person", "target": "Company"},
+                    {"name": "produces", "source": "Company", "target": "Product"},
+                ],
+            },
         },
     )
     assert first.status_code == 200
@@ -136,6 +143,13 @@ def test_api_update_versions_and_provenance(monkeypatch):
             "text": "Acme produces Widget.",
             "model": "ollama_chat/llama3",
             "document_id": "doc_2",
+            "schema": {
+                "entities": [{"name": "Person"}, {"name": "Company"}, {"name": "Product"}],
+                "relations": [
+                    {"name": "works_at", "source": "Person", "target": "Company"},
+                    {"name": "produces", "source": "Company", "target": "Product"},
+                ],
+            },
         },
     )
     assert second.status_code == 200

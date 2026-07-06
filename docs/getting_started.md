@@ -14,15 +14,18 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 ```
 
-Install from PyPI after the public release:
+Install from PyPI:
 
 ```bash
-# Graph-only workflows
+# Graph-only workflows (validation, query, versioning — no LLM extraction)
 pip install drg-kg
 
-# `drg extract` and Python extraction APIs
+# Extraction + chunking (`tiktoken`, DSPy, `drg extract`)
 pip install "drg-kg[extract]"
 ```
+
+> **Package name:** install **`drg-kg`** from PyPI (`pip install drg-kg`), then
+> `import drg` in Python. The PyPI name `drg` belongs to an unrelated project.
 
 For a source checkout:
 
@@ -107,6 +110,8 @@ deterministic graph lookup, not an LLM answer generator.
 
 ## 6. Next Steps
 
+- Long documents and tokenization: [`docs/chunking_strategy.en.md`](chunking_strategy.en.md)
+  (install `drg-kg[extract]` for `tiktoken` + DSPy chunking)
 - Schema design: `docs/schema_design.md`
 - Query layer: `docs/query_layer.md`
 - Incremental updates: `docs/incremental_updates.md`

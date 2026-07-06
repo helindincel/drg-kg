@@ -88,6 +88,39 @@ def test_build_get_and_export_kg_without_llm():
     assert mcp_server.drg_list_kgs()["knowledge_graphs"][0]["kg_id"] == "kg1"
 
 
+def test_drg_extract_requires_registered_schema():
+    with pytest.raises(ValueError, match="not found"):
+        mcp_server.drg_extract("Apple produces iPhone.", "missing_schema")
+
+
+def test_drg_extract_with_mocked_extraction(monkeypatch):
+    mcp_server.drg_define_schema(
+        "demo",
+        {
+            "entities": [{"name": "Company"}, {"name": "Product"}],
+            "relations": [{"name": "produces", "src": "Company", "dst": "Product"}],
+        },
+    )
+    monkeypatch.setattr(
+        mcp_server,
+        "extract_typed",
+        lambda text, schema: ([("Apple", "Company"), ("iPhone", "Product")], [("Apple", "produces", "iPhone")]),
+    )
+    result = mcp_server.drg_extract("Apple produces iPhone.", "demo")
+    assert result["counts"]["entities"] == 2
+    assert result["triples"][0]["relation"] == "produces"
+
+
+def test_drg_export_kg_invalid_format():
+    mcp_server.drg_build_kg(
+        "kg_fmt",
+        entities=[["A", "Company"]],
+        triples=[],
+    )
+    with pytest.raises(ValueError, match="Unsupported format"):
+        mcp_server.drg_export_kg("kg_fmt", "yaml")
+
+
 def test_missing_kg_raises_clear_error():
     with pytest.raises(ValueError, match="not found"):
         mcp_server.drg_get_kg("missing")

@@ -9,6 +9,11 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-07-07
+
+First public PyPI release candidate after TestPyPI dry-runs (`0.1.0a0`,
+`0.1.0a1`). This version supersedes the unpublished `v0.1.0` tag.
+
 ### Release summary
 
 #### Features
@@ -21,14 +26,17 @@ out under **Breaking** sections.
   `extract_typed()`, `extract_from_chunks()`, `extract_typed_async()`,
   `extract_from_chunks_async()`, and the backward-compatible `extract_triples()`
   wrapper.
-- Package metadata, optional extras, Python 3.10-3.13 support, release
-  automation, CI, typed package marker, CLI/API/MCP/evaluation examples, and
-  bilingual README entry points are prepared for the first public release cycle.
+- Package metadata, optional extras (`extract`, `mcp`, `api`, `neo4j`, …), Python
+  3.10–3.13 support, release automation, CI, typed package marker,
+  CLI/API/MCP/evaluation examples, and bilingual README entry points ship in the
+  first public release cycle.
+- PyPI install: `pip install drg-kg` (import `drg`). The unrelated `drg` package
+  on PyPI is a Medicare DRG grouper — use **`drg-kg`** explicitly.
 
 #### Breaking changes
 
-- No additional breaking changes are introduced by the release-readiness
-  documentation pass.
+- No additional breaking changes beyond the alpha policy documented since
+  `0.1.0a0`.
 - Pre-`1.0` users should still review this changelog before upgrading because
   alpha JSON shapes, CLI flags, and optional integration surfaces may change.
 
@@ -52,6 +60,23 @@ out under **Breaking** sections.
 - Integration tests that require live credentials remain outside the default CI
   path.
 
+### Added (release readiness)
+
+- `docs/release_setup.md` — GitHub Secrets, environments, and tag workflow for
+  TestPyPI/PyPI.
+- `docs/chunking_strategy.en.md` — English summary for token windows, overlap,
+  and the `drg-kg[extract]` / `tiktoken` install path.
+- `docs/launch_checklist.md` links to release setup guide.
+- `CITATION.cff` for academic attribution.
+- `mkdocs.yml` + `docs/index.md` — MkDocs site scaffold (hosted docs target for
+  `v0.2`).
+- `docs/adr/0001-record-architecture-decisions.md` — ADR process starter.
+- `docs/migration_policy.md` — alpha vs stable API change policy.
+- `docs/community_launch.md` — announcement checklist, repo topics, demo script.
+- PyPI/Python/PEP 561 badges in `README.md` and `README.tr.md`.
+- `tests/test_optimizer_metrics.py` — unit coverage for optimizer metrics.
+- Extended MCP contract tests (`drg_extract`, export format validation).
+
 ### Changed (documentation cleanup)
 
 - `README.md` and `README.tr.md` were refreshed as the canonical root
@@ -60,6 +85,10 @@ out under **Breaking** sections.
 - Removed stale root-level planning notes (`BASLANGIC.md`, `EKSIKLER.md`,
   `REMAINING.md`, `STATUS.md`) so the repository root keeps only stable
   project documents.
+- `docs/getting_started.md` — PyPI install commands and chunking doc link.
+- `docs/setup.md` — pointer to English getting started guide.
+- Coverage gate raised to **80%**; `drg/cli.py`, `drg/mcp_server.py`, and
+  `drg/optimizer/metrics.py` removed from the omit list.
 
 ### Added (CI hardening)
 
@@ -350,5 +379,6 @@ to land on a coherent, production-leaning foundation.
 - The original alpha targeted DSPy 2.x. Current unreleased work targets
   DSPy 3.x via the `>=3.2.1,<4.0.0` optional extraction extra.
 
-[Unreleased]: https://github.com/helindincel/drg-kg/compare/v0.1.0a0...HEAD
+[Unreleased]: https://github.com/helindincel/drg-kg/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/helindincel/drg-kg/releases/tag/v0.1.1
 [0.1.0a0]: https://github.com/helindincel/drg-kg/releases/tag/v0.1.0a0

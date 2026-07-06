@@ -1,5 +1,7 @@
 # DRG — Kurulum Rehberi
 
+> **English install guide:** [`docs/getting_started.md`](getting_started.md)
+
 Bu doküman DRG'nin kurulum, konfigürasyon ve ilk çalıştırma adımlarını anlatır.
 Repo'nun **genel mimarisi ve felsefesi** için `docs/project_overview.md`'ye bakın.
 

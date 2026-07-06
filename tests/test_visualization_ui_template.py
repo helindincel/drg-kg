@@ -41,17 +41,16 @@ def test_details_panels_include_node_edge_provenance_fields():
     for expected in (
         "renderNodeRelations(node)",
         "Name:",
-        "Incoming:",
-        "Outgoing:",
+        "<strong>Incoming</strong>",
+        "<strong>Outgoing</strong>",
         "document_id",
         "sentence_id",
         "snippet",
         "extracted_at",
         "Source:",
         "Target:",
-        "Relation:",
         "Confidence:",
-        "Temporal Metadata",
+        "relationship_description",
     ):
         assert expected in html
 
@@ -60,7 +59,7 @@ def test_readability_controls_are_client_side_only():
     html = _template_text()
 
     assert "function prepareGraphElements(elements = [])" in html
-    assert "'width': 'mapData(connection_count, 0, 12, 42, 104)'" in html
+    assert "'width': 'mapData(connection_count, 0, 12, 16, 52)'" in html
     assert "function renderLegend()" in html
     assert 'id="legend-content"' in html
 

@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "DRG: Declarative Relationship Generation for Knowledge Graphs"
+message: "If you use DRG in academic or research work, please cite it as below."
+type: software
+authors:
+  - family-names: Dinçel
+    given-names: Helin
+repository-code: "https://github.com/helindincel/drg-kg"
+url: "https://github.com/helindincel/drg-kg"
+license: MIT
+version: 0.1.1
+date-released: 2026-07-07
+keywords:
+  - knowledge-graph
+  - knowledge-graph-extraction
+  - dspy
+  - nlp
+preferred-citation:
+  type: software
+  title: "DRG: Declarative Relationship Generation for Knowledge Graphs"
+  authors:
+    - family-names: Dinçel
+      given-names: Helin
+  year: 2026
+  url: "https://github.com/helindincel/drg-kg"

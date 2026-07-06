@@ -1,0 +1,27 @@
+site_name: DRG-KG
+site_description: Schema-driven Knowledge Graph extraction framework
+site_url: https://helindincel.github.io/drg-kg/
+repo_url: https://github.com/helindincel/drg-kg
+repo_name: helindincel/drg-kg
+
+theme:
+  name: readthedocs
+  language: en
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Public API: public_api.md
+  - Chunking (EN): chunking_strategy.en.md
+  - Release Setup: release_setup.md
+  - Launch Checklist: launch_checklist.md
+  - Migration Policy: migration_policy.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+docs_dir: docs

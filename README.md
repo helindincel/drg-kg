@@ -1,8 +1,14 @@
 # DRG - Declarative Relationship Generation
 
 [![CI](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml/badge.svg)](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/drg-kg.svg)](https://pypi.org/project/drg-kg/)
+[![Python versions](https://img.shields.io/pypi/pyversions/drg-kg.svg)](https://pypi.org/project/drg-kg/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Typed: PEP 561](https://img.shields.io/badge/typed-PEP%20561-blue.svg)](https://peps.python.org/pep-0561/)
+
+> **Install:** `pip install drg-kg` — then `import drg` in Python. The PyPI
+> package name `drg` is used by an unrelated Medicare DRG grouper project.
 
 DRG is a **schema-driven Knowledge Graph extraction framework**. It turns
 unstructured text into explainable Knowledge Graph artifacts by combining
@@ -207,8 +213,9 @@ pip install -e ".[neo4j]"    # Neo4j export
 After the public PyPI release, install the package with the extras you need:
 
 ```bash
-pip install "drg-kg[all]"
-pip install "drg-kg[extract]"  # DSPy extraction only
+pip install drg-kg                  # Core graph/query (no LLM extraction)
+pip install "drg-kg[extract]"       # DSPy extraction + tiktoken chunking
+pip install "drg-kg[all]"           # All optional integrations
 ```
 
 ## Quickstart

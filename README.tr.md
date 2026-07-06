@@ -1,8 +1,14 @@
 # DRG - Declarative Relationship Generation
 
 [![CI](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml/badge.svg)](https://github.com/helindincel/drg-kg/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/drg-kg.svg)](https://pypi.org/project/drg-kg/)
+[![Python versions](https://img.shields.io/pypi/pyversions/drg-kg.svg)](https://pypi.org/project/drg-kg/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Typed: PEP 561](https://img.shields.io/badge/typed-PEP%20561-blue.svg)](https://peps.python.org/pep-0561/)
+
+> **Kurulum:** `pip install drg-kg` — Python'da `import drg`. PyPI'deki `drg`
+> paketi farklı bir projeye (Medicare DRG grouper) aittir.
 
 DRG bir **şema odaklı Knowledge Graph extraction framework**'tür.
 Yapılandırılmamış metni, deklaratif şemalar ve DSPy tabanlı extraction ile
@@ -214,8 +220,9 @@ pip install -e ".[neo4j]"    # Neo4j export
 Public PyPI release sonrasında ihtiyacınız olan extra'larla kurulum:
 
 ```bash
-pip install "drg-kg[all]"
-pip install "drg-kg[extract]"  # Yalnızca DSPy extraction
+pip install drg-kg                  # Çekirdek graph/query (LLM extraction yok)
+pip install "drg-kg[extract]"       # DSPy extraction + tiktoken chunking
+pip install "drg-kg[all]"           # Tüm opsiyonel entegrasyonlar
 ```
 
 ## Hızlı Başlangıç

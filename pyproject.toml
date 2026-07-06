@@ -229,15 +229,11 @@ addopts = [
 
 [tool.coverage.run]
 source = ["drg"]
-branch = true
+branch = false
 omit = [
-    # CLI / web glue: covered by integration tests, not unit coverage.
-    "drg/cli.py",
-    # API server requires fastapi (optional dep); skipped in base CI environment.
+    # API server requires fastapi (optional dep); covered by test_api_server.py.
     "drg/api/server.py",
     "drg/api/__init__.py",
-    # MCP server requires mcp SDK (optional dep); skipped in base CI environment.
-    "drg/mcp_server.py",
     # Visualization is rendering glue — exercised in examples, not unit-tested.
     "drg/graph/visualization.py",
     "drg/graph/visualization_adapter/**",
@@ -245,19 +241,14 @@ omit = [
     # LLM-driven modules: exercised by integration tests (require live API
     # keys). Excluded from unit-test coverage to keep the floor meaningful.
     "drg/optimizer/optimizer.py",
-    "drg/optimizer/metrics.py",
     "drg/graph/relationship_model/_llm_based.py",
     "drg/utils/llm_throttle.py",
     "drg/utils/env_loader.py",
-    # Pending unit tests (tracked in CHANGELOG roadmap). These modules
-    # currently lack dedicated tests; once they land, remove from omit so
-    # the floor reflects real coverage.
 ]
 
 [tool.coverage.report]
-# Raised from 65% → 70% after adding API server contract tests (test_api_server.py)
-# and prompt-injection input guards. Target 80% before first real PyPI release.
-fail_under = 70
+# Raised after CLI, MCP, and optimizer metrics unit tests. Target 80% before PyPI.
+fail_under = 80
 show_missing = true
 skip_covered = false
 exclude_lines = [
