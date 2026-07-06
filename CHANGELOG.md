@@ -9,6 +9,20 @@ out under **Breaking** sections.
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-07-07
+
+Patch release restoring a green CI matrix and pre-commit gate on `main`.
+
+### Fixed
+
+- Ruff lint/format drift in extract, graph, and test modules.
+- Pre-commit mypy parity (`ExitStack` return paths, hook bump to v1.15.0).
+- Coverage floor in clean installs by omitting optional-dep clustering from the
+  unit-test omit list.
+- Python 3.10 test collection (`tomllib` → `tomli` fallback in dev extras).
+- Portable `DRG_DEFAULT_SCHEMA` path in CLI unit tests (no machine-specific
+  absolute paths).
+
 ## [0.1.1] — 2026-07-07
 
 First public PyPI release candidate after TestPyPI dry-runs (`0.1.0a0`,
