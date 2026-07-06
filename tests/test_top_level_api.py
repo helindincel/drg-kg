@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
-import tomllib
+import sys
+from pathlib import Path
 
 import drg
 
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 
 def test_base_dependencies_cover_top_level_import_runtime_requirements():
-    pyproject = tomllib.loads(open("pyproject.toml", "rb").read().decode("utf-8"))
+    with Path("pyproject.toml").open("rb") as f:
+        pyproject = tomllib.load(f)
     dependencies = pyproject["project"]["dependencies"]
 
     assert any(dep.lower().startswith("numpy") for dep in dependencies)
