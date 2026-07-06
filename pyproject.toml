@@ -238,6 +238,9 @@ omit = [
     "drg/graph/visualization.py",
     "drg/graph/visualization_adapter/**",
     "drg/graph/neo4j_exporter.py",
+    # Clustering algorithms require optional graph libs (python-louvain,
+    # leidenalg, scikit-learn). Unit tests skip when extras are absent.
+    "drg/clustering/algorithms.py",
     # LLM-driven modules: exercised by integration tests (require live API
     # keys). Excluded from unit-test coverage to keep the floor meaningful.
     "drg/optimizer/optimizer.py",

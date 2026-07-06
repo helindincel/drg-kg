@@ -790,7 +790,8 @@ class KGExtractor(dspy.Module):
         with contextlib.ExitStack() as stack:
             stack.enter_context(_maybe_lm_context(self.lm))
             stack.enter_context(_maybe_json_adapter_context())
-            return self._forward_impl(text, context_entities)
+            result = self._forward_impl(text, context_entities)
+        return result
 
     def _forward_impl(
         self,
@@ -919,11 +920,12 @@ class KGExtractor(dspy.Module):
                 if isinstance(result, RelationList)
                 else getattr(result, "relations", [])
             )
-            return _relations_to_extraction_result(
+            result = _relations_to_extraction_result(
                 entities=entities,
                 relations=_coerce_extracted_relations(raw_relations),
                 metadata_source="document_relation_extraction",
             )
+        return result
 
     def infer_implicit_relations(
         self,
@@ -950,11 +952,12 @@ class KGExtractor(dspy.Module):
                 if isinstance(result, RelationList)
                 else getattr(result, "relations", [])
             )
-            return _relations_to_extraction_result(
+            result = _relations_to_extraction_result(
                 entities=entities,
                 relations=_coerce_extracted_relations(raw_relations),
                 metadata_source="implicit_relation_extraction",
             )
+        return result
 
     def resolve_coreferences_dspy(
         self,
@@ -983,11 +986,12 @@ class KGExtractor(dspy.Module):
             )
             if raw_relations is None:
                 raw_relations = getattr(result, "relations", [])
-            return _relations_to_extraction_result(
+            extraction = _relations_to_extraction_result(
                 entities=entities,
                 relations=_coerce_extracted_relations(raw_relations),
                 metadata_source="coreference_resolution",
             )
+        return extraction
 
 
 # ---------------------------------------------------------------------------
